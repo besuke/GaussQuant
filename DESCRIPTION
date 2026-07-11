@@ -1,0 +1,17 @@
+Package: GaussQuant
+Title: High-Level Quantitative Finance Workflows
+Version: 0.0.0.9000
+Authors@R: person("Eiichi", "Horigome", email = "besuke.poripori@outlook.com", role = c("aut", "cre"))
+Description: Provides high-level quantitative finance models, workflows,
+    and tidy analytical outputs built on top of QuantLibGauss.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Depends:
+    R (>= 4.1.0)
+Imports:
+    QuantLibGauss,
+    tibble,
+    dplyr,
+    purrr
+Config/roxygen2/version: 8.0.0
