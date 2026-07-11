@@ -4,15 +4,21 @@
 \name{GaussQuant-package}
 \alias{GaussQuant}
 \alias{GaussQuant-package}
-\title{GaussQuant: High-Level Quantitative Finance Workflows}
+\title{GaussQuant: Tidy Interface to QuantLib for Quantitative Finance}
 \description{
-GaussQuant provides reusable quantitative-finance models,
-analytical workflows, and tidy outputs built on QuantLibGauss.
+GaussQuant provides reusable R interfaces to the SWIG version of
+QuantLib for fixed income, derivatives, credit, risk analytics,
+pricing engines, cashflows, and quantitative-finance workflows.
 }
 \details{
-QuantLibGauss contains the QuantLib infrastructure layer.
-GaussQuant contains higher-level reusable analysis.
-LagrangeFinance contains examples, tables, plots, and explanations.
+GaussQuant is the formal successor to QuantLibGauss and uses
+QuantLib directly. It does not depend on QuantLibGauss.
+
+LagrangeFinance provides the educational, presentation, table,
+graph, and interpretation layer built on GaussQuant.
+
+Functions in the QuantLib and financial-calculation layer use the
+suffix \verb{_GQL}. Common helper functions use the suffix \verb{_GQH}.
 }
 \author{
 \strong{Maintainer}: Eiichi Horigome \email{besuke.poripori@outlook.com}

@@ -1,17 +1,21 @@
 Package: GaussQuant
-Title: High-Level Quantitative Finance Workflows
+Title: Tidy R Interface to QuantLib for Quantitative Finance
 Version: 0.0.0.9000
 Authors@R: person("Eiichi", "Horigome", email = "besuke.poripori@outlook.com", role = c("aut", "cre"))
-Description: Provides high-level quantitative finance models, workflows,
-    and tidy analytical outputs built on top of QuantLibGauss.
+Description: Provides reusable R interfaces to the SWIG version of QuantLib
+    for fixed income, derivatives, credit, pricing engines, cashflows,
+    risk analytics, and quantitative-finance workflows. GaussQuant is
+    the formal successor to QuantLibGauss and uses QuantLib directly
+    without depending on QuantLibGauss.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Depends:
     R (>= 4.1.0)
 Imports:
-    QuantLibGauss,
+    QuantLib,
     tibble,
     dplyr,
-    purrr
+    purrr,
+    lubridate
 Config/roxygen2/version: 8.0.0
