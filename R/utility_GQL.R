@@ -33,6 +33,25 @@ iso_GQL <- function(x) {
 }
 
 
+#' Convert a date value to R Date
+#'
+#' @param x QuantLib Date, R Date, or ISO date string.
+#'
+#' @return An R Date.
+#'
+#' @export
+as_r_date_GQH <- function(x) {
+  if (inherits(x, "Date")) {
+    return(x)
+  }
+
+  if (is.character(x)) {
+    return(as.Date(x))
+  }
+
+  as.Date(iso_GQL(x))
+}
+
 #' Set QuantLib evaluation date
 #'
 #' @param x Date or character scalar.
@@ -53,7 +72,7 @@ eval_date_GQL <- function(x) {
 
 #' Get QuantLib evaluation date
 #'
-#' @return ISO date string.
+#' @return An R Date.
 #'
 #' @export
 eval_date_get_GQL <- function() {
@@ -75,7 +94,7 @@ eval_date_get_GQL <- function() {
     }
   )
 
-  iso_GQL(d)
+  as_r_date_GQH(d)
 }
 
 

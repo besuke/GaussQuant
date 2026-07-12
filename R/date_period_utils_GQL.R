@@ -230,13 +230,15 @@ schedule_dates_GQL <- function(schedule) {
   )
 
   if (is.na(n) || n <= 0) {
-    return(tibble::tibble(schedule_date = character()))
+    return(tibble::tibble(schedule_date = as.Date(character())))
   }
 
   tibble::tibble(
-    schedule_date = purrr::map_chr(
-      seq_len(n),
-      function(i) iso_GQL(schedule_date_at_GQL(schedule, i))
+    schedule_date = as.Date(
+      purrr::map_chr(
+        seq_len(n),
+        function(i) iso_GQL(schedule_date_at_GQL(schedule, i))
+      )
     )
   )
 }

@@ -173,7 +173,9 @@ schedule_table_GQL <- function(schedule) {
 
   tibble::tibble(
     period = seq_along(dates),
-    schedule_date = purrr::map_chr(dates, iso_GQL)
+    schedule_date = as.Date(
+      purrr::map_chr(dates, iso_GQL)
+    )
   )
 }
 

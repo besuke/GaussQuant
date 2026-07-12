@@ -7,7 +7,7 @@
 eval_date_get_GQL()
 }
 \value{
-ISO date string.
+An R Date.
 }
 \description{
 Get QuantLib evaluation date
