@@ -1,4 +1,4 @@
-﻿#' GaussQuant: Tidy Interface to QuantLib for Quantitative Finance
+#' GaussQuant: Tidy Interface to QuantLib for Quantitative Finance
 #'
 #' GaussQuant provides reusable R interfaces to the SWIG version of
 #' QuantLib for fixed income, derivatives, credit, risk analytics,

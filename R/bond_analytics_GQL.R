@@ -1036,7 +1036,7 @@ bond_price_measures_GQL <- function(
     settlement_date_ql <- date_GQL(settlement_date)
 
     schedule_dates <- tryCatch(
-      schedule_date_vector_GQL(schedule),
+      .schedule_date_vector_ql_GQL(schedule),
       error = function(e) NULL
     )
 

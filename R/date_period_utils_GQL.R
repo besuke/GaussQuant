@@ -38,20 +38,30 @@ set_eval_date_GQL <- function(eval_date) {
   invisible(d)
 }
 
-#' Advance a QuantLib date by calendar days
-#'
-#' @param calendar_obj QuantLib calendar object.
-#' @param date_obj ISO date string, R Date, or QuantLib Date.
-#' @param n_days Number of days.
-#'
-#' @return A QuantLib Date object.
-#' @export
-advance_days_GQL <- function(calendar_obj, date_obj, n_days) {
+.advance_days_ql_GQL <- function(calendar_obj, date_obj, n_days) {
   QuantLib::Calendar_advance(
     calendar_obj,
     .as_ql_date_GQL(date_obj),
     as.integer(n_days),
     "Days"
+  )
+}
+
+#' Advance a date by calendar days
+#'
+#' @param calendar_obj QuantLib calendar object.
+#' @param date_obj ISO date string, R Date, or QuantLib Date.
+#' @param n_days Number of days.
+#'
+#' @return An R Date.
+#' @export
+advance_days_GQL <- function(calendar_obj, date_obj, n_days) {
+  as_r_date_GQH(
+    .advance_days_ql_GQL(
+      calendar_obj = calendar_obj,
+      date_obj = date_obj,
+      n_days = n_days
+    )
   )
 }
 
@@ -166,14 +176,7 @@ period_chr_GQL <- function(x) {
   chr_GQL(period_GQL(x))
 }
 
-#' Extract a date from a QuantLib schedule
-#'
-#' @param schedule QuantLib Schedule object.
-#' @param i_one_based One-based date index.
-#'
-#' @return A QuantLib Date object, or NULL if extraction fails.
-#' @export
-schedule_date_at_GQL <- function(schedule, i_one_based) {
+.schedule_date_at_ql_GQL <- function(schedule, i_one_based) {
   idx0 <- as.integer(i_one_based - 1L)
 
   out <- tryCatch(
@@ -200,21 +203,38 @@ schedule_date_at_GQL <- function(schedule, i_one_based) {
   )
 }
 
+#' Extract a date from a QuantLib schedule
+#'
+#' @param schedule QuantLib Schedule object.
+#' @param i_one_based One-based date index.
+#'
+#' @return An R Date, or NA if extraction fails.
+#' @export
+schedule_date_at_GQL <- function(schedule, i_one_based) {
+  date_ql <- .schedule_date_at_ql_GQL(
+    schedule = schedule,
+    i_one_based = i_one_based
+  )
+
+  if (is.null(date_ql)) {
+    return(as.Date(NA))
+  }
+
+  as_r_date_GQH(date_ql)
+}
+
 #' Extract a schedule date as local R Date
 #'
 #' @param schedule QuantLib Schedule object.
 #' @param i_one_based One-based date index.
 #'
-#' @return R Date, or NA if extraction fails.
+#' @return An R Date, or NA if extraction fails.
 #' @export
 schedule_date_at_local_GQL <- function(schedule, i_one_based) {
-  d <- schedule_date_at_GQL(schedule, i_one_based)
-
-  if (is.null(d)) {
-    return(as.Date(NA))
-  }
-
-  as.Date(iso_GQL(d))
+  schedule_date_at_GQL(
+    schedule = schedule,
+    i_one_based = i_one_based
+  )
 }
 
 #' Build a table of QuantLib schedule dates
@@ -237,7 +257,7 @@ schedule_dates_GQL <- function(schedule) {
     schedule_date = as.Date(
       purrr::map_chr(
         seq_len(n),
-        function(i) iso_GQL(schedule_date_at_GQL(schedule, i))
+        function(i) as.character(schedule_date_at_GQL(schedule, i))
       )
     )
   )

@@ -12,7 +12,7 @@ schedule_date_at_local_GQL(schedule, i_one_based)
 \item{i_one_based}{One-based date index.}
 }
 \value{
-R Date, or NA if extraction fails.
+An R Date, or NA if extraction fails.
 }
 \description{
 Extract a schedule date as local R Date

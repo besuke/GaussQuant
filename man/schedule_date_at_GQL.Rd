@@ -12,7 +12,7 @@ schedule_date_at_GQL(schedule, i_one_based)
 \item{i_one_based}{One-based date index.}
 }
 \value{
-A QuantLib Date object, or NULL if extraction fails.
+An R Date, or NA if extraction fails.
 }
 \description{
 Extract a date from a QuantLib schedule

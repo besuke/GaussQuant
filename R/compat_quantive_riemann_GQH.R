@@ -470,7 +470,7 @@ ois_daily_forward_table_GQH <- function(
 #'
 #' @return A curve environment list containing curve, curve_handle, index, and metadata.
 #' @export
-ir_make_ois_curve_GQH <- function(
+ir_build_ois_curve_GQH <- function(
     curve_data,
     trade_date,
     currency,
@@ -482,7 +482,7 @@ ir_make_ois_curve_GQH <- function(
   conv <- .ir_get_ois_convention_GQH(currency, instrument)
 
   trade_date_ql <- date_GQL(trade_date)
-  settle_date <- advance_days_GQL(
+  settle_date <- .advance_days_ql_GQL(
     conv$calendar,
     trade_date_ql,
     conv$settlement_days
@@ -537,10 +537,10 @@ ir_make_ois_curve_GQH <- function(
   QuantLib::RelinkableYieldTermStructureHandle_linkTo(curve_handle, curve_obj)
 
   out <- list(
-    trade_date = as.character(as.Date(trade_date)),
+    trade_date = as.Date(trade_date),
     currency = toupper(trimws(currency)),
     instrument = toupper(trimws(instrument)),
-    settle_date = iso_GQL(settle_date),
+    settle_date = as_r_date_GQH(settle_date),
     curve = curve_obj,
     curve_handle = curve_handle,
     index = index_obj
@@ -548,7 +548,7 @@ ir_make_ois_curve_GQH <- function(
 
   .ir_msg_GQH(
     verbose,
-    "[ir_make_ois_curve_GQH] done: ",
+    "[ir_build_ois_curve_GQH] done: ",
     out$currency, "::", out$instrument,
     ", settle_date = ", out$settle_date
   )
@@ -612,7 +612,7 @@ ir_build_ois_curve_envs_GQH <- function(
         ) |>
         dplyr::select(.data$kind, .data$tenor, .data$rate)
 
-      ir_make_ois_curve_GQH(
+      ir_build_ois_curve_GQH(
         curve_data = curve_data,
         trade_date = trade_date,
         currency = currency,
@@ -637,7 +637,7 @@ ir_build_ois_curve_envs_GQH <- function(
   conv
 }
 
-.ir_try_make_ois_trade_GQH <- function(
+.ir_try_build_ois_trade_GQH <- function(
     swap_type,
     nominal,
     fixed_schedule,
@@ -824,7 +824,7 @@ trade_ois_swap_GQH <- function(
 
   index_obj <- conv$index_builder(curve_env$curve_handle)
 
-  swap_obj <- .ir_try_make_ois_trade_GQH(
+  swap_obj <- .ir_try_build_ois_trade_GQH(
     swap_type = swap_type,
     nominal = nominal,
     fixed_schedule = fixed_schedule,

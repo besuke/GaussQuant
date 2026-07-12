@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_GQH.R
 \name{schedule_date_vector_GQL}
 \alias{schedule_date_vector_GQL}
-\title{Build a list of dates from a QuantLib schedule}
+\title{Build an R Date vector from a QuantLib schedule}
 \usage{
 schedule_date_vector_GQL(schedule)
 }
@@ -10,8 +10,8 @@ schedule_date_vector_GQL(schedule)
 \item{schedule}{QuantLib Schedule object.}
 }
 \value{
-List of QuantLib Date objects.
+An R Date vector.
 }
 \description{
-Build a list of dates from a QuantLib schedule
+Build an R Date vector from a QuantLib schedule
 }

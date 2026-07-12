@@ -691,7 +691,7 @@ ois_cashflow_schedule_from_trade_GQL <- function(
   stopifnot(is.data.frame(trade))
   stopifnot(nrow(trade) == 1)
 
-  swap <- make_ois_from_trade_GQL(
+  swap <- build_ois_from_trade_GQL(
     trade = trade,
     forecast_handle = forecast_handle
   )

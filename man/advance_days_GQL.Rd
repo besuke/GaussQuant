@@ -2,7 +2,7 @@
 % Please edit documentation in R/date_period_utils_GQL.R
 \name{advance_days_GQL}
 \alias{advance_days_GQL}
-\title{Advance a QuantLib date by calendar days}
+\title{Advance a date by calendar days}
 \usage{
 advance_days_GQL(calendar_obj, date_obj, n_days)
 }
@@ -14,8 +14,8 @@ advance_days_GQL(calendar_obj, date_obj, n_days)
 \item{n_days}{Number of days.}
 }
 \value{
-A QuantLib Date object.
+An R Date.
 }
 \description{
-Advance a QuantLib date by calendar days
+Advance a date by calendar days
 }

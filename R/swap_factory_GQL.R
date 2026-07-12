@@ -1,6 +1,6 @@
 # swap_factory.R
 
-#' Create an OIS swap
+#' Build an OIS swap
 #'
 #' @param swap_tenor QuantLib Period object.
 #' @param overnight_index QuantLib overnight index object.
@@ -8,7 +8,7 @@
 #'
 #' @return A QuantLib OIS swap object.
 #' @export
-make_ois_GQL <- function(
+build_ois_GQL <- function(
     swap_tenor,
     overnight_index,
     fixed_rate
@@ -24,7 +24,7 @@ make_ois_GQL <- function(
   QuantLib::MakeOIS_makeOIS(swap_builder)
 }
 
-#' Create an Eonia OIS swap
+#' Build an Eonia OIS swap
 #'
 #' @param swap_tenor QuantLib Period object.
 #' @param forecast_handle QuantLib yield term structure handle.
@@ -32,7 +32,7 @@ make_ois_GQL <- function(
 #'
 #' @return A QuantLib OIS swap object.
 #' @export
-make_eonia_ois_GQL <- function(
+build_eonia_ois_GQL <- function(
     swap_tenor,
     forecast_handle,
     fixed_rate
@@ -41,7 +41,7 @@ make_eonia_ois_GQL <- function(
 
   overnight_index <- QuantLib::Eonia(forecast_handle)
 
-  make_ois_GQL(
+  build_ois_GQL(
     swap_tenor = swap_tenor,
     overnight_index = overnight_index,
     fixed_rate = fixed_rate
@@ -61,7 +61,7 @@ make_eonia_ois_GQL <- function(
 
 
 
-#' Make an OIS from trade data
+#' Build an OIS from trade data
 #'
 #' @param trade A one-row data frame containing OIS trade fields.
 #' @param forecast_handle QuantLib forecast curve handle.
@@ -69,7 +69,7 @@ make_eonia_ois_GQL <- function(
 #' @return A QuantLib OIS object.
 #'
 #' @export
-make_ois_from_trade_GQL <- function(
+build_ois_from_trade_GQL <- function(
     trade,
     forecast_handle
 ) {
@@ -106,7 +106,7 @@ make_ois_from_trade_GQL <- function(
 
   if (index == "EONIA") {
     return(
-      make_eonia_ois_GQL(
+      build_eonia_ois_GQL(
         swap_tenor = swap_tenor,
         forecast_handle = forecast_handle,
         fixed_rate = fixed_rate

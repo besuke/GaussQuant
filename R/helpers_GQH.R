@@ -138,18 +138,16 @@ safe_iso_GQH <- function(x) {
 }
 
 
-#' Build a list of dates from a QuantLib schedule
-#'
-#' @param schedule QuantLib Schedule object.
-#' @return List of QuantLib Date objects.
-#' @export
-schedule_date_vector_GQL <- function(schedule) {
+.schedule_date_vector_ql_GQL <- function(schedule) {
   purrr::map(
     seq_len(schedule$size()),
     function(i) {
-      out <- schedule_date_at_GQL(schedule, i)
+      date_ql <- .schedule_date_at_ql_GQL(
+        schedule = schedule,
+        i_one_based = i
+      )
 
-      if (is.null(out)) {
+      if (is.null(date_ql)) {
         stop(
           "Unable to access schedule date at index ",
           i,
@@ -157,11 +155,24 @@ schedule_date_vector_GQL <- function(schedule) {
         )
       }
 
-      out
+      date_ql
     }
   )
 }
 
+#' Build an R Date vector from a QuantLib schedule
+#'
+#' @param schedule QuantLib Schedule object.
+#' @return An R Date vector.
+#' @export
+schedule_date_vector_GQL <- function(schedule) {
+  as.Date(
+    purrr::map_chr(
+      .schedule_date_vector_ql_GQL(schedule),
+      iso_GQL
+    )
+  )
+}
 
 #' Build a schedule table with period numbers
 #'
@@ -173,12 +184,9 @@ schedule_table_GQL <- function(schedule) {
 
   tibble::tibble(
     period = seq_along(dates),
-    schedule_date = as.Date(
-      purrr::map_chr(dates, iso_GQL)
-    )
+    schedule_date = dates
   )
 }
-
 
 #' Safely obtain a discount factor
 #'
@@ -1502,7 +1510,7 @@ swap_annuity_from_schedule_GQL <- function(
     curve,
     day_counter
 ) {
-  dates <- schedule_date_vector_GQL(schedule)
+  dates <- .schedule_date_vector_ql_GQL(schedule)
 
   if (length(dates) < 2L) {
     return(NA_real_)
@@ -1541,7 +1549,7 @@ forward_swap_rate_from_schedule_GQL <- function(
     curve,
     day_counter
 ) {
-  dates <- schedule_date_vector_GQL(schedule)
+  dates <- .schedule_date_vector_ql_GQL(schedule)
 
   annuity <- swap_annuity_from_schedule_GQL(
     schedule,
@@ -2222,15 +2230,9 @@ hull_white_forward_drift_GQL <- function(
 }
 
 
-#' Calculate a midpoint date
-#'
-#' @param first_date First QuantLib date.
-#' @param second_date Second QuantLib date.
-#' @return QuantLib midpoint date.
-#' @export
-mid_date_GQH <- function(first_date, second_date) {
-  first_r <- as.Date(iso_GQL(first_date))
-  second_r <- as.Date(iso_GQL(second_date))
+.mid_date_ql_GQH <- function(first_date, second_date) {
+  first_r <- as_r_date_GQH(first_date)
+  second_r <- as_r_date_GQH(second_date)
 
   midpoint <- first_r +
     floor(
@@ -2241,9 +2243,28 @@ mid_date_GQH <- function(first_date, second_date) {
         2
     )
 
-  date_GQL(format(midpoint, "%Y-%m-%d"))
+  date_GQL(
+    format(
+      midpoint,
+      "%Y-%m-%d"
+    )
+  )
 }
 
+#' Calculate a midpoint date
+#'
+#' @param first_date First QuantLib date, R Date, or ISO date string.
+#' @param second_date Second QuantLib date, R Date, or ISO date string.
+#' @return An R Date.
+#' @export
+mid_date_GQH <- function(first_date, second_date) {
+  as_r_date_GQH(
+    .mid_date_ql_GQH(
+      first_date = first_date,
+      second_date = second_date
+    )
+  )
+}
 
 #' Obtain the QuantLib CDS buyer-side enum
 #'
@@ -2295,7 +2316,7 @@ cds_cashflow_table_GQL <- function(
     trade_date,
     notional
 ) {
-  schedule_dates <- schedule_date_vector_GQL(
+  schedule_dates <- .schedule_date_vector_ql_GQL(
     cds_schedule
   )
 
@@ -2401,7 +2422,7 @@ cds_cashflow_table_GQL <- function(
           return(NULL)
         }
 
-        mid_date_GQH(
+        .mid_date_ql_GQH(
           first_date,
           second_date
         )

@@ -7,12 +7,12 @@
 mid_date_GQH(first_date, second_date)
 }
 \arguments{
-\item{first_date}{First QuantLib date.}
+\item{first_date}{First QuantLib date, R Date, or ISO date string.}
 
-\item{second_date}{Second QuantLib date.}
+\item{second_date}{Second QuantLib date, R Date, or ISO date string.}
 }
 \value{
-QuantLib midpoint date.
+An R Date.
 }
 \description{
 Calculate a midpoint date
