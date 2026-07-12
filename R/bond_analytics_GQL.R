@@ -1591,3 +1591,19 @@ bond_futures_net_basis_row_GQL <- function(
     implied_repo = implied_repo
   )
 }
+
+ql_date_to_r_date_GQH <- function(x) {
+  if (inherits(x, "Date")) {
+    return(x)
+  }
+
+  tryCatch(
+    as.Date(Date_ISO(x)),
+    error = function(e1) {
+      tryCatch(
+        as.Date(x$ISO()),
+        error = function(e2) as.Date(NA)
+      )
+    }
+  )
+}

@@ -2508,3 +2508,10 @@ use_quantlib_GQH <- function(
   .libPaths(c(path, .libPaths()))
   invisible(.libPaths())
 }
+
+#' Test GaussQuant
+#'
+#' @export
+hello_GQH <- function() {
+  "GaussQuant is ready."
+}
