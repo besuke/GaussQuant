@@ -13,7 +13,7 @@ make_ois_GQL <- function(
     overnight_index,
     fixed_rate
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
 
   swap_builder <- QuantLib::MakeOIS(
     swapTenor = swap_tenor,
@@ -37,7 +37,7 @@ make_eonia_ois_GQL <- function(
     forecast_handle,
     fixed_rate
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
 
   overnight_index <- QuantLib::Eonia(forecast_handle)
 
@@ -73,7 +73,7 @@ make_ois_from_trade_GQL <- function(
     trade,
     forecast_handle
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
 
   stopifnot(is.data.frame(trade))
   stopifnot(nrow(trade) == 1)
@@ -146,7 +146,7 @@ make_ibor_index_GQL <- function(
     index = "Euribor6M",
     forecast_handle = NULL
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
 
   index <- toupper(as.character(index))
 
@@ -206,7 +206,7 @@ make_schedule_GQL <- function(
     date_generation = "Forward",
     end_of_month = FALSE
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
 
   QuantLib::Schedule(
     qlg_date(effective_date),
@@ -264,7 +264,7 @@ make_vanilla_swap_GQL <- function(
     fixed_convention = "ModifiedFollowing",
     floating_convention = "ModifiedFollowing"
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
 
   fixed_schedule <- make_schedule_GQL(
     effective_date = effective_date,
@@ -338,7 +338,7 @@ trade_period_GQL <- function(
     default_n,
     default_unit
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
 
   n <- trade_value_GQL(
     trade = trade,
@@ -373,7 +373,7 @@ make_vanilla_swap_from_trade_GQL <- function(
     forecast_handle = NULL,
     discount_handle = NULL
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
 
   stopifnot(is.data.frame(trade))
   stopifnot(nrow(trade) == 1)
@@ -452,7 +452,7 @@ make_vanilla_swap_from_trade_GQL <- function(
 }
 
 
-.qlg_quantlib_fun <- function(name) {
+.quantlib_fun_GQH <- function(name) {
   ql <- asNamespace("QuantLib")
 
   if (!exists(name, envir = ql, inherits = FALSE)) {
@@ -502,7 +502,7 @@ make_asset_swap_GQL <- function(
     gearing = 1,
     non_par_repayment = 100
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
 
   if (missing(floating_schedule) || is.null(floating_schedule)) {
     stop("floating_schedule must be supplied.", call. = FALSE)
@@ -523,7 +523,7 @@ make_asset_swap_GQL <- function(
     if (!is.null(maturity_date)) {
       deal_maturity <- qlg_date(maturity_date)
     } else if (exists("Bond_maturityDate", envir = asNamespace("QuantLib"), inherits = FALSE)) {
-      deal_maturity <- .qlg_quantlib_fun("Bond_maturityDate")(bond)
+      deal_maturity <- .quantlib_fun_GQH("Bond_maturityDate")(bond)
     } else {
       stop(
         "Either maturity_date or deal_maturity must be supplied.",
@@ -534,7 +534,7 @@ make_asset_swap_GQL <- function(
     deal_maturity <- qlg_date(deal_maturity)
   }
 
-  asset_swap <- .qlg_quantlib_fun("AssetSwap__SWIG_0")(
+  asset_swap <- .quantlib_fun_GQH("AssetSwap__SWIG_0")(
     as.logical(pay_bond_coupon),
     bond,
     as.numeric(clean_price),
@@ -559,7 +559,7 @@ make_asset_swap_GQL <- function(
 }
 
 .qlg_asset_swap_set_pricing_engine <- function(asset_swap, engine) {
-  .qlg_quantlib_fun("Instrument_setPricingEngine")(asset_swap, engine)
+  .quantlib_fun_GQH("Instrument_setPricingEngine")(asset_swap, engine)
   invisible(asset_swap)
 }
 
@@ -573,7 +573,7 @@ make_asset_swap_GQL <- function(
 asset_swap_set_engine_GQL <- function(asset_swap, discount_curve_handle) {
   requireNamespace("QuantLib", quietly = TRUE)
 
-  engine <- .qlg_quantlib_fun("DiscountingSwapEngine")(discount_curve_handle)
+  engine <- .quantlib_fun_GQH("DiscountingSwapEngine")(discount_curve_handle)
   .qlg_asset_swap_set_pricing_engine(asset_swap, engine)
 
   invisible(asset_swap)
@@ -581,7 +581,7 @@ asset_swap_set_engine_GQL <- function(asset_swap, discount_curve_handle) {
 
 .qlg_asset_swap_value <- function(asset_swap, fun_name) {
   out <- tryCatch(
-    .qlg_quantlib_fun(fun_name)(asset_swap),
+    .quantlib_fun_GQH(fun_name)(asset_swap),
     error = function(e) NA_real_
   )
 
@@ -692,7 +692,7 @@ make_asset_swap_from_trade_GQL <- function(
     floating_schedule = NULL,
     calendar = QuantLib::TARGET()
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
 
   stopifnot(is.data.frame(trade))
   stopifnot(nrow(trade) == 1)
@@ -843,7 +843,7 @@ make_cds_GQL <- function(
     pricing_engine = NULL,
     upfront_rate = NULL
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
 
   maturity_date <- .qlg_cds_date(maturity_date)
@@ -852,58 +852,58 @@ make_cds_GQL <- function(
   day_counter <- .qlg_cds_day_counter(day_counter)
   date_generation_rule <- .qlg_cds_date_generation_rule(date_generation_rule)
 
-  builder <- .qlg_quantlib_fun("MakeCreditDefaultSwap__SWIG_1")(
+  builder <- .quantlib_fun_GQH("MakeCreditDefaultSwap__SWIG_1")(
     maturity_date,
     as.numeric(running_spread)
   )
 
-  builder <- .qlg_quantlib_fun("MakeCreditDefaultSwap_withNominal")(
+  builder <- .quantlib_fun_GQH("MakeCreditDefaultSwap_withNominal")(
     builder,
     as.numeric(notional)
   )
 
-  builder <- .qlg_quantlib_fun("MakeCreditDefaultSwap_withSide")(
+  builder <- .quantlib_fun_GQH("MakeCreditDefaultSwap_withSide")(
     builder,
     side
   )
 
   if (!is.null(trade_date)) {
-    builder <- .qlg_quantlib_fun("MakeCreditDefaultSwap_withTradeDate")(
+    builder <- .quantlib_fun_GQH("MakeCreditDefaultSwap_withTradeDate")(
       builder,
       .qlg_cds_date(trade_date)
     )
   }
 
-  builder <- .qlg_quantlib_fun("MakeCreditDefaultSwap_withCouponTenor")(
+  builder <- .quantlib_fun_GQH("MakeCreditDefaultSwap_withCouponTenor")(
     builder,
     coupon_tenor
   )
 
-  builder <- .qlg_quantlib_fun("MakeCreditDefaultSwap_withDayCounter")(
+  builder <- .quantlib_fun_GQH("MakeCreditDefaultSwap_withDayCounter")(
     builder,
     day_counter
   )
 
-  builder <- .qlg_quantlib_fun("MakeCreditDefaultSwap_withDateGenerationRule")(
+  builder <- .quantlib_fun_GQH("MakeCreditDefaultSwap_withDateGenerationRule")(
     builder,
     date_generation_rule
   )
 
   if (!is.null(upfront_rate)) {
-    builder <- .qlg_quantlib_fun("MakeCreditDefaultSwap_withUpfrontRate")(
+    builder <- .quantlib_fun_GQH("MakeCreditDefaultSwap_withUpfrontRate")(
       builder,
       as.numeric(upfront_rate)
     )
   }
 
   if (!is.null(pricing_engine)) {
-    builder <- .qlg_quantlib_fun("MakeCreditDefaultSwap_withPricingEngine")(
+    builder <- .quantlib_fun_GQH("MakeCreditDefaultSwap_withPricingEngine")(
       builder,
       pricing_engine
     )
   }
 
-  .qlg_quantlib_fun("MakeCreditDefaultSwap_makeCDS")(builder)
+  .quantlib_fun_GQH("MakeCreditDefaultSwap_makeCDS")(builder)
 }
 
 #' Make a QuantLib CreditDefaultSwap from trade data
@@ -917,7 +917,7 @@ make_cds_from_trade_GQL <- function(
     trade,
     pricing_engine = NULL
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
 
   if (!is.data.frame(trade) || nrow(trade) != 1) {
     stop("trade must be a one-row data frame.", call. = FALSE)
@@ -1022,7 +1022,7 @@ cds_summary_GQL <- function(cds) {
   requireNamespace("QuantLib", quietly = TRUE)
 
   out <- tryCatch(
-    .qlg_quantlib_fun(fun_name)(cds),
+    .quantlib_fun_GQH(fun_name)(cds),
     error = function(e) {
       stop(
         "Failed to calculate CDS value with ", fun_name,
@@ -1157,19 +1157,19 @@ flat_hazard_rate_GQL <- function(
     reference_date,
     day_counter = "Actual365Fixed"
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
 
   reference_date <- .qlg_cds_date(reference_date)
   day_counter <- .qlg_cds_day_counter(day_counter)
 
-  hazard_curve <- .qlg_quantlib_fun("FlatHazardRate__SWIG_1")(
+  hazard_curve <- .quantlib_fun_GQH("FlatHazardRate__SWIG_1")(
     reference_date,
     qlg_quote_handle(as.numeric(hazard_rate)),
     day_counter
   )
 
-  .qlg_quantlib_fun("DefaultProbabilityTermStructureHandle__SWIG_2")(
+  .quantlib_fun_GQH("DefaultProbabilityTermStructureHandle__SWIG_2")(
     hazard_curve
   )
 }
@@ -1198,7 +1198,7 @@ cds_midpoint_engine_GQL <- function(
     reference_date = NULL,
     day_counter = "Actual365Fixed"
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
 
   if (is.null(probability_handle)) {
@@ -1227,18 +1227,18 @@ cds_midpoint_engine_GQL <- function(
     reference_date <- .qlg_cds_date(reference_date)
     day_counter <- .qlg_cds_day_counter(day_counter)
 
-    discount_curve <- .qlg_quantlib_fun("FlatForward__SWIG_2")(
+    discount_curve <- .quantlib_fun_GQH("FlatForward__SWIG_2")(
       reference_date,
       qlg_quote_handle(as.numeric(discount_rate)),
       day_counter
     )
 
-    discount_handle <- .qlg_quantlib_fun("YieldTermStructureHandle__SWIG_2")(
+    discount_handle <- .quantlib_fun_GQH("YieldTermStructureHandle__SWIG_2")(
       discount_curve
     )
   }
 
-  .qlg_quantlib_fun("MidPointCdsEngine")(
+  .quantlib_fun_GQH("MidPointCdsEngine")(
     probability_handle,
     as.numeric(recovery_rate),
     discount_handle

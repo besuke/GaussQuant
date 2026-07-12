@@ -2495,3 +2495,16 @@ cds_isda_engine_GQL <- function(
     discount_curve_handle
   )
 }
+
+#' Add a local QuantLib library path
+#'
+#' @param path Local library path containing the SWIG QuantLib package.
+#'
+#' @return The updated library search paths, invisibly.
+#' @export
+use_quantlib_GQH <- function(
+  path = "C:/AnalyticFin/Projects/QuantLib_tidy/library/windows"
+) {
+  .libPaths(c(path, .libPaths()))
+  invisible(.libPaths())
+}

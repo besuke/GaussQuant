@@ -94,7 +94,7 @@ swap_floating_leg_table_GQL <- function(swap) {
 #' @return A tibble summarising swap valuation measures.
 #' @export
 swap_summary_GQL <- function(swap) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
   requireNamespace("tibble", quietly = TRUE)
 
   tibble::tibble(
@@ -252,7 +252,7 @@ leg_cashflow_schedule_GQL <- function(
     leg_name,
     leg_no = NA_integer_
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
 
   qlg_leg_to_cashflow_tbl(leg) |>
@@ -273,7 +273,7 @@ leg_cashflow_schedule_GQL <- function(
 #'
 #' @export
 swap_cashflow_schedule_GQL <- function(swap) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
 
   fixed_leg <- leg_cashflow_schedule_GQL(
@@ -303,7 +303,7 @@ swap_cashflow_schedule_GQL <- function(swap) {
 #'
 #' @export
 ois_cashflow_schedule_GQL <- function(swap) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
 
   fixed_leg <- leg_cashflow_schedule_GQL(
@@ -336,7 +336,7 @@ curve_discount_factor_GQL <- function(
     curve,
     date
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
 
   if (is.na(date)) {
     return(NA_real_)
@@ -356,7 +356,7 @@ day_count_fraction_GQL <- function(
     end_date,
     day_counter = "Actual365Fixed"
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
 
   if (is.na(start_date) || is.na(end_date)) {
     return(NA_real_)
@@ -685,7 +685,7 @@ ois_cashflow_schedule_from_trade_GQL <- function(
     trade,
     forecast_handle
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
 
   stopifnot(is.data.frame(trade))
@@ -728,7 +728,7 @@ value_ois_cashflow_schedule_from_trade_GQL <- function(
     fixings = NULL,
     evaluation_date = NULL
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
 
   cashflows <- ois_cashflow_schedule_from_trade_GQL(
     trade = trade,
@@ -758,7 +758,7 @@ swap_cashflow_schedule_from_trade_GQL <- function(
     trade,
     forecast_handle = NULL
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
 
   stopifnot(is.data.frame(trade))
@@ -801,7 +801,7 @@ value_swap_cashflow_schedule_from_trade_GQL <- function(
     fixings = NULL,
     evaluation_date = NULL
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
 
   cashflows <- swap_cashflow_schedule_from_trade_GQL(
     trade = trade,
@@ -857,7 +857,7 @@ cashflow_schedule_from_trade_GQL <- function(
     trade,
     forecast_handle
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
 
   product <- trade_product_GQL(trade)
 
@@ -901,7 +901,7 @@ value_cashflow_schedule_from_trade_GQL <- function(
     fixings = NULL,
     evaluation_date = NULL
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
 
   product <- trade_product_GQL(trade)
 
@@ -945,7 +945,7 @@ cashflow_schedule_from_trades_GQL <- function(
     trades,
     forecast_handle
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
 
   rows <- qlg_trade_rows(trades)
@@ -991,7 +991,7 @@ value_cashflow_schedule_from_trades_GQL <- function(
     fixings = NULL,
     evaluation_date = NULL
 ) {
-  qlg_use_quantlib()
+  use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
 
   rows <- qlg_trade_rows(trades)
