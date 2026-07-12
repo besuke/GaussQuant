@@ -74,7 +74,7 @@ swap_fair_spread_GQL <- function(swap) {
 #' @return A tibble of fixed leg cashflows.
 #' @export
 swap_fixed_leg_table_GQL <- function(swap) {
-  qlg_leg_to_cashflow_tbl(swap$fixedLeg())
+  leg_to_cashflow_tbl_GQL(swap$fixedLeg())
 }
 
 #' Swap floating leg cashflow table
@@ -84,7 +84,7 @@ swap_fixed_leg_table_GQL <- function(swap) {
 #' @return A tibble of floating leg cashflows.
 #' @export
 swap_floating_leg_table_GQL <- function(swap) {
-  qlg_leg_to_cashflow_tbl(swap$floatingLeg())
+  leg_to_cashflow_tbl_GQL(swap$floatingLeg())
 }
 
 #' Swap summary
@@ -113,7 +113,7 @@ swap_summary_GQL <- function(swap) {
 #' @return A tibble of overnight leg cashflows.
 #' @export
 ois_overnight_leg_table_GQL <- function(swap) {
-  qlg_leg_to_cashflow_tbl(swap$overnightLeg())
+  leg_to_cashflow_tbl_GQL(swap$overnightLeg())
 }
 
 #' Summarise OIS cashflow legs
@@ -255,7 +255,7 @@ leg_cashflow_schedule_GQL <- function(
   use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
 
-  qlg_leg_to_cashflow_tbl(leg) |>
+  leg_to_cashflow_tbl_GQL(leg) |>
     cashflow_standardise_GQL() |>
     dplyr::mutate(
       leg = leg_name,
@@ -342,7 +342,7 @@ curve_discount_factor_GQL <- function(
     return(NA_real_)
   }
 
-  qd <- qlg_date(as.character(date))
+  qd <- date_GQL(as.character(date))
 
   tryCatch(
     curve$discount(qd),
@@ -362,9 +362,9 @@ day_count_fraction_GQL <- function(
     return(NA_real_)
   }
 
-  dc <- qlg_day_counter(day_counter)
-  ql_start <- qlg_date(as.character(start_date))
-  ql_end <- qlg_date(as.character(end_date))
+  dc <- day_counter_GQL(day_counter)
+  ql_start <- date_GQL(as.character(start_date))
+  ql_end <- date_GQL(as.character(end_date))
 
   tryCatch(
     dc$yearFraction(ql_start, ql_end),
@@ -948,7 +948,7 @@ cashflow_schedule_from_trades_GQL <- function(
   use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
 
-  rows <- qlg_trade_rows(trades)
+  rows <- purrr::map(seq_len(nrow(trades)), ~ trades[.x, , drop = FALSE])
 
   out <- lapply(
     seq_along(rows),
@@ -994,7 +994,7 @@ value_cashflow_schedule_from_trades_GQL <- function(
   use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
 
-  rows <- qlg_trade_rows(trades)
+  rows <- purrr::map(seq_len(nrow(trades)), ~ trades[.x, , drop = FALSE])
 
   out <- lapply(
     seq_along(rows),

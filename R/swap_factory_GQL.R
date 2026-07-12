@@ -209,8 +209,8 @@ make_schedule_GQL <- function(
   use_quantlib_GQH()
 
   QuantLib::Schedule(
-    qlg_date(effective_date),
-    qlg_date(maturity_date),
+    date_GQL(effective_date),
+    date_GQL(maturity_date),
     tenor,
     calendar,
     convention,
@@ -517,11 +517,11 @@ make_asset_swap_GQL <- function(
     index
   }
 
-  floating_day_counter <- qlg_day_counter(floating_day_counter)
+  floating_day_counter <- day_counter_GQL(floating_day_counter)
 
   if (is.null(deal_maturity)) {
     if (!is.null(maturity_date)) {
-      deal_maturity <- qlg_date(maturity_date)
+      deal_maturity <- date_GQL(maturity_date)
     } else if (exists("Bond_maturityDate", envir = asNamespace("QuantLib"), inherits = FALSE)) {
       deal_maturity <- .quantlib_fun_GQH("Bond_maturityDate")(bond)
     } else {
@@ -531,7 +531,7 @@ make_asset_swap_GQL <- function(
       )
     }
   } else if (is.character(deal_maturity) || inherits(deal_maturity, "Date")) {
-    deal_maturity <- qlg_date(deal_maturity)
+    deal_maturity <- date_GQL(deal_maturity)
   }
 
   asset_swap <- .quantlib_fun_GQH("AssetSwap__SWIG_0")(
@@ -558,7 +558,7 @@ make_asset_swap_GQL <- function(
   asset_swap
 }
 
-.qlg_asset_swap_set_pricing_engine <- function(asset_swap, engine) {
+.asset_swap_set_pricing_engine_GQL <- function(asset_swap, engine) {
   .quantlib_fun_GQH("Instrument_setPricingEngine")(asset_swap, engine)
   invisible(asset_swap)
 }
@@ -574,12 +574,12 @@ asset_swap_set_engine_GQL <- function(asset_swap, discount_curve_handle) {
   requireNamespace("QuantLib", quietly = TRUE)
 
   engine <- .quantlib_fun_GQH("DiscountingSwapEngine")(discount_curve_handle)
-  .qlg_asset_swap_set_pricing_engine(asset_swap, engine)
+  .asset_swap_set_pricing_engine_GQL(asset_swap, engine)
 
   invisible(asset_swap)
 }
 
-.qlg_asset_swap_value <- function(asset_swap, fun_name) {
+.asset_swap_value_GQL <- function(asset_swap, fun_name) {
   out <- tryCatch(
     .quantlib_fun_GQH(fun_name)(asset_swap),
     error = function(e) NA_real_
@@ -595,7 +595,7 @@ asset_swap_set_engine_GQL <- function(asset_swap, discount_curve_handle) {
 #' @return Numeric fair spread.
 #' @export
 asset_swap_fair_spread_GQL <- function(asset_swap) {
-  .qlg_asset_swap_value(asset_swap, "AssetSwap_fairSpread")
+  .asset_swap_value_GQL(asset_swap, "AssetSwap_fairSpread")
 }
 
 #' AssetSwap fair clean price
@@ -605,7 +605,7 @@ asset_swap_fair_spread_GQL <- function(asset_swap) {
 #' @return Numeric fair clean price.
 #' @export
 asset_swap_fair_clean_price_GQL <- function(asset_swap) {
-  .qlg_asset_swap_value(asset_swap, "AssetSwap_fairCleanPrice")
+  .asset_swap_value_GQL(asset_swap, "AssetSwap_fairCleanPrice")
 }
 
 #' Summarise an AssetSwap
@@ -630,7 +630,7 @@ asset_swap_summary_GQL <- function(asset_swap) {
 }
 
 
-.qlg_trade_logical <- function(
+.trade_logical_GQL <- function(
     trade,
     name,
     default = FALSE
@@ -754,7 +754,7 @@ make_asset_swap_from_trade_GQL <- function(
         name = "floating_date_generation",
         default = "Forward"
       ),
-      end_of_month = .qlg_trade_logical(
+      end_of_month = .trade_logical_GQL(
         trade = trade,
         name = "floating_end_of_month",
         default = FALSE
@@ -779,7 +779,7 @@ make_asset_swap_from_trade_GQL <- function(
       default = "Actual360"
     ),
     maturity_date = maturity_date,
-    pay_bond_coupon = .qlg_trade_logical(
+    pay_bond_coupon = .trade_logical_GQL(
       trade = trade,
       name = "pay_bond_coupon",
       default = TRUE
@@ -791,7 +791,7 @@ make_asset_swap_from_trade_GQL <- function(
         default = 0
       )
     ),
-    par_asset_swap = .qlg_trade_logical(
+    par_asset_swap = .trade_logical_GQL(
       trade = trade,
       name = "par_asset_swap",
       default = TRUE
@@ -846,11 +846,11 @@ make_cds_GQL <- function(
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
 
-  maturity_date <- .qlg_cds_date(maturity_date)
-  coupon_tenor <- .qlg_cds_period(coupon_tenor)
-  side <- .qlg_cds_side(side)
-  day_counter <- .qlg_cds_day_counter(day_counter)
-  date_generation_rule <- .qlg_cds_date_generation_rule(date_generation_rule)
+  maturity_date <- .cds_date_GQL(maturity_date)
+  coupon_tenor <- .cds_period_GQL(coupon_tenor)
+  side <- .cds_side_GQL(side)
+  day_counter <- .cds_day_counter_GQL(day_counter)
+  date_generation_rule <- .cds_date_generation_rule_GQL(date_generation_rule)
 
   builder <- .quantlib_fun_GQH("MakeCreditDefaultSwap__SWIG_1")(
     maturity_date,
@@ -870,7 +870,7 @@ make_cds_GQL <- function(
   if (!is.null(trade_date)) {
     builder <- .quantlib_fun_GQH("MakeCreditDefaultSwap_withTradeDate")(
       builder,
-      .qlg_cds_date(trade_date)
+      .cds_date_GQL(trade_date)
     )
   }
 
@@ -980,7 +980,7 @@ make_cds_from_trade_GQL <- function(
 #' @return Numeric NPV.
 #' @export
 cds_npv_GQL <- function(cds) {
-  .qlg_cds_value(cds, "Instrument_NPV")
+  .cds_value_GQL(cds, "Instrument_NPV")
 }
 
 #' CDS fair spread
@@ -990,7 +990,7 @@ cds_npv_GQL <- function(cds) {
 #' @return Numeric fair spread.
 #' @export
 cds_fair_spread_GQL <- function(cds) {
-  .qlg_cds_value(cds, "CreditDefaultSwap_fairSpread")
+  .cds_value_GQL(cds, "CreditDefaultSwap_fairSpread")
 }
 
 #' Summarise a CDS
@@ -1012,13 +1012,13 @@ cds_summary_GQL <- function(cds) {
     value = c(
       cds_npv_GQL(cds),
       cds_fair_spread_GQL(cds),
-      .qlg_cds_value(cds, "CreditDefaultSwap_couponLegNPV"),
-      .qlg_cds_value(cds, "CreditDefaultSwap_defaultLegNPV")
+      .cds_value_GQL(cds, "CreditDefaultSwap_couponLegNPV"),
+      .cds_value_GQL(cds, "CreditDefaultSwap_defaultLegNPV")
     )
   )
 }
 
-.qlg_cds_value <- function(cds, fun_name) {
+.cds_value_GQL <- function(cds, fun_name) {
   requireNamespace("QuantLib", quietly = TRUE)
 
   out <- tryCatch(
@@ -1035,19 +1035,19 @@ cds_summary_GQL <- function(cds) {
   as.numeric(out)
 }
 
-.qlg_cds_date <- function(x) {
+.cds_date_GQL <- function(x) {
   if (is.null(x)) {
     return(NULL)
   }
 
   if (is.character(x) || inherits(x, "Date")) {
-    return(qlg_date(as.character(x)))
+    return(date_GQL(as.character(x)))
   }
 
   x
 }
 
-.qlg_cds_period <- function(x) {
+.cds_period_GQL <- function(x) {
   if (inherits(x, "_p_Period")) {
     return(x)
   }
@@ -1083,7 +1083,7 @@ cds_summary_GQL <- function(cds) {
   stop("Unsupported CDS period: ", x, call. = FALSE)
 }
 
-.qlg_cds_side <- function(x) {
+.cds_side_GQL <- function(x) {
   if (!is.character(x)) {
     return(x)
   }
@@ -1101,7 +1101,7 @@ cds_summary_GQL <- function(cds) {
   stop("Unsupported CDS side: ", x, call. = FALSE)
 }
 
-.qlg_cds_day_counter <- function(x) {
+.cds_day_counter_GQL <- function(x) {
   if (!is.character(x)) {
     return(x)
   }
@@ -1119,7 +1119,7 @@ cds_summary_GQL <- function(cds) {
   stop("Unsupported CDS day counter: ", x, call. = FALSE)
 }
 
-.qlg_cds_date_generation_rule <- function(x) {
+.cds_date_generation_rule_GQL <- function(x) {
   if (!is.character(x)) {
     return(x)
   }
@@ -1160,12 +1160,12 @@ flat_hazard_rate_GQL <- function(
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
 
-  reference_date <- .qlg_cds_date(reference_date)
-  day_counter <- .qlg_cds_day_counter(day_counter)
+  reference_date <- .cds_date_GQL(reference_date)
+  day_counter <- .cds_day_counter_GQL(day_counter)
 
   hazard_curve <- .quantlib_fun_GQH("FlatHazardRate__SWIG_1")(
     reference_date,
-    qlg_quote_handle(as.numeric(hazard_rate)),
+    quote_handle_GQL(as.numeric(hazard_rate)),
     day_counter
   )
 
@@ -1224,12 +1224,12 @@ cds_midpoint_engine_GQL <- function(
       )
     }
 
-    reference_date <- .qlg_cds_date(reference_date)
-    day_counter <- .qlg_cds_day_counter(day_counter)
+    reference_date <- .cds_date_GQL(reference_date)
+    day_counter <- .cds_day_counter_GQL(day_counter)
 
     discount_curve <- .quantlib_fun_GQH("FlatForward__SWIG_2")(
       reference_date,
-      qlg_quote_handle(as.numeric(discount_rate)),
+      quote_handle_GQL(as.numeric(discount_rate)),
       day_counter
     )
 
