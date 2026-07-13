@@ -100,28 +100,69 @@ eval_date_get_GQL <- function() {
 
 #' Select QuantLib day counter
 #'
-#' @param day_counter Day counter name or QuantLib day counter object.
+#' @param day_counter Day-counter name or QuantLib day-counter object.
+#' @param convention Thirty360 convention. Supported values are `"USA"`,
+#'   `"BondBasis"`, `"European"`, `"EurobondBasis"`, `"Italian"`,
+#'   `"German"`, `"ISMA"`, `"ISDA"`, and `"NASD"`. This argument is
+#'   used only when `day_counter = "Thirty360"`.
 #'
-#' @return QuantLib day counter object.
+#' @return QuantLib day-counter object.
 #'
 #' @export
-day_counter_GQL <- function(day_counter = "Actual365Fixed") {
+day_counter_GQL <- function(
+    day_counter = "Actual365Fixed",
+    convention = "BondBasis"
+) {
   if (!is.character(day_counter)) {
     return(day_counter)
+  }
+
+  stopifnot(length(day_counter) == 1L)
+
+  thirty360_conventions <- c(
+    "USA",
+    "BondBasis",
+    "European",
+    "EurobondBasis",
+    "Italian",
+    "German",
+    "ISMA",
+    "ISDA",
+    "NASD"
+  )
+
+  if (startsWith(day_counter, "Thirty360_")) {
+    convention <- sub("^Thirty360_", "", day_counter)
+    day_counter <- "Thirty360"
+  }
+
+  if (identical(day_counter, "Thirty360")) {
+    if (
+      !is.character(convention) ||
+        length(convention) != 1L ||
+        !convention %in% thirty360_conventions
+    ) {
+      stop(
+        "Unsupported Thirty360 convention: ",
+        paste(convention, collapse = ", "),
+        ". Supported conventions: ",
+        paste(thirty360_conventions, collapse = ", "),
+        call. = FALSE
+      )
+    }
+
+    return(QuantLib::Thirty360(convention))
   }
 
   switch(
     day_counter,
     Actual365Fixed = QuantLib::Actual365Fixed(),
     Actual360 = QuantLib::Actual360(),
-    Thirty360 = QuantLib::Thirty360(),
-    Thirty360_European = QuantLib::Thirty360("European"),
     ActualActual_ISDA = QuantLib::ActualActual("ISDA"),
     ActualActual_Bond = QuantLib::ActualActual("Bond"),
     stop("Unsupported day counter: ", day_counter, call. = FALSE)
   )
 }
-
 
 #' Build QuantLib DateVector
 #'

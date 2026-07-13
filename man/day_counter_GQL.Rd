@@ -4,13 +4,18 @@
 \alias{day_counter_GQL}
 \title{Select QuantLib day counter}
 \usage{
-day_counter_GQL(day_counter = "Actual365Fixed")
+day_counter_GQL(day_counter = "Actual365Fixed", convention = "BondBasis")
 }
 \arguments{
-\item{day_counter}{Day counter name or QuantLib day counter object.}
+\item{day_counter}{Day-counter name or QuantLib day-counter object.}
+
+\item{convention}{Thirty360 convention. Supported values are \code{"USA"},
+\code{"BondBasis"}, \code{"European"}, \code{"EurobondBasis"}, \code{"Italian"},
+\code{"German"}, \code{"ISMA"}, \code{"ISDA"}, and \code{"NASD"}. This argument is
+used only when \code{day_counter = "Thirty360"}.}
 }
 \value{
-QuantLib day counter object.
+QuantLib day-counter object.
 }
 \description{
 Select QuantLib day counter
