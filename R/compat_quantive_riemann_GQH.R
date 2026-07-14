@@ -385,7 +385,7 @@ ois_daily_forward_table_GQH <- function(
       index_builder = function(handle) {
         QuantLib::OvernightIndex(
           "TONA",
-          2L,
+          0L,
           QuantLib::JPYCurrency(),
           QuantLib::Japan(),
           QuantLib::Actual365Fixed(),
