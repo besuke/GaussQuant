@@ -49,8 +49,15 @@ curve_tbl_GQH <- function(
 ) {
   ref_date <- tryCatch(
     curve$referenceDate(),
-    error = function(e) QuantLib::YieldTermStructure_referenceDate(curve)
+    error = function(e) {
+      stop(
+        "curve$referenceDate() failed: ",
+        conditionMessage(e),
+        call. = FALSE
+      )
+    }
   )
+  
 
   tibble::tibble(
     tenor = tenors,
