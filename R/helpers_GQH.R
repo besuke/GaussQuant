@@ -2195,38 +2195,33 @@ hull_white_forward_drift_GQL <- function(
     mean_reversion,
     sigma
 ) {
-  first_term <- 1 -
-    exp(
-      -mean_reversion *
-        (
-          exercise_time -
-            start_time
-        )
+  if (abs(mean_reversion) < 1e-12) {
+    return(
+      sigma^2 / 2 *
+        (exercise_time - start_time) *
+        (2 * maturity - exercise_time - start_time)
     )
+  }
 
-  second_term <- exp(
+  coefficient <- sigma^2 / mean_reversion^2
+
+  exp_1 <- exp(
     -mean_reversion *
-      (
-        maturity -
-          exercise_time
-      )
-  ) -
-    exp(
-      -mean_reversion *
-        (
-          maturity +
-            exercise_time -
-            2 * start_time
-        )
-    )
+      (exercise_time - start_time)
+  )
 
-  -sigma^2 *
-    first_term *
-    second_term /
-    (
-      2 *
-        mean_reversion^2
-    )
+  exp_2 <- exp(
+    -mean_reversion *
+      (maturity - exercise_time)
+  )
+
+  exp_3 <- exp(
+    -mean_reversion *
+      (maturity + exercise_time - 2 * start_time)
+  )
+
+  coefficient * (1 - exp_1) -
+    0.5 * coefficient * (exp_2 - exp_3)
 }
 
 
