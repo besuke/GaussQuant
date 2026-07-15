@@ -32,10 +32,23 @@ make_european_option_GQL <- function(
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
 
-  valuation_date <- as.character(as.Date(valuation_date))
-  eval_date_GQL(valuation_date)
+  valuation_date_chr <- (
+    if (
+      is.character(valuation_date) ||
+      inherits(valuation_date, "Date")
+    ) {
+      as.character(valuation_date)
+    } else {
+      iso_GQL(valuation_date)
+    }
+  ) |>
+    lubridate::ymd() |>
+    format("%Y-%m-%d")
 
-  eval_date <- date_GQL(valuation_date)
+  set_eval_date_GQL(valuation_date_chr)
+
+  eval_date <- date_GQL(valuation_date_chr)
+
   maturity_date <- .option_date_GQL(maturity_date)
   option_type <- .option_type_GQL(option_type)
 
@@ -329,11 +342,22 @@ option_implied_volatility_GQL <- function(
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
 
-  valuation_date <- as.character(as.Date(valuation_date))
-  eval_date_GQL(valuation_date)
+  valuation_date_chr <- (
+    if (
+      is.character(valuation_date) ||
+      inherits(valuation_date, "Date")
+    ) {
+      as.character(valuation_date)
+    } else {
+      iso_GQL(valuation_date)
+    }
+  ) |>
+    lubridate::ymd() |>
+    format("%Y-%m-%d")
 
-  eval_date <- date_GQL(valuation_date)
+  set_eval_date_GQL(valuation_date_chr)
 
+  eval_date <- date_GQL(valuation_date_chr)
   spot_handle <- QuantLib::QuoteHandle(
     QuantLib::SimpleQuote(as.numeric(spot))
   )
@@ -416,10 +440,23 @@ make_american_option_GQL <- function(
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
 
-  valuation_date <- as.character(as.Date(valuation_date))
-  eval_date_GQL(valuation_date)
+  valuation_date_chr <- (
+    if (
+      is.character(valuation_date) ||
+      inherits(valuation_date, "Date")
+    ) {
+      as.character(valuation_date)
+    } else {
+      iso_GQL(valuation_date)
+    }
+  ) |>
+    lubridate::ymd() |>
+    format("%Y-%m-%d")
 
-  eval_date <- date_GQL(valuation_date)
+  set_eval_date_GQL(valuation_date_chr)
+
+  eval_date <- date_GQL(valuation_date_chr)
+
   maturity_date <- .option_date_GQL(maturity_date)
   option_type <- .option_type_GQL(option_type)
 
@@ -523,10 +560,24 @@ make_barrier_option_GQL <- function(
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
 
-  valuation_date <- as.character(as.Date(valuation_date))
-  eval_date_GQL(valuation_date)
+  valuation_date_chr <- (
+    if (
+      is.character(valuation_date) ||
+      inherits(valuation_date, "Date")
+    ) {
+      as.character(valuation_date)
+    } else {
+      iso_GQL(valuation_date)
+    }
+  ) |>
+    lubridate::ymd() |>
+    format("%Y-%m-%d")
 
-  eval_date <- date_GQL(valuation_date)
+  set_eval_date_GQL(valuation_date_chr)
+
+  eval_date <- date_GQL(valuation_date_chr)
+
+
   maturity_date <- .option_date_GQL(maturity_date)
   option_type <- .option_type_GQL(option_type)
   barrier_type <- .barrier_type_GQL(barrier_type)
