@@ -19,17 +19,19 @@ fixed_rate_bond_GQL(
   date_generation = "Backward",
   end_of_month = FALSE,
   redemption = 100,
-  schedule_frequency = frequency
+  schedule_frequency = frequency,
+  first_date = NULL,
+  next_to_last_date = NULL
 )
 }
 \arguments{
-\item{issue_date}{Issue date as an ISO character string.}
+\item{issue_date}{Issue date as an ISO character string or Date.}
 
-\item{maturity_date}{Maturity date as an ISO character string.}
+\item{maturity_date}{Maturity date as an ISO character string or Date.}
 
 \item{coupon_rate}{Coupon rate as a decimal.}
 
-\item{face_amount}{Face amount / notional.}
+\item{face_amount}{Face amount or notional.}
 
 \item{settlement_days}{Settlement days.}
 
@@ -45,17 +47,25 @@ fixed_rate_bond_GQL(
 
 \item{maturity_convention}{Maturity date adjustment convention.}
 
-\item{date_generation}{Date generation rule, for example "Backward".}
+\item{date_generation}{Date generation rule, for example \code{"Backward"}.}
 
 \item{end_of_month}{End-of-month schedule flag.}
 
 \item{redemption}{Redemption amount.}
 
-\item{schedule_frequency}{Optional alias for frequency.}
+\item{schedule_frequency}{Optional alias for \code{frequency}.}
+
+\item{first_date}{Optional first regular schedule date as an ISO character
+string or Date. Use this to create a front stub.}
+
+\item{next_to_last_date}{Optional penultimate regular schedule date as an ISO
+character string or Date. Use this to create a back stub.}
 }
 \value{
 A QuantLib FixedRateBond object.
 }
 \description{
-This is the main QuantLibGauss fixed-rate bond constructor.
+Create a fixed-rate bond with a regular or irregular coupon schedule.
+The optional \code{first_date} and \code{next_to_last_date} arguments can be used
+to construct short or long stub periods.
 }
