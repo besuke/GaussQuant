@@ -195,12 +195,28 @@ schedule_table_GQL <- function(schedule) {
 #' @return Numeric discount factor or NA.
 #' @export
 curve_discount_safe_GQL <- function(curve, x) {
-  tryCatch(
-    curve$discount(x),
+  discount_fun <- getFromNamespace(
+    "YieldTermStructure_discount",
+    "QuantLib"
+  )
+  
+  discount_value <- tryCatch(
+    discount_fun(
+      curve,
+      x
+    ),
     error = function(e) NA_real_
   )
+  
+  if (
+    length(discount_value) != 1L ||
+    !is.finite(discount_value)
+  ) {
+    return(NA_real_)
+  }
+  
+  as.numeric(discount_value)
 }
-
 
 #' Build a dense curve grid table
 #'
@@ -209,33 +225,95 @@ curve_discount_safe_GQL <- function(curve, x) {
 #' @param extrapolate Enable extrapolation.
 #' @return Tibble with time, date, discount factor, and zero rate.
 #' @export
-curve_grid_tbl_GQL <- function(curve, n = 200L, extrapolate = TRUE) {
+curve_grid_tbl_GQL <- function(
+    curve,
+    n = 200L,
+    extrapolate = TRUE
+) {
   if (isTRUE(extrapolate)) {
     tryCatch(
       QuantLib::TermStructure_enableExtrapolation(curve),
       error = function(e) NULL
     )
   }
-
-  reference_date <- as.Date(iso_GQL(curve$referenceDate()))
-  max_time <- as.numeric(curve$maxTime())
-  times <- seq(0, max_time, length.out = as.integer(n))
-
-  tibble::tibble(time = times) |>
-    dplyr::mutate(
-      discount_factor = purrr::map_dbl(
+  
+  reference_date_ql <- curve$referenceDate()
+  
+  reference_date <- as.Date(
+    iso_GQL(reference_date_ql)
+  )
+  
+  max_date_ql <- tryCatch(
+    curve$maxDate(),
+    error = function(e) {
+      max_time <- as.numeric(
+        curve$maxTime()
+      )
+      
+      date_GQL(
+        as.character(
+          reference_date +
+            round(max_time * 365)
+        )
+      )
+    }
+  )
+  
+  max_date <- as.Date(
+    iso_GQL(max_date_ql)
+  )
+  
+  curve_dates <- seq(
+    from = reference_date,
+    to = max_date,
+    length.out = as.integer(n)
+  )
+  
+  ql_dates <- purrr::map(
+    as.character(curve_dates),
+    date_GQL
+  )
+  
+  times <- purrr::map_dbl(
+    ql_dates,
+    function(date_ql) {
+      tryCatch(
+        as.numeric(
+          curve$timeFromReference(date_ql)
+        ),
+        error = function(e) {
+          QuantLib::Actual365Fixed()$yearFraction(
+            reference_date_ql,
+            date_ql
+          )
+        }
+      )
+    }
+  )
+  
+  discount_factors <- purrr::map_dbl(
+    ql_dates,
+    function(date_ql) {
+      curve_discount_safe_GQL(
+        curve = curve,
+        x = date_ql
+      )
+    }
+  )
+  
+  tibble::tibble(
+    time = times,
+    discount_factor = discount_factors,
+    zero_rate = dplyr::if_else(
+      .data$time > 0 &
+        .data$discount_factor > 0,
+      -log(.data$discount_factor) /
         .data$time,
-        ~ curve_discount_safe_GQL(curve, .x)
-      ),
-      zero_rate = dplyr::if_else(
-        .data$time > 0 & .data$discount_factor > 0,
-        -log(.data$discount_factor) / .data$time,
-        0
-      ),
-      curve_date = reference_date + round(.data$time * 365)
-    )
+      0
+    ),
+    curve_date = curve_dates
+  )
 }
-
 
 #' Build a flat yield curve
 #'
