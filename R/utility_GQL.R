@@ -1,20 +1,36 @@
 # utility.R
 
-#' Convert ISO date to QuantLib Date
+#' Parse an ISO date string as a QuantLib Date
 #'
-#' @param x Date or character scalar.
+#' Converts a character scalar in `YYYY-MM-DD` format, or an R `Date`,
+#' to a QuantLib Date object.
 #'
-#' @return QuantLib Date object.
+#' @param x A character scalar in ISO date format or an R `Date`.
 #'
+#' @return A QuantLib Date object.
 #' @export
-date_GQL <- function(x) {
+DateParser_parseISO_GQL <- function(x) {
   if (inherits(x, "Date")) {
     x <- format(x, "%Y-%m-%d")
   }
-
-  stopifnot(is.character(x), length(x) == 1)
-
+  
+  stopifnot(
+    is.character(x),
+    length(x) == 1L,
+    !is.na(x)
+  )
+  
   QuantLib::DateParser_parseISO(x)
+}
+
+#' Create a QuantLib Date
+#'
+#' @inheritParams DateParser_parseISO_GQL
+#'
+#' @return A QuantLib Date object.
+#' @export
+date_GQL <- function(x) {
+  DateParser_parseISO_GQL(x)
 }
 
 
@@ -52,6 +68,19 @@ as_r_date_GQH <- function(x) {
   as.Date(iso_GQL(x))
 }
 
+
+#' Convert a QuantLib Date to an ISO date string
+#'
+#' @param date_obj A QuantLib Date object.
+#'
+#' @return A character scalar in YYYY-MM-DD format.
+#' @export
+str_date_ISO_GQL <- function(date_obj) {
+  tryCatch(
+    QuantLib::Date_ISO(date_obj),
+    error = function(e) as.character(date_obj)
+  )
+}
 #' Set QuantLib evaluation date
 #'
 #' @param x Date or character scalar.

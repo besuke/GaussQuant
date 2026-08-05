@@ -2,16 +2,16 @@
 % Please edit documentation in R/utility_GQL.R
 \name{date_GQL}
 \alias{date_GQL}
-\title{Convert ISO date to QuantLib Date}
+\title{Create a QuantLib Date}
 \usage{
 date_GQL(x)
 }
 \arguments{
-\item{x}{Date or character scalar.}
+\item{x}{A character scalar in ISO date format or an R \code{Date}.}
 }
 \value{
-QuantLib Date object.
+A QuantLib Date object.
 }
 \description{
-Convert ISO date to QuantLib Date
+Create a QuantLib Date
 }
