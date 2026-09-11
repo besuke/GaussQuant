@@ -1,62 +1,63 @@
-# R/curve_bootstrap_tonar_GQL.R
+# R/curve_bootstrap_estr_GQL.R
 
-#' BlueGamma TONAR OIS market quotes
+#' BlueGamma ESTR OIS market quotes
 #'
-#' Return the JPY TONAR OIS swap rates observed on 2026-09-10. Rates in
+#' Return EUR ESTR OIS swap rates observed on 2026-09-10. Rates in
 #' `rate_pct` are percentage quotes and `rate` contains decimal rates.
 #'
-#' @return A tibble containing short- and long-tenor TONAR OIS quotes.
+#' @return A tibble containing ESTR OIS market quotes.
 #' @export
-bluegamma_tonar_quotes_GQL <- function() {
+bluegamma_estr_quotes_GQL <- function() {
   tibble::tribble(
     ~quote_id, ~instrument_type, ~rate_pct, ~fixing_days, ~tenor_n, ~tenor_unit,
-    "TONAR-1M", "spot_ois", 1.14, 2L, 1L, "Months",
-    "TONAR-3M", "spot_ois", 1.22, 2L, 3L, "Months",
-    "TONAR-6M", "spot_ois", 1.35, 2L, 6L, "Months",
-    "TONAR-1Y", "spot_ois", 1.55, 2L, 1L, "Years",
-    "TONAR-2Y", "spot_ois", 1.81, 2L, 2L, "Years",
-    "TONAR-3Y", "spot_ois", 1.98, 2L, 3L, "Years",
-    "TONAR-4Y", "spot_ois", 2.12, 2L, 4L, "Years",
-    "TONAR-5Y", "spot_ois", 2.24, 2L, 5L, "Years",
-    "TONAR-7Y", "spot_ois", 2.46, 2L, 7L, "Years",
-    "TONAR-8Y", "spot_ois", 2.57, 2L, 8L, "Years",
-    "TONAR-10Y", "spot_ois", 2.77, 2L, 10L, "Years",
-    "TONAR-15Y", "spot_ois", 3.13, 2L, 15L, "Years",
-    "TONAR-20Y", "spot_ois", 3.37, 2L, 20L, "Years",
-    "TONAR-30Y", "spot_ois", 3.54, 2L, 30L, "Years"
+    "ESTR-1M", "spot_ois", 2.43, 2L, 1L, "Months",
+    "ESTR-3M", "spot_ois", 2.51, 2L, 3L, "Months",
+    "ESTR-6M", "spot_ois", 2.69, 2L, 6L, "Months",
+    "ESTR-1Y", "spot_ois", 2.97, 2L, 1L, "Years",
+    "ESTR-2Y", "spot_ois", 3.13, 2L, 2L, "Years",
+    "ESTR-3Y", "spot_ois", 3.15, 2L, 3L, "Years",
+    "ESTR-4Y", "spot_ois", 3.16, 2L, 4L, "Years",
+    "ESTR-5Y", "spot_ois", 3.17, 2L, 5L, "Years",
+    "ESTR-7Y", "spot_ois", 3.21, 2L, 7L, "Years",
+    "ESTR-8Y", "spot_ois", 3.24, 2L, 8L, "Years",
+    "ESTR-10Y", "spot_ois", 3.29, 2L, 10L, "Years",
+    "ESTR-15Y", "spot_ois", 3.40, 2L, 15L, "Years",
+    "ESTR-20Y", "spot_ois", 3.44, 2L, 20L, "Years",
+    "ESTR-30Y", "spot_ois", 3.34, 2L, 30L, "Years",
+    "ESTR-50Y", "spot_ois", 3.05, 2L, 50L, "Years"
   ) |>
     dplyr::mutate(rate = rate_pct / 100) |>
     dplyr::relocate(rate, .after = rate_pct)
 }
 
 
-#' Create a TONAR overnight index
+#' Create an ESTR overnight index
 #'
 #' @param forwarding_curve_handle Optional QuantLib yield-term-structure
 #'   handle.
 #'
-#' @return A QuantLib TONAR overnight-index object.
+#' @return A QuantLib ESTR overnight-index object.
 #' @export
-tonar_GQL <- function(forwarding_curve_handle = NULL) {
+estr_GQL <- function(forwarding_curve_handle = NULL) {
   if (is.null(forwarding_curve_handle)) {
-    return(QuantLib::Tonar())
+    return(QuantLib::Estr())
   }
 
-  QuantLib::Tonar(forwarding_curve_handle)
+  QuantLib::Estr(forwarding_curve_handle)
 }
 
 
-tonar_rate_helper_GQL <- function(
+estr_rate_helper_GQL <- function(
   instrument_type,
   rate,
   fixing_days,
   tenor_n,
   tenor_unit,
-  tonar
+  estr
 ) {
   if (instrument_type != "spot_ois") {
     stop(
-      "Unsupported TONAR helper type: ",
+      "Unsupported ESTR helper type: ",
       instrument_type,
       call. = FALSE
     )
@@ -69,12 +70,12 @@ tonar_rate_helper_GQL <- function(
       as.character(tenor_unit)
     ),
     quote_handle_GQL(rate),
-    tonar
+    estr
   )
 }
 
 
-tonar_make_curve_GQL <- function(
+estr_make_curve_GQL <- function(
   curve_type,
   calendar,
   helper_vector,
@@ -85,7 +86,7 @@ tonar_make_curve_GQL <- function(
     log_cubic_discount = QuantLib::PiecewiseLogCubicDiscount,
     flat_forward = QuantLib::PiecewiseFlatForward,
     stop(
-      "Unsupported TONAR curve type: ",
+      "Unsupported ESTR curve type: ",
       curve_type,
       call. = FALSE
     )
@@ -100,10 +101,10 @@ tonar_make_curve_GQL <- function(
 }
 
 
-#' Build a TONAR curve from JPY OIS market quotes
+#' Build an ESTR curve from EUR OIS market quotes
 #'
 #' @param quotes Market-quote tibble returned by
-#'   `bluegamma_tonar_quotes_GQL()`.
+#'   `bluegamma_estr_quotes_GQL()`.
 #' @param evaluation_date Evaluation date in ISO format.
 #' @param curve_type `"log_cubic_discount"` or `"flat_forward"`.
 #' @param extrapolate Enable extrapolation beyond the final helper.
@@ -111,8 +112,8 @@ tonar_make_curve_GQL <- function(
 #' @return A list containing the curve, curve handle, helper objects, input
 #'   quotes, and conventions.
 #' @export
-build_tonar_curve_from_market_GQL <- function(
-  quotes = bluegamma_tonar_quotes_GQL(),
+build_estr_curve_from_market_GQL <- function(
+  quotes = bluegamma_estr_quotes_GQL(),
   evaluation_date = "2026-09-10",
   curve_type = c("log_cubic_discount", "flat_forward"),
   extrapolate = TRUE
@@ -130,7 +131,7 @@ build_tonar_curve_from_market_GQL <- function(
 
   if (length(missing_columns) > 0L) {
     stop(
-      "Missing TONAR quote columns: ",
+      "Missing ESTR quote columns: ",
       paste(missing_columns, collapse = ", "),
       call. = FALSE
     )
@@ -138,9 +139,9 @@ build_tonar_curve_from_market_GQL <- function(
 
   set_eval_date_GQL(date_GQL(evaluation_date))
 
-  calendar <- QuantLib::Japan()
-  curve_day_counter <- QuantLib::Actual365Fixed()
-  tonar <- tonar_GQL()
+  estr <- estr_GQL()
+  calendar <- estr$fixingCalendar()
+  curve_day_counter <- QuantLib::Actual360()
 
   helpers <- purrr::pmap(
     list(
@@ -157,19 +158,19 @@ build_tonar_curve_from_market_GQL <- function(
       tenor_n,
       tenor_unit
     ) {
-      tonar_rate_helper_GQL(
+      estr_rate_helper_GQL(
         instrument_type = instrument_type,
         rate = rate,
         fixing_days = fixing_days,
         tenor_n = tenor_n,
         tenor_unit = tenor_unit,
-        tonar = tonar
+        estr = estr
       )
     }
   )
 
   helper_vector <- push_rate_helpers_GQL(helpers)
-  curve <- tonar_make_curve_GQL(
+  curve <- estr_make_curve_GQL(
     curve_type = curve_type,
     calendar = calendar,
     helper_vector = helper_vector,
@@ -197,13 +198,13 @@ build_tonar_curve_from_market_GQL <- function(
     evaluation_date = as.character(evaluation_date),
     calendar = calendar,
     day_counter = curve_day_counter,
-    index = tonar,
+    index = estr,
     curve_type = curve_type
   )
 }
 
 
-tonar_curve_dates_GQL <- function(curve) {
+estr_curve_dates_GQL <- function(curve) {
   curve_dates <- curve$dates()
   n_dates <- as.integer(curve_dates$size())
 
@@ -214,18 +215,18 @@ tonar_curve_dates_GQL <- function(curve) {
 }
 
 
-#' Extract TONAR curve nodes safely
+#' Extract ESTR curve nodes safely
 #'
 #' Avoid direct use of `curve$nodes()`, which is unstable in some QuantLib
 #' SWIG environments.
 #'
-#' @param curve QuantLib TONAR curve object.
+#' @param curve QuantLib ESTR curve object.
 #'
 #' @return A tibble containing node dates and continuously compounded forward
 #'   rates.
 #' @export
-tonar_curve_nodes_GQL <- function(curve) {
-  dates_ql <- tonar_curve_dates_GQL(curve)
+estr_curve_nodes_GQL <- function(curve) {
+  dates_ql <- estr_curve_dates_GQL(curve)
   n_dates <- length(dates_ql)
 
   if (n_dates == 0L) {
@@ -275,12 +276,12 @@ tonar_curve_nodes_GQL <- function(curve) {
 }
 
 
-#' Calculate a TONAR forward rate
+#' Calculate a ESTR forward rate
 #'
 #' Setting `start_date` and `end_date` to the same date returns the
 #' instantaneous forward rate implied by the curve.
 #'
-#' @param curve QuantLib TONAR curve object.
+#' @param curve QuantLib ESTR curve object.
 #' @param start_date Start date in ISO format.
 #' @param end_date End date in ISO format.
 #' @param day_counter QuantLib day-counter object.
@@ -288,11 +289,11 @@ tonar_curve_nodes_GQL <- function(curve) {
 #'
 #' @return A numeric forward rate.
 #' @export
-tonar_forward_rate_GQL <- function(
+estr_forward_rate_GQL <- function(
   curve,
   start_date,
   end_date,
-  day_counter = QuantLib::Actual365Fixed(),
+  day_counter = QuantLib::Actual360(),
   compounding = QuantLib::Compounding_Continuous_get()
 ) {
   tryCatch(
@@ -307,7 +308,7 @@ tonar_forward_rate_GQL <- function(
 }
 
 
-tonar_helper_date_GQL <- function(
+estr_helper_date_GQL <- function(
   helper,
   method = c("pillarDate", "latestDate")
 ) {
@@ -324,16 +325,16 @@ tonar_helper_date_GQL <- function(
 }
 
 
-#' Validate a TONAR curve
+#' Validate a ESTR curve
 #'
 #' Reprice every helper and report the discount factor, continuously
 #' compounded zero rate, and instantaneous forward rate at each pillar date.
 #'
-#' @param curve_bundle Result from `build_tonar_curve_from_market_GQL()`.
+#' @param curve_bundle Result from `build_estr_curve_from_market_GQL()`.
 #'
 #' @return A list with `quote_repricing` and `curve_nodes` tibbles.
 #' @export
-tonar_curve_validation_GQL <- function(curve_bundle) {
+estr_curve_validation_GQL <- function(curve_bundle) {
   stopifnot(is.list(curve_bundle))
   stopifnot(
     all(
@@ -357,13 +358,13 @@ tonar_curve_validation_GQL <- function(curve_bundle) {
     seq_along(helpers),
     helpers,
     function(i, helper) {
-      pillar_date <- tonar_helper_date_GQL(
+      pillar_date <- estr_helper_date_GQL(
         helper,
         "pillarDate"
       )
 
       if (is.null(pillar_date)) {
-        pillar_date <- tonar_helper_date_GQL(
+        pillar_date <- estr_helper_date_GQL(
           helper,
           "latestDate"
         )
@@ -405,7 +406,7 @@ tonar_curve_validation_GQL <- function(curve_bundle) {
       inst_fwd_rate <- if (is.na(pillar_iso)) {
         NA_real_
       } else {
-        tonar_forward_rate_GQL(
+        estr_forward_rate_GQL(
           curve = curve,
           start_date = pillar_iso,
           end_date = pillar_iso,
@@ -434,34 +435,34 @@ tonar_curve_validation_GQL <- function(curve_bundle) {
 
   list(
     quote_repricing = tbl_quote_repricing,
-    curve_nodes = tonar_curve_nodes_GQL(curve)
+    curve_nodes = estr_curve_nodes_GQL(curve)
   )
 }
 
 
-#' Build and validate the BlueGamma TONAR curve
+#' Build and validate the BlueGamma ESTR curve
 #'
 #' @param quotes Market-quote tibble returned by
-#'   `bluegamma_tonar_quotes_GQL()`.
+#'   `bluegamma_estr_quotes_GQL()`.
 #' @param evaluation_date Evaluation date in ISO format.
 #' @param curve_type `"log_cubic_discount"` or `"flat_forward"`.
 #'
 #' @return A list containing the curve bundle and validation results.
 #' @export
-tonar_curve_benchmark_GQL <- function(
-  quotes = bluegamma_tonar_quotes_GQL(),
+estr_curve_benchmark_GQL <- function(
+  quotes = bluegamma_estr_quotes_GQL(),
   evaluation_date = "2026-09-10",
   curve_type = c("log_cubic_discount", "flat_forward")
 ) {
   curve_type <- match.arg(curve_type)
 
-  lst_curve_bundle <- build_tonar_curve_from_market_GQL(
+  lst_curve_bundle <- build_estr_curve_from_market_GQL(
     quotes = quotes,
     evaluation_date = evaluation_date,
     curve_type = curve_type
   )
 
-  lst_validation <- tonar_curve_validation_GQL(
+  lst_validation <- estr_curve_validation_GQL(
     lst_curve_bundle
   )
 

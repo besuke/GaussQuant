@@ -1,4 +1,4 @@
-# example/tonar_IR_curve_GQL.R
+# example/estr_IR_curve_GQL.R
 
 library(tidyverse)
 library(QuantLib)
@@ -7,7 +7,7 @@ devtools::document()
 devtools::load_all()
 
 # =============================================================================
-# 1. TONAR market quotes
+# 1. ESTR curve bootstrapping
 # =============================================================================
 
 str_evaluation_date <- "2026-09-10"
@@ -21,49 +21,65 @@ GaussQuant::set_eval_date_GQL(
   obj_evaluation_date
 )
 
-tbl_tonar_quotes <-
-  GaussQuant::bluegamma_tonar_quotes_GQL()
+tbl_estr_quotes <-
+  GaussQuant::bluegamma_estr_quotes_GQL()
 
-tbl_tonar_quotes
-
-tbl_tonar_quotes |>
-  dplyr::filter(
-    quote_id == "TONAR-5Y"
-  )
+tbl_estr_quotes
 
 # =============================================================================
-# 2. Build log-cubic-discount and flat-forward curves
+# 1.1 Log-cubic-discount curve
 # =============================================================================
 
-lst_tonar_log_cubic <-
-  GaussQuant::tonar_curve_benchmark_GQL(
-    quotes = tbl_tonar_quotes,
+lst_estr_log_cubic <-
+  GaussQuant::estr_curve_benchmark_GQL(
+    quotes = tbl_estr_quotes,
     evaluation_date = str_evaluation_date,
     curve_type = "log_cubic_discount"
   )
 
-lst_tonar_flat_forward <-
-  GaussQuant::tonar_curve_benchmark_GQL(
-    quotes = tbl_tonar_quotes,
+tbl_estr_repricing_log_cubic <-
+  lst_estr_log_cubic$
+    validation$
+    quote_repricing
+
+tbl_estr_repricing_log_cubic |>
+  dplyr::select(
+    quote_id,
+    market_quote,
+    implied_quote,
+    quote_error,
+    pillar_date,
+    discount_factor,
+    zero_rate,
+    inst_fwd_rate
+  )
+
+tbl_estr_nodes_log_cubic <-
+  GaussQuant::estr_curve_nodes_GQL(
+    lst_estr_log_cubic$
+      curve_bundle$
+      curve
+  )
+
+tbl_estr_nodes_log_cubic
+
+# =============================================================================
+# 1.2 Flat-forward curve
+# =============================================================================
+
+lst_estr_flat_forward <-
+  GaussQuant::estr_curve_benchmark_GQL(
+    quotes = tbl_estr_quotes,
     evaluation_date = str_evaluation_date,
     curve_type = "flat_forward"
   )
 
-# =============================================================================
-# 3. Validate market-quote repricing
-# =============================================================================
-
-tbl_tonar_repricing_log_cubic <-
-  lst_tonar_log_cubic$
+tbl_estr_repricing_flat_forward <-
+  lst_estr_flat_forward$
     validation$
     quote_repricing
 
-tbl_tonar_repricing_flat_forward <-
-  lst_tonar_flat_forward$
-    validation$
-    quote_repricing
-
-tbl_tonar_repricing_log_cubic |>
+tbl_estr_repricing_flat_forward |>
   dplyr::select(
     quote_id,
     market_quote,
@@ -75,25 +91,29 @@ tbl_tonar_repricing_log_cubic |>
     inst_fwd_rate
   )
 
-tbl_tonar_repricing_flat_forward |>
-  dplyr::select(
-    quote_id,
-    market_quote,
-    implied_quote,
-    quote_error,
-    pillar_date,
-    discount_factor,
-    zero_rate,
-    inst_fwd_rate
+tbl_estr_nodes_flat_forward <-
+  GaussQuant::estr_curve_nodes_GQL(
+    lst_estr_flat_forward$
+      curve_bundle$
+      curve
   )
 
-tbl_tonar_validation_summary <-
+tbl_estr_nodes_flat_forward
+
+# Do not call curve$nodes() directly. Some QuantLib/SWIG environments can
+# overflow the R node stack while converting the returned C++ node vector.
+
+# =============================================================================
+# 2. Quote-repricing validation
+# =============================================================================
+
+tbl_estr_validation_summary <-
   tibble::tribble(
     ~curve_type, ~max_abs_quote_error,
     "log_cubic_discount",
     max(
       abs(
-        tbl_tonar_repricing_log_cubic$
+        tbl_estr_repricing_log_cubic$
           quote_error
       ),
       na.rm = TRUE
@@ -101,41 +121,17 @@ tbl_tonar_validation_summary <-
     "flat_forward",
     max(
       abs(
-        tbl_tonar_repricing_flat_forward$
+        tbl_estr_repricing_flat_forward$
           quote_error
       ),
       na.rm = TRUE
     )
   )
 
-tbl_tonar_validation_summary
+tbl_estr_validation_summary
 
 # =============================================================================
-# 4. Extract curve nodes safely
-# =============================================================================
-
-tbl_tonar_nodes_log_cubic <-
-  GaussQuant::tonar_curve_nodes_GQL(
-    lst_tonar_log_cubic$
-      curve_bundle$
-      curve
-  )
-
-tbl_tonar_nodes_flat_forward <-
-  GaussQuant::tonar_curve_nodes_GQL(
-    lst_tonar_flat_forward$
-      curve_bundle$
-      curve
-  )
-
-tbl_tonar_nodes_log_cubic
-tbl_tonar_nodes_flat_forward
-
-# Do not call curve$nodes() directly. Some QuantLib/SWIG environments can
-# overflow the R node stack while converting the returned C++ node vector.
-
-# =============================================================================
-# 5. Calculate daily instantaneous forward rates
+# 3. Daily instantaneous forward curves
 # =============================================================================
 
 vec_curve_dates <-
@@ -154,9 +150,9 @@ vec_inst_fwd_rate_log_cubic <-
   purrr::map_dbl(
     vec_date_iso,
     \(str_date) {
-      GaussQuant::tonar_forward_rate_GQL(
+      GaussQuant::estr_forward_rate_GQL(
         curve =
-          lst_tonar_log_cubic$
+          lst_estr_log_cubic$
             curve_bundle$
             curve,
         start_date = str_date,
@@ -169,9 +165,9 @@ vec_inst_fwd_rate_flat_forward <-
   purrr::map_dbl(
     vec_date_iso,
     \(str_date) {
-      GaussQuant::tonar_forward_rate_GQL(
+      GaussQuant::estr_forward_rate_GQL(
         curve =
-          lst_tonar_flat_forward$
+          lst_estr_flat_forward$
             curve_bundle$
             curve,
         start_date = str_date,
@@ -180,7 +176,7 @@ vec_inst_fwd_rate_flat_forward <-
     }
   )
 
-tbl_tonar_inst_fwd_curve <-
+tbl_estr_inst_fwd_curve <-
   tibble::tibble(
     date = vec_curve_dates,
     log_cubic_discount =
@@ -197,10 +193,10 @@ tbl_tonar_inst_fwd_curve <-
     values_to = "inst_fwd_rate"
   )
 
-tbl_tonar_inst_fwd_curve
+tbl_estr_inst_fwd_curve
 
 ggplot2::ggplot(
-  tbl_tonar_inst_fwd_curve,
+  tbl_estr_inst_fwd_curve,
   ggplot2::aes(
     x = date,
     y = inst_fwd_rate,
@@ -217,8 +213,8 @@ ggplot2::ggplot(
       )
   ) +
   ggplot2::labs(
-    title = "TONAR instantaneous forward curves",
-    subtitle = "JPY OIS market data as of 2026-09-10",
+    title = "ESTR instantaneous forward curves",
+    subtitle = "EUR ESTR OIS rates as of 2026-09-10",
     x = NULL,
     y = "Instantaneous forward rate",
     colour = "Curve type"
@@ -226,27 +222,27 @@ ggplot2::ggplot(
   ggplot2::theme_minimal()
 
 # =============================================================================
-# 6. Compare five-year curve values
+# 4. Five-year curve comparison
 # =============================================================================
 
 str_five_year_date <- "2031-09-10"
 
-tbl_tonar_five_year_comparison <-
+tbl_estr_five_year_comparison <-
   tibble::tribble(
     ~curve_type, ~inst_fwd_rate,
     "log_cubic_discount",
-    GaussQuant::tonar_forward_rate_GQL(
+    GaussQuant::estr_forward_rate_GQL(
       curve =
-        lst_tonar_log_cubic$
+        lst_estr_log_cubic$
           curve_bundle$
           curve,
       start_date = str_five_year_date,
       end_date = str_five_year_date
     ),
     "flat_forward",
-    GaussQuant::tonar_forward_rate_GQL(
+    GaussQuant::estr_forward_rate_GQL(
       curve =
-        lst_tonar_flat_forward$
+        lst_estr_flat_forward$
           curve_bundle$
           curve,
       start_date = str_five_year_date,
@@ -254,4 +250,4 @@ tbl_tonar_five_year_comparison <-
     )
   )
 
-tbl_tonar_five_year_comparison
+tbl_estr_five_year_comparison
