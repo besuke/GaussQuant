@@ -455,27 +455,8 @@ eonia_curve_validation_GQL <- function(curve_bundle) {
       } else {
         NA_real_
       }
-      next_date <-
-        if (is.na(pillar_iso)) {
-          NULL
-        } else {
-          advance_days_GQL(
-            calendar_obj = calendar,
-            date_obj = pillar_date,
-            n_days = 1L
-          )
-        }
-
-      one_day_forward <-
-        if (is.null(next_date)) {
-          NA_real_
-        } else {
-          eonia_forward_rate_GQL(
-            curve = curve,
-            start_date = pillar_iso,
-            end_date = safe_iso_GQH(next_date)
-          )
-        }
+      next_date <-NULL
+      one_day_forward <-NA_real_
       implied_quote <- tryCatch(
         safe_num_GQH(helper$impliedQuote()),
         error = function(e) NA_real_
