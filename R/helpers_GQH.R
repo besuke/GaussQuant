@@ -508,7 +508,7 @@ bond_yield_from_clean_safe_GQL <- function(
       )
     },
     function() {
-      bond_yield_GQL(
+      bond_yield_from_price_GQL(
         bond = bond,
         clean_price = clean_price,
         day_counter = day_counter,

@@ -1,6 +1,6 @@
 Package: GaussQuant
 Title: Tidy R Interface to QuantLib for Quantitative Finance
-Version: 0.0.0.9000
+Version: 2026.9.11.1
 Authors@R: person("Eiichi", "Horigome", email = "besuke.poripori@outlook.com", role = c("aut", "cre"))
 Description: Provides reusable R interfaces to the SWIG version of QuantLib
     for fixed income, derivatives, credit, pricing engines, cashflows,
