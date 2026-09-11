@@ -326,7 +326,7 @@ eonia_curve_dates_GQL <- function(curve) {
   )
 }
 
-
+#' @export
 eonia_curve_nodes_GQL <- function(curve) {
   dates_ql <- eonia_curve_dates_GQL(curve)
   n_dates <- length(dates_ql)
@@ -415,73 +415,127 @@ eonia_helper_date_GQL <- function(
 #' @export
 eonia_curve_validation_GQL <- function(curve_bundle) {
   stopifnot(is.list(curve_bundle))
-  stopifnot(all(c("curve", "helpers", "quotes", "calendar") %in% names(curve_bundle)))
+  stopifnot(
+    all(
+      c("curve", "helpers", "quotes") %in%
+        names(curve_bundle)
+    )
+  )
 
   curve <- curve_bundle$curve
   helpers <- curve_bundle$helpers
   quotes <- curve_bundle$quotes
-  calendar <- curve_bundle$calendar
   reference_date <- curve$referenceDate()
   curve_day_counter <- curve$dayCounter()
 
-  tryCatch(curve$discount(curve$maxDate()), error = function(e) NULL)
-
-  quote_repricing <- purrr::map2_dfr(
-    seq_along(helpers),
-    helpers,
-    function(i, helper) {
-      pillar_date <- eonia_helper_date_GQL(helper, "pillarDate")
-
-      if (is.null(pillar_date)) {
-        pillar_date <- eonia_helper_date_GQL(helper, "latestDate")
-      }
-
-      pillar_iso <- safe_iso_GQH(pillar_date)
-      discount_factor <- if (is.na(pillar_iso)) {
-        NA_real_
-      } else {
-        curve_discount_safe_GQL(curve, pillar_date)
-      }
-
-      year_fraction <- if (is.na(pillar_iso)) {
-        NA_real_
-      } else {
-        safe_num_GQH(curve_day_counter$yearFraction(reference_date, pillar_date))
-      }
-
-      zero_rate <- if (!is.na(year_fraction) && year_fraction > 0 &&
-        !is.na(discount_factor) && discount_factor > 0) {
-        -log(discount_factor) / year_fraction
-      } else {
-        NA_real_
-      }
-      next_date <-NULL
-      one_day_forward <-NA_real_
-      implied_quote <- tryCatch(
-        safe_num_GQH(helper$impliedQuote()),
-        error = function(e) NA_real_
-      )
-
-      tibble::tibble(
-        quote_id = quotes$quote_id[[i]],
-        instrument_type = quotes$instrument_type[[i]],
-        market_quote = quotes$rate[[i]],
-        implied_quote = implied_quote,
-        quote_error = implied_quote - quotes$rate[[i]],
-        pillar_date = as.Date(pillar_iso),
-        discount_factor = discount_factor,
-        zero_rate = zero_rate,
-        one_day_forward_rate = one_day_forward
-      )
-    }
+  tryCatch(
+    curve$discount(curve$maxDate()),
+    error = function(e) NULL
   )
+
+  tbl_quote_repricing <-
+    purrr::map2_dfr(
+      seq_along(helpers),
+      helpers,
+      function(i, helper) {
+        pillar_date <-
+          eonia_helper_date_GQL(
+            helper,
+            "pillarDate"
+          )
+
+        if (is.null(pillar_date)) {
+          pillar_date <-
+            eonia_helper_date_GQL(
+              helper,
+              "latestDate"
+            )
+        }
+
+        pillar_iso <-
+          safe_iso_GQH(pillar_date)
+
+        discount_factor <-
+          if (is.na(pillar_iso)) {
+            NA_real_
+          } else {
+            curve_discount_safe_GQL(
+              curve,
+              pillar_date
+            )
+          }
+
+        year_fraction <-
+          if (is.na(pillar_iso)) {
+            NA_real_
+          } else {
+            safe_num_GQH(
+              curve_day_counter$yearFraction(
+                reference_date,
+                pillar_date
+              )
+            )
+          }
+
+        zero_rate <-
+          if (
+            !is.na(year_fraction) &&
+              year_fraction > 0 &&
+              !is.na(discount_factor) &&
+              discount_factor > 0
+          ) {
+            -log(discount_factor) /
+              year_fraction
+          } else {
+            NA_real_
+          }
+
+        inst_fwd_rate <-
+          if (is.na(pillar_iso)) {
+            NA_real_
+          } else {
+            tryCatch(
+              eonia_forward_rate_GQL(
+                curve = curve,
+                start_date = pillar_iso,
+                end_date = pillar_iso
+              ),
+              error = function(e) NA_real_
+            )
+          }
+
+        implied_quote <-
+          tryCatch(
+            safe_num_GQH(
+              helper$impliedQuote()
+            ),
+            error = function(e) NA_real_
+          )
+
+        tibble::tibble(
+          quote_id = quotes$quote_id[[i]],
+          instrument_type =
+            quotes$instrument_type[[i]],
+          market_quote = quotes$rate[[i]],
+          implied_quote = implied_quote,
+          quote_error =
+            implied_quote -
+              quotes$rate[[i]],
+          pillar_date = as.Date(pillar_iso),
+          discount_factor = discount_factor,
+          zero_rate = zero_rate,
+          inst_fwd_rate =
+            inst_fwd_rate
+        )
+      }
+    )
 
   list(
-    quote_repricing = quote_repricing,
-    curve_nodes = eonia_curve_nodes_GQL(curve)
+    quote_repricing = tbl_quote_repricing,
+    curve_nodes =
+      eonia_curve_nodes_GQL(curve)
   )
 }
-
 
 eonia_forward_curve_from_nodes_GQL <- function(nodes, day_counter) {
   QuantLib::ForwardCurve(
@@ -505,97 +559,164 @@ eonia_forward_curve_from_nodes_GQL <- function(nodes, day_counter) {
 #' @return A list containing all intermediate curves, validations, nodes, and
 #'   the estimated year-end jump.
 #' @export
+#'
 eonia_curve_benchmark_GQL <- function(
   quotes = ametrano_bianchetti_eonia_quotes_GQL(),
   evaluation_date = "2012-12-11"
 ) {
-  initial_bundle <- build_eonia_curve_from_market_GQL(
-    quotes = quotes,
-    evaluation_date = evaluation_date,
-    curve_type = "log_cubic_discount"
-  )
+  lst_initial_bundle <-
+    build_eonia_curve_from_market_GQL(
+      quotes = quotes,
+      evaluation_date = evaluation_date,
+      curve_type = "log_cubic_discount"
+    )
 
-  flat_bundle <- build_eonia_curve_from_market_GQL(
-    quotes = quotes,
-    evaluation_date = evaluation_date,
-    curve_type = "flat_forward"
-  )
+  lst_flat_bundle <-
+    build_eonia_curve_from_market_GQL(
+      quotes = quotes,
+      evaluation_date = evaluation_date,
+      curve_type = "flat_forward"
+    )
 
-  flat_nodes <- eonia_curve_nodes_GQL(flat_bundle$curve)
-  jump_node_date <- as.Date("2013-01-03")
-  jump_index <- match(jump_node_date, flat_nodes$node_date)
+  tbl_flat_nodes <-
+    eonia_curve_nodes_GQL(
+      lst_flat_bundle$curve
+    )
 
-  if (is.na(jump_index) || jump_index <= 1L || jump_index >= nrow(flat_nodes)) {
+  date_jump_node <- as.Date("2013-01-03")
+
+  int_jump_index <-
+    match(
+      date_jump_node,
+      tbl_flat_nodes$node_date
+    )
+
+  if (
+    is.na(int_jump_index) ||
+      int_jump_index <= 1L ||
+      int_jump_index >= nrow(tbl_flat_nodes)
+  ) {
     stop(
-      "Unable to identify the 2013-01-03 flat-forward node required by the benchmark.",
+      paste(
+        "Unable to identify the 2013-01-03",
+        "flat-forward node required by the benchmark."
+      ),
       call. = FALSE
     )
   }
 
-  clean_nodes <- flat_nodes |>
+  tbl_clean_nodes <-
+    tbl_flat_nodes |>
     dplyr::mutate(
       node_rate = dplyr::if_else(
-        dplyr::row_number() == jump_index,
-        (flat_nodes$node_rate[[jump_index - 1L]] +
-          flat_nodes$node_rate[[jump_index + 1L]]) / 2,
+        dplyr::row_number() == int_jump_index,
+        (
+          tbl_flat_nodes$node_rate[[int_jump_index - 1L]] +
+            tbl_flat_nodes$node_rate[[int_jump_index + 1L]]
+        ) / 2,
         node_rate
       )
     )
 
-  clean_forward_curve <- eonia_forward_curve_from_nodes_GQL(
-    clean_nodes,
-    flat_bundle$curve$dayCounter()
-  )
+  obj_curve_day_counter <-
+    lst_flat_bundle$curve$dayCounter()
 
-  d1 <- "2012-12-24"
-  d2 <- "2013-01-07"
-  jump_start <- "2012-12-31"
-  jump_end <- "2013-01-02"
+  obj_clean_forward_curve <-
+    eonia_forward_curve_from_nodes_GQL(
+      tbl_clean_nodes,
+      obj_curve_day_counter
+    )
 
-  original_forward <- eonia_forward_rate_GQL(flat_bundle$curve, d1, d2)
-  clean_forward <- eonia_forward_rate_GQL(clean_forward_curve, d1, d2)
-  curve_day_counter <- flat_bundle$curve$dayCounter()
-  t12 <- safe_num_GQH(
-    curve_day_counter$yearFraction(date_GQL(d1), date_GQL(d2))
-  )
-  jump_time <- safe_num_GQH(
-    curve_day_counter$yearFraction(date_GQL(jump_start), date_GQL(jump_end))
-  )
-  jump_rate <- (original_forward - clean_forward) * t12 / jump_time
-  jump_discount_factor <- 1 / (1 + jump_rate * jump_time)
+  str_forward_start <- "2012-12-24"
+  str_forward_end <- "2013-01-07"
+  str_jump_start <- "2012-12-31"
+  str_jump_end <- "2013-01-02"
 
-  final_bundle <- build_eonia_curve_from_market_GQL(
-    quotes = quotes,
-    evaluation_date = evaluation_date,
-    curve_type = "log_cubic_discount",
-    jump_discount_factors = jump_discount_factor,
-    jump_dates = jump_start
-  )
+  num_original_forward <-
+    eonia_forward_rate_GQL(
+      curve = lst_flat_bundle$curve,
+      start_date = str_forward_start,
+      end_date = str_forward_end
+    )
 
-  initial_validation <-
-    eonia_curve_validation_GQL(initial_bundle)
+  num_clean_forward <-
+    eonia_forward_rate_GQL(
+      curve = obj_clean_forward_curve,
+      start_date = str_forward_start,
+      end_date = str_forward_end
+    )
 
-  final_validation <-
-    eonia_curve_validation_GQL(final_bundle)
+  num_forward_time <-
+    safe_num_GQH(
+      obj_curve_day_counter$yearFraction(
+        DateParser_parseISO_GQL(str_forward_start),
+        DateParser_parseISO_GQL(str_forward_end)
+      )
+    )
+
+  num_jump_time <-
+    safe_num_GQH(
+      obj_curve_day_counter$yearFraction(
+        DateParser_parseISO_GQL(str_jump_start),
+        DateParser_parseISO_GQL(str_jump_end)
+      )
+    )
+
+  num_jump_rate <-
+    (
+      num_original_forward -
+        num_clean_forward
+    ) *
+      num_forward_time /
+      num_jump_time
+
+  num_jump_discount_factor <-
+    1 / (
+      1 +
+        num_jump_rate *
+          num_jump_time
+    )
+
+  lst_final_bundle <-
+    build_eonia_curve_from_market_GQL(
+      quotes = quotes,
+      evaluation_date = evaluation_date,
+      curve_type = "log_cubic_discount",
+      jump_discount_factors = num_jump_discount_factor,
+      jump_dates = str_jump_start
+    )
+
+  lst_initial_validation <-
+    eonia_curve_validation_GQL(
+      lst_initial_bundle
+    )
+
+  lst_final_validation <-
+    eonia_curve_validation_GQL(
+      lst_final_bundle
+    )
+
+  tbl_jump_summary <-
+    tibble::tibble(
+      original_forward = num_original_forward,
+      clean_forward = num_clean_forward,
+      t12 = num_forward_time,
+      jump_time = num_jump_time,
+      jump_rate = num_jump_rate,
+      jump_discount_factor = num_jump_discount_factor,
+      jump_date = as.Date(str_jump_start)
+    )
 
   list(
     quotes = quotes,
-    initial = initial_bundle,
-    flat_forward = flat_bundle,
-    clean_forward_curve = clean_forward_curve,
-    final = final_bundle,
-    flat_nodes = flat_nodes,
-    clean_nodes = clean_nodes,
-    jump_summary = tibble::tibble(
-      original_forward = original_forward,
-      clean_forward = clean_forward,
-      t12 = t12,
-      jump_time = jump_time,
-      jump_rate = jump_rate,
-      jump_discount_factor = jump_discount_factor,
-      jump_date = as.Date(jump_start)
-    ),
-    initial_validation = initial_validation,
-    final_validation = final_validation
+    initial = lst_initial_bundle,
+    flat_forward = lst_flat_bundle,
+    clean_forward_curve = obj_clean_forward_curve,
+    final = lst_final_bundle,
+    flat_nodes = tbl_flat_nodes,
+    clean_nodes = tbl_clean_nodes,
+    jump_summary = tbl_jump_summary,
+    initial_validation = lst_initial_validation,
+    final_validation = lst_final_validation
   )
 }

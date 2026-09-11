@@ -9,12 +9,20 @@ devtools::load_all()
 # =============================================================================
 # 1. EONIA curve bootstrapping
 # =============================================================================
-
+curves_eonia =NULL
 obj_date_today <- GaussQuant::DateParser_parseISO_GQL("2012-12-11")
 GaussQuant::set_eval_date_GQL(obj_date_today)
+curves_eonia <- GaussQuant::eonia_curve_benchmark_GQL()
+curves_eonia$final_validation$quote_repricing |>
+  select( pillar_date, discount_factor,zero_rate,inst_fwd_rate)
 
 obj_calendar_target <- QuantLib::TARGET()
-obj_day_counter_actual_360 <- QuantLib::Actual360()
+
+obj_day_counter_actual_360 <-
+  QuantLib::Actual360()
+
+obj_period_one_day <-
+  GaussQuant::period_GQL("1D")
 obj_day_counter_actual_365_fixed <- QuantLib::Actual365Fixed()
 obj_period_one_day <- GaussQuant::period_GQL("1D")
 
@@ -89,37 +97,31 @@ lst_helper_ois_short <- tbl_ois_short_quotes |>
 
 tbl_ois_dated_quotes <- tibble::tribble(
   ~num_rate_pct, ~str_start_date, ~str_end_date,
-   0.046, "2013-01-16", "2013-02-13",
-   0.016, "2013-02-13", "2013-03-13",
+  0.046, "2013-01-16", "2013-02-13",
+  0.016, "2013-02-13", "2013-03-13",
   -0.007, "2013-03-13", "2013-04-10",
   -0.013, "2013-04-10", "2013-05-08",
   -0.014, "2013-05-08", "2013-06-12"
 )
-lst_helper_ois_dated <- tbl_ois_dated_quotes |>
+lst_helper_ois_dated <-
+  tbl_ois_dated_quotes |>
   dplyr::mutate(
     num_rate = num_rate_pct / 100,
-
-    obj_quote_handle = purrr::map(
-      num_rate,
-      \(num_rate) {
-        QuantLib::QuoteHandle(
-          QuantLib::SimpleQuote(num_rate)
-        )
-      }
-    ),
-
+    
     obj_rate_helper = purrr::pmap(
       list(
         str_start_date,
         str_end_date,
-        obj_quote_handle
+        num_rate
       ),
-      \(str_start_date, str_end_date, obj_quote_handle) {
-        GaussQuant::DatedOISRateHelper_GQL(
+      \(str_start_date,
+        str_end_date,
+        num_rate) {
+        GaussQuant:::eonia_dated_ois_helper_GQL(
           start_date = str_start_date,
           end_date = str_end_date,
-          quote_handle = obj_quote_handle,
-          overnight_index = obj_index_eonia
+          rate = num_rate,
+          eonia = obj_index_eonia
         )
       }
     )
@@ -287,6 +289,14 @@ tbl_forward_flat_forward_raw <- tibble::tibble(
   num_forward_rate = vec_forward_rate_flat_forward_raw
 )
 
+tbl_nodes_raw <-
+  GaussQuant:::eonia_curve_nodes_GQL(
+    obj_curve_eonia_flat_forward_raw
+  )
+
+tbl_nodes_raw
+
+tbl_nodes_raw
 tbl_forward_flat_forward_raw
 
 obj_nodes_raw <- obj_curve_eonia_flat_forward_raw$nodes()
