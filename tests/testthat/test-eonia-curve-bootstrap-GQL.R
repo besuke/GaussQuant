@@ -56,8 +56,8 @@ test_that("EONIA flat-forward nodes reproduce the Cookbook benchmark", {
   )
 
   actual <- benchmark$flat_nodes |>
-    dplyr::filter(.data$node_date %in% expected$node_date) |>
-    dplyr::arrange(.data$node_date)
+    dplyr::filter(node_date %in% expected$node_date) |>
+    dplyr::arrange(node_date)
 
   expect_equal(actual$node_date, expected$node_date)
   expect_equal(actual$node_rate, expected$node_rate, tolerance = 1e-9)

@@ -91,15 +91,15 @@ eonia_dated_ois_helper_GQL <- function(start_date, end_date, rate, eonia) {
 
 
 eonia_rate_helper_GQL <- function(
-    instrument_type,
-    rate,
-    fixing_days,
-    tenor_n,
-    tenor_unit,
-    start_date,
-    end_date,
-    eonia,
-    calendar
+  instrument_type,
+  rate,
+  fixing_days,
+  tenor_n,
+  tenor_unit,
+  start_date,
+  end_date,
+  eonia,
+  calendar
 ) {
   if (instrument_type == "deposit") {
     return(
@@ -167,15 +167,14 @@ eonia_quote_handle_vector_GQL <- function(values) {
 
 
 eonia_make_curve_GQL <- function(
-    curve_type,
-    calendar,
-    helper_vector,
-    day_counter,
-    jump_discount_factors = NULL,
-    jump_dates = NULL
+  curve_type,
+  calendar,
+  helper_vector,
+  day_counter,
+  jump_discount_factors = NULL,
+  jump_dates = NULL
 ) {
-  constructor <- switch(
-    curve_type,
+  constructor <- switch(curve_type,
     log_cubic_discount = QuantLib::PiecewiseLogCubicDiscount,
     flat_forward = QuantLib::PiecewiseFlatForward,
     stop("Unsupported EONIA curve type: ", curve_type, call. = FALSE)
@@ -223,12 +222,12 @@ eonia_make_curve_GQL <- function(
 #'   quotes, and conventions.
 #' @export
 build_eonia_curve_from_market_GQL <- function(
-    quotes = ametrano_bianchetti_eonia_quotes_GQL(),
-    evaluation_date = "2012-12-11",
-    curve_type = c("log_cubic_discount", "flat_forward"),
-    jump_discount_factors = NULL,
-    jump_dates = NULL,
-    extrapolate = TRUE
+  quotes = ametrano_bianchetti_eonia_quotes_GQL(),
+  evaluation_date = "2012-12-11",
+  curve_type = c("log_cubic_discount", "flat_forward"),
+  jump_discount_factors = NULL,
+  jump_dates = NULL,
+  extrapolate = TRUE
 ) {
   curve_type <- match.arg(curve_type)
   required_columns <- c(
@@ -261,15 +260,13 @@ build_eonia_curve_from_market_GQL <- function(
       start_date = quotes$start_date,
       end_date = quotes$end_date
     ),
-    function(
-      instrument_type,
-      rate,
-      fixing_days,
-      tenor_n,
-      tenor_unit,
-      start_date,
-      end_date
-    ) {
+    function(instrument_type,
+             rate,
+             fixing_days,
+             tenor_n,
+             tenor_unit,
+             start_date,
+             end_date) {
       eonia_rate_helper_GQL(
         instrument_type = instrument_type,
         rate = rate,
@@ -374,10 +371,10 @@ eonia_curve_nodes_GQL <- function(curve) {
 
 
 eonia_forward_rate_GQL <- function(
-    curve,
-    start_date,
-    end_date,
-    day_counter = QuantLib::Actual360()
+  curve,
+  start_date,
+  end_date,
+  day_counter = QuantLib::Actual360()
 ) {
   tryCatch(
     curve$forwardRate(
@@ -392,14 +389,13 @@ eonia_forward_rate_GQL <- function(
 
 
 eonia_helper_date_GQL <- function(
-    helper,
-    method = c("pillarDate", "latestDate")
+  helper,
+  method = c("pillarDate", "latestDate")
 ) {
   method <- match.arg(method)
 
   tryCatch(
-    switch(
-      method,
+    switch(method,
       pillarDate = helper$pillarDate(),
       latestDate = helper$latestDate()
     ),
@@ -454,28 +450,32 @@ eonia_curve_validation_GQL <- function(curve_bundle) {
       }
 
       zero_rate <- if (!is.na(year_fraction) && year_fraction > 0 &&
-          !is.na(discount_factor) && discount_factor > 0) {
+        !is.na(discount_factor) && discount_factor > 0) {
         -log(discount_factor) / year_fraction
       } else {
         NA_real_
       }
+      next_date <-
+        if (is.na(pillar_iso)) {
+          NULL
+        } else {
+          advance_days_GQL(
+            calendar_obj = calendar,
+            date_obj = pillar_date,
+            n_days = 1L
+          )
+        }
 
-      next_date <- if (is.na(pillar_iso)) {
-        NULL
-      } else {
-        advance_days_GQL(calendar, pillar_date, 1L)
-      }
-
-      one_day_forward <- if (is.null(next_date)) {
-        NA_real_
-      } else {
-        eonia_forward_rate_GQL(
-          curve = curve,
-          start_date = pillar_iso,
-          end_date = safe_iso_GQH(next_date)
-        )
-      }
-
+      one_day_forward <-
+        if (is.null(next_date)) {
+          NA_real_
+        } else {
+          eonia_forward_rate_GQL(
+            curve = curve,
+            start_date = pillar_iso,
+            end_date = safe_iso_GQH(next_date)
+          )
+        }
       implied_quote <- tryCatch(
         safe_num_GQH(helper$impliedQuote()),
         error = function(e) NA_real_
@@ -525,8 +525,8 @@ eonia_forward_curve_from_nodes_GQL <- function(nodes, day_counter) {
 #'   the estimated year-end jump.
 #' @export
 eonia_curve_benchmark_GQL <- function(
-    quotes = ametrano_bianchetti_eonia_quotes_GQL(),
-    evaluation_date = "2012-12-11"
+  quotes = ametrano_bianchetti_eonia_quotes_GQL(),
+  evaluation_date = "2012-12-11"
 ) {
   initial_bundle <- build_eonia_curve_from_market_GQL(
     quotes = quotes,
@@ -591,6 +591,12 @@ eonia_curve_benchmark_GQL <- function(
     jump_dates = jump_start
   )
 
+  initial_validation <-
+    eonia_curve_validation_GQL(initial_bundle)
+
+  final_validation <-
+    eonia_curve_validation_GQL(final_bundle)
+
   list(
     quotes = quotes,
     initial = initial_bundle,
@@ -608,7 +614,7 @@ eonia_curve_benchmark_GQL <- function(
       jump_discount_factor = jump_discount_factor,
       jump_date = as.Date(jump_start)
     ),
-    initial_validation = eonia_curve_validation_GQL(initial_bundle),
-    final_validation = eonia_curve_validation_GQL(final_bundle)
+    initial_validation = initial_validation,
+    final_validation = final_validation
   )
 }

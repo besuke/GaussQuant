@@ -47,7 +47,11 @@ set_eval_date_GQL <- function(eval_date) {
   )
 }
 
-#' Advance a date by calendar days
+#' Advance a date by a specified number of calendar days
+#'
+#' Converts the input date to a fresh QuantLib Date before advancing it.
+#' This avoids reusing external date pointers returned by other QuantLib
+#' objects.
 #'
 #' @param calendar_obj QuantLib calendar object.
 #' @param date_obj ISO date string, R Date, or QuantLib Date.
@@ -56,6 +60,10 @@ set_eval_date_GQL <- function(eval_date) {
 #' @return An R Date.
 #' @export
 advance_days_GQL <- function(calendar_obj, date_obj, n_days) {
+  date_obj <-
+    date_obj |>
+    safe_iso_GQH() |>
+    DateParser_parseISO_GQL()
   as_r_date_GQH(
     .advance_days_ql_GQL(
       calendar_obj = calendar_obj,
@@ -64,6 +72,7 @@ advance_days_GQL <- function(calendar_obj, date_obj, n_days) {
     )
   )
 }
+
 
 #' Build a QuantLib Period
 #'
@@ -116,8 +125,7 @@ period_GQL <- function(x = 1, unit = NULL) {
   n <- as.integer(hit[2])
   u <- hit[3]
 
-  switch(
-    u,
+  switch(u,
     "D" = period_days_GQL(n),
     "W" = period_weeks_GQL(n),
     "M" = period_months_GQL(n),
