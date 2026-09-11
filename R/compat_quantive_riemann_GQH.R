@@ -88,11 +88,11 @@ ir_apply_fixings_GQH <- function(
   tbl <- tibble::as_tibble(fixings_tbl)
 
   if (!is.null(currency) && "currency" %in% names(tbl)) {
-    tbl <- dplyr::filter(tbl, toupper(.data$currency) == toupper(currency))
+    tbl <- dplyr::filter(tbl, toupper(currency) == toupper(currency))
   }
 
   if (!is.null(instrument) && "instrument" %in% names(tbl)) {
-    tbl <- dplyr::filter(tbl, toupper(.data$instrument) == toupper(instrument))
+    tbl <- dplyr::filter(tbl, toupper(instrument) == toupper(instrument))
   }
 
   date_col <- intersect(c("fixing_date", "date", "as_of_date", "trade_date"), names(tbl))[1]
@@ -215,26 +215,26 @@ ir_fixing_table_GQH <- function(swap, curve, index) {
 
   tibble::tibble(i = seq_len(n)) |>
     dplyr::mutate(
-      cf = purrr::map(.data$i, ~ leg_cashflow_at_GQH(float_leg, .x)),
-      coupon = purrr::map(.data$cf, ~ tryCatch(QuantLib::as_floating_rate_coupon(.x), error = function(e) NULL)),
+      cf = purrr::map(i, ~ leg_cashflow_at_GQH(float_leg, .x)),
+      coupon = purrr::map(cf, ~ tryCatch(QuantLib::as_floating_rate_coupon(.x), error = function(e) NULL)),
       fixing_date = purrr::map_chr(
-        .data$cf,
+        cf,
         ~ iso_GQL(QuantLib::FloatingRateCoupon_fixingDate(QuantLib::as_floating_rate_coupon(.x)))
       ),
       fixing_value = purrr::map_dbl(
-        .data$cf,
+        cf,
         ~ tryCatch(
           index$fixing(QuantLib::FloatingRateCoupon_fixingDate(QuantLib::as_floating_rate_coupon(.x))),
           error = function(e) NA_real_
         )
       ),
-      pay_date = purrr::map_chr(.data$cf, ~ iso_GQL(QuantLib::CashFlow_date(.x))),
-      amount = purrr::map_dbl(.data$cf, .cf_amount_GQH),
+      pay_date = purrr::map_chr(cf, ~ iso_GQL(QuantLib::CashFlow_date(.x))),
+      amount = purrr::map_dbl(cf, .cf_amount_GQH),
       df = purrr::map_dbl(
-        .data$cf,
+        cf,
         ~ tryCatch(curve$discount(QuantLib::CashFlow_date(.x)), error = function(e) NA_real_)
       ),
-      pv = .data$amount * .data$df
+      pv = amount * df
     ) |>
     dplyr::select(-cf, -coupon)
 }
@@ -251,7 +251,7 @@ ir_fixing_table_GQH <- function(swap, curve, index) {
   ) |>
     dplyr::mutate(
       is_business_day = purrr::map_lgl(
-        .data$accrual_date,
+        accrual_date,
         function(d) {
           d_ql <- date_GQL(d)
 
@@ -266,10 +266,10 @@ ir_fixing_table_GQH <- function(swap, curve, index) {
       )
     ) |>
     dplyr::filter(
-      .data$is_business_day
+      is_business_day
     ) |>
     dplyr::transmute(
-      accrual_date = as.character(.data$accrual_date)
+      accrual_date = as.character(accrual_date)
     )
 }
 
@@ -325,35 +325,35 @@ ois_daily_forward_table_GQH <- function(
 
   business_dates_tbl |>
     dplyr::mutate(
-      next_date = dplyr::lead(.data$accrual_date),
-      fixing_date = .data$accrual_date
+      next_date = dplyr::lead(accrual_date),
+      fixing_date = accrual_date
     ) |>
-    dplyr::filter(!is.na(.data$next_date)) |>
+    dplyr::filter(!is.na(next_date)) |>
     dplyr::mutate(
-      fixing_date_r = as.Date(.data$fixing_date),
-      next_date_r = as.Date(.data$next_date),
-      days = as.integer(.data$next_date_r - .data$fixing_date_r),
-      fixing_before_eval = .data$fixing_date_r < eval_date_r,
-      fixing_on_eval = .data$fixing_date_r == eval_date_r,
+      fixing_date_r = as.Date(fixing_date),
+      next_date_r = as.Date(next_date),
+      days = as.integer(next_date_r - fixing_date_r),
+      fixing_before_eval = fixing_date_r < eval_date_r,
+      fixing_on_eval = fixing_date_r == eval_date_r,
       fixing_value = purrr::map_dbl(
-        .data$fixing_date,
+        fixing_date,
         ~ tryCatch(index$fixing(date_GQL(.x)), error = function(e) NA_real_)
       ),
       df_start = purrr::map_dbl(
-        .data$fixing_date,
+        fixing_date,
         ~ curve$discount(date_GQL(.x))
       ),
       df_end = purrr::map_dbl(
-        .data$next_date,
+        next_date,
         ~ curve$discount(date_GQL(.x))
       ),
-      forward_rate_from_df = (.data$df_start / .data$df_end - 1) * 365 / .data$days,
+      forward_rate_from_df = (df_start / df_end - 1) * 365 / days,
       applied_rate = dplyr::case_when(
-        .data$fixing_before_eval ~ .data$fixing_value,
-        .data$fixing_on_eval ~ dplyr::coalesce(.data$fixing_value, .data$forward_rate_from_df),
-        TRUE ~ .data$forward_rate_from_df
+        fixing_before_eval ~ fixing_value,
+        fixing_on_eval ~ dplyr::coalesce(fixing_value, forward_rate_from_df),
+        TRUE ~ forward_rate_from_df
       ),
-      amount = notional * .data$applied_rate * .data$days / 365
+      amount = notional * applied_rate * days / 365
     ) |>
     dplyr::select(
       fixing_date,
@@ -454,9 +454,9 @@ ois_daily_forward_table_GQH <- function(
 .ir_normalize_curve_data_GQH <- function(curve_data) {
   tibble::as_tibble(curve_data) |>
     dplyr::transmute(
-      kind = tolower(trimws(.data$kind)),
-      tenor = toupper(trimws(.data$tenor)),
-      rate = as.numeric(.data$rate)
+      kind = tolower(trimws(kind)),
+      tenor = toupper(trimws(tenor)),
+      rate = as.numeric(rate)
     )
 }
 
@@ -578,12 +578,12 @@ ir_build_ois_curve_envs_GQH <- function(
 
   quotes2 <- tibble::as_tibble(quotes) |>
     dplyr::transmute(
-      as_of_date = as.Date(.data$as_of_date),
-      currency = toupper(trimws(.data$currency)),
-      instrument = toupper(trimws(.data$instrument)),
-      kind = tolower(trimws(.data$kind)),
-      tenor = toupper(trimws(.data$tenor)),
-      rate = as.numeric(.data$rate)
+      as_of_date = as.Date(as_of_date),
+      currency = toupper(trimws(currency)),
+      instrument = toupper(trimws(instrument)),
+      kind = tolower(trimws(kind)),
+      tenor = toupper(trimws(tenor)),
+      rate = as.numeric(rate)
     )
 
   if (is.null(trade_date)) {
@@ -597,20 +597,20 @@ ir_build_ois_curve_envs_GQH <- function(
   }
 
   quotes3 <- quotes2 |>
-    dplyr::filter(.data$as_of_date == as.Date(trade_date))
+    dplyr::filter(as_of_date == as.Date(trade_date))
 
   keys <- quotes3 |>
-    dplyr::distinct(.data$currency, .data$instrument)
+    dplyr::distinct(currency, instrument)
 
   out <- purrr::pmap(
     keys,
     function(currency, instrument) {
       curve_data <- quotes3 |>
         dplyr::filter(
-          .data$currency == .env$currency,
-          .data$instrument == .env$instrument
+          currency == .env$currency,
+          instrument == .env$instrument
         ) |>
-        dplyr::select(.data$kind, .data$tenor, .data$rate)
+        dplyr::select(kind, tenor, rate)
 
       ir_build_ois_curve_GQH(
         curve_data = curve_data,
@@ -971,12 +971,12 @@ trade_ois_swap_py_GQH <- function(
 
   tbl |>
     dplyr::transmute(
-      tenor = toupper(trimws(.data$tenor)),
+      tenor = toupper(trimws(tenor)),
       spread = as.numeric(.data[[spread_col]])
     ) |>
     dplyr::mutate(
-      target_date = purrr::map(.data$tenor, ~ ref_date + period_GQL(.x)),
-      time = purrr::map_dbl(.data$target_date, ~ .curve_time_GQH(curve, .x))
+      target_date = purrr::map(tenor, ~ ref_date + period_GQL(.x)),
+      time = purrr::map_dbl(target_date, ~ .curve_time_GQH(curve, .x))
     )
 }
 
@@ -1067,14 +1067,14 @@ ir_basis_table_GQH <- function(
 
   tibble::tibble(
     tenor = tenors,
-    target_date = purrr::map(.data$tenor, ~ ref_date + period_GQL(.x)),
-    date = purrr::map_chr(.data$target_date, iso_GQL),
-    spread = purrr::map_dbl(.data$target_date, ~ .ir_basis_spread_GQH(basis_env, .x)),
-    base_zero = purrr::map_dbl(.data$target_date, ~ .zero_rate_date_GQH(basis_env$base_curve, .x)),
-    basis_zero = purrr::map_dbl(.data$target_date, ~ .ir_basis_zero_rate_GQH(basis_env, .x)),
-    basis_df = purrr::map_dbl(.data$target_date, ~ .ir_basis_discount_GQH(basis_env, .x))
+    target_date = purrr::map(tenor, ~ ref_date + period_GQL(.x)),
+    date = purrr::map_chr(target_date, iso_GQL),
+    spread = purrr::map_dbl(target_date, ~ .ir_basis_spread_GQH(basis_env, .x)),
+    base_zero = purrr::map_dbl(target_date, ~ .zero_rate_date_GQH(basis_env$base_curve, .x)),
+    basis_zero = purrr::map_dbl(target_date, ~ .ir_basis_zero_rate_GQH(basis_env, .x)),
+    basis_df = purrr::map_dbl(target_date, ~ .ir_basis_discount_GQH(basis_env, .x))
   ) |>
-    dplyr::select(.data$tenor, .data$date, .data$spread, .data$base_zero, .data$basis_zero, .data$basis_df)
+    dplyr::select(tenor, date, spread, base_zero, basis_zero, basis_df)
 }
 
 .try_make_asset_swap_GQH <- function(

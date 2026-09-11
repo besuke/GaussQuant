@@ -89,15 +89,15 @@ discount_table_GQL <- function(nodes) {
     zero_rate_input = as.numeric(nodes$zero_rate)
   ) |>
     dplyr::mutate(
-      year_frac = as.numeric(as.Date(.data$date) - first_date) / 365,
+      year_frac = as.numeric(as.Date(date) - first_date) / 365,
       discount = dplyr::if_else(
-        .data$year_frac > 0,
-        exp(-.data$zero_rate_input * .data$year_frac),
+        year_frac > 0,
+        exp(-zero_rate_input * year_frac),
         1
       ),
       implied_zero = dplyr::if_else(
-        .data$year_frac > 0,
-        -log(.data$discount) / .data$year_frac,
+        year_frac > 0,
+        -log(discount) / year_frac,
         0
       )
     )
@@ -197,8 +197,8 @@ build_bond_discount_curve_GQL <- function(
   ) |>
     dplyr::mutate(
       tenor = purrr::map2(
-        .data$tenor_n,
-        .data$tenor_unit,
+        tenor_n,
+        tenor_unit,
         QuantLib::Period
       )
     )
@@ -251,8 +251,8 @@ build_bond_discount_curve_GQL <- function(
     )
   ) |>
     dplyr::mutate(
-      issue_qldate = purrr::map(.data$issue_date, date_GQL),
-      maturity_qldate = purrr::map(.data$maturity, date_GQL)
+      issue_qldate = purrr::map(issue_date, date_GQL),
+      maturity_qldate = purrr::map(maturity, date_GQL)
     )
 
   redemption <- 100.0
@@ -348,8 +348,8 @@ build_swap_curve_GQL <- function(
   ) |>
     dplyr::mutate(
       tenor = purrr::map2(
-        .data$tenor_n,
-        .data$tenor_unit,
+        tenor_n,
+        tenor_unit,
         QuantLib::Period
       )
     )
@@ -361,8 +361,8 @@ build_swap_curve_GQL <- function(
   ) |>
     dplyr::mutate(
       tenor = purrr::map2(
-        .data$tenor_n,
-        .data$tenor_unit,
+        tenor_n,
+        tenor_unit,
         QuantLib::Period
       )
     )
@@ -417,5 +417,37 @@ build_swap_curve_GQL <- function(
     settlement_date_ql,
     depo_swap_instruments,
     term_structure_day_counter
+  )
+}
+
+DatedOISRateHelper_GQL <- function(
+    start_date,
+    end_date,
+    quote_handle,
+    overnight_index
+) {
+  obj_start_date <- if (
+    is.character(start_date) ||
+    inherits(start_date, "Date")
+  ) {
+    DateParser_parseISO_GQL(start_date)
+  } else {
+    start_date
+  }
+
+  obj_end_date <- if (
+    is.character(end_date) ||
+    inherits(end_date, "Date")
+  ) {
+    DateParser_parseISO_GQL(end_date)
+  } else {
+    end_date
+  }
+
+  QuantLib::OISRateHelper_forDates(
+    obj_start_date,
+    obj_end_date,
+    quote_handle,
+    overnight_index
   )
 }

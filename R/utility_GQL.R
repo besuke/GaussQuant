@@ -260,11 +260,11 @@ leg_to_cashflow_tbl_GQL <- function(leg) {
   ) |>
     dplyr::mutate(
       cashflow = purrr::map(
-        .data$idx,
+        idx,
         function(i) leg[i][[1]]
       ),
       date = purrr::map_chr(
-        .data$cashflow,
+        cashflow,
         function(cf) {
           iso_GQL(
             QuantLib::CashFlow_date(cf)
@@ -272,14 +272,14 @@ leg_to_cashflow_tbl_GQL <- function(leg) {
         }
       ),
       amount = purrr::map_dbl(
-        .data$cashflow,
+        cashflow,
         function(cf) {
           QuantLib::CashFlow_amount(cf)
         }
       )
     ) |>
     dplyr::select(
-      .data$date,
-      .data$amount
+      date,
+      amount
     )
 }

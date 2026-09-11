@@ -45,7 +45,7 @@ metric_tbl_display_GQH <- function(tbl) {
 
   tbl |>
     dplyr::mutate(
-      value = purrr::map_chr(.data$value, metric_value_to_chr_GQH)
+      value = purrr::map_chr(value, metric_value_to_chr_GQH)
     )
 }
 
@@ -87,7 +87,7 @@ get_metric_num_GQH <- function(tbl, metric_name) {
 #' @export
 replace_metric_value_GQH <- function(tbl, metric_name, new_value) {
   tbl <- tbl |>
-    dplyr::mutate(value = as.list(.data$value))
+    dplyr::mutate(value = as.list(value))
 
   idx <- match(metric_name, tbl$metric)
 
@@ -305,10 +305,10 @@ curve_grid_tbl_GQL <- function(
     time = times,
     discount_factor = discount_factors,
     zero_rate = dplyr::if_else(
-      .data$time > 0 &
-        .data$discount_factor > 0,
-      -log(.data$discount_factor) /
-        .data$time,
+      time > 0 &
+        discount_factor > 0,
+      -log(discount_factor) /
+        time,
       0
     ),
     curve_date = curve_dates
@@ -732,14 +732,14 @@ bond_futures_ctd_table_GQL <- function(
       )
   ) |>
     dplyr::mutate(
-      ctd = dplyr::row_number() == which.min(.data$net_basis)
+      ctd = dplyr::row_number() == which.min(net_basis)
     ) |>
-    dplyr::arrange(.data$net_basis)
+    dplyr::arrange(net_basis)
 
   list(
     basket = basket,
     ctd = basket |>
-      dplyr::filter(.data$ctd)
+      dplyr::filter(ctd)
   )
 }
 
@@ -1032,27 +1032,27 @@ terminal_option_mc_GQL <- function(
   option_type <- match.arg(option_type)
 
   terminal <- path_tbl |>
-    dplyr::group_by(.data$path_id) |>
+    dplyr::group_by(path_id) |>
     dplyr::slice_max(
-      order_by = .data$step,
+      order_by = step,
       n = 1L,
       with_ties = FALSE
     ) |>
     dplyr::ungroup() |>
     dplyr::mutate(
       payoff = if (option_type == "call") {
-        pmax(.data$price - strike, 0)
+        pmax(price - strike, 0)
       } else {
-        pmax(strike - .data$price, 0)
+        pmax(strike - price, 0)
       },
-      discounted_payoff = discount_factor * .data$payoff
+      discounted_payoff = discount_factor * payoff
     )
 
   summary <- terminal |>
     dplyr::summarise(
       paths = dplyr::n(),
-      npv = mean(.data$discounted_payoff),
-      standard_error = stats::sd(.data$discounted_payoff) /
+      npv = mean(discounted_payoff),
+      standard_error = stats::sd(discounted_payoff) /
         sqrt(dplyr::n())
     )
 
@@ -1076,13 +1076,13 @@ lsm_american_put_GQL <- function(
     risk_free_rate
 ) {
   ordered <- path_tbl |>
-    dplyr::arrange(.data$path_id, .data$step)
+    dplyr::arrange(path_id, step)
 
   path_ids <- unique(ordered$path_id)
 
   time_grid <- ordered |>
-    dplyr::filter(.data$path_id == path_ids[[1L]]) |>
-    dplyr::pull(.data$time)
+    dplyr::filter(path_id == path_ids[[1L]]) |>
+    dplyr::pull(time)
 
   n_paths <- length(path_ids)
   n_points <- length(time_grid)

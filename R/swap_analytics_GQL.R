@@ -234,7 +234,7 @@ cashflow_standardise_GQL <- function(x) {
   }
 
   x |>
-    dplyr::relocate(.data$payment_date, .data$amount)
+    dplyr::relocate(payment_date, amount)
 }
 
 
@@ -261,7 +261,7 @@ leg_cashflow_schedule_GQL <- function(
       leg = leg_name,
       leg_no = as.integer(leg_no)
     ) |>
-    dplyr::relocate(.data$leg, .data$leg_no)
+    dplyr::relocate(leg, leg_no)
 }
 
 
@@ -415,7 +415,7 @@ apply_discount_factors_GQL <- function(
   cashflows |>
     dplyr::mutate(
       discount_factor = discount_factors,
-      present_value = as.numeric(.data[[amount_col]]) * .data$discount_factor
+      present_value = as.numeric(.data[[amount_col]]) * discount_factor
     )
 }
 
@@ -458,10 +458,10 @@ apply_fixings_GQL <- function(
 
   fixings_tbl <- fixings |>
     dplyr::mutate(
-      fixing_date = as.Date(.data$fixing_date),
-      fixing_value = as.numeric(.data$fixing)
+      fixing_date = as.Date(fixing_date),
+      fixing_value = as.numeric(fixing)
     ) |>
-    dplyr::select(-.data$fixing)
+    dplyr::select(-fixing)
 
   join_cols <- if (
     "index" %in% names(out) &&
@@ -478,9 +478,9 @@ apply_fixings_GQL <- function(
       by = join_cols
     ) |>
     dplyr::mutate(
-      is_fixing_known = !is.na(.data$fixing_value) &
-        !is.na(.data$fixing_date) &
-        .data$fixing_date <= evaluation_date
+      is_fixing_known = !is.na(fixing_value) &
+        !is.na(fixing_date) &
+        fixing_date <= evaluation_date
     )
 }
 
@@ -657,17 +657,17 @@ cashflow_leg_summary_GQL <- function(cashflows) {
   }
 
   cashflows |>
-    dplyr::group_by(.data$leg) |>
+    dplyr::group_by(leg) |>
     dplyr::summarise(
       cashflow_count = dplyr::n(),
       first_payment_date = suppressWarnings(
-        min(as.Date(as.character(.data$payment_date)), na.rm = TRUE)
+        min(as.Date(as.character(payment_date)), na.rm = TRUE)
       ),
       last_payment_date = suppressWarnings(
-        max(as.Date(as.character(.data$payment_date)), na.rm = TRUE)
+        max(as.Date(as.character(payment_date)), na.rm = TRUE)
       ),
-      total_amount = sum(as.numeric(.data$amount), na.rm = TRUE),
-      total_present_value = sum(as.numeric(.data$present_value), na.rm = TRUE),
+      total_amount = sum(as.numeric(amount), na.rm = TRUE),
+      total_present_value = sum(as.numeric(present_value), na.rm = TRUE),
       .groups = "drop"
     )
 }
@@ -703,7 +703,7 @@ ois_cashflow_schedule_from_trade_GQL <- function(
       dplyr::mutate(
         trade_id = as.character(trade$trade_id[[1]])
       ) |>
-      dplyr::relocate(.data$trade_id)
+      dplyr::relocate(trade_id)
   }
 
   out
@@ -776,7 +776,7 @@ swap_cashflow_schedule_from_trade_GQL <- function(
       dplyr::mutate(
         trade_id = as.character(trade$trade_id[[1]])
       ) |>
-      dplyr::relocate(.data$trade_id)
+      dplyr::relocate(trade_id)
   }
 
   out
@@ -965,7 +965,7 @@ cashflow_schedule_from_trades_GQL <- function(
           trade_row = i,
           product = trade_product_GQL(trade)
         ) |>
-        dplyr::relocate(.data$trade_row, .data$product)
+        dplyr::relocate(trade_row, product)
     }
   )
 
@@ -1014,7 +1014,7 @@ value_cashflow_schedule_from_trades_GQL <- function(
           trade_row = i,
           product = trade_product_GQL(trade)
         ) |>
-        dplyr::relocate(.data$trade_row, .data$product)
+        dplyr::relocate(trade_row, product)
     }
   )
 

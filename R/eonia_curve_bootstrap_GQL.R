@@ -43,8 +43,8 @@ ametrano_bianchetti_eonia_quotes_GQL <- function() {
     "OIS-25Y", "spot_ois", 2.003, 2L, 25L, "Years", NA_character_, NA_character_,
     "OIS-30Y", "spot_ois", 2.038, 2L, 30L, "Years", NA_character_, NA_character_
   ) |>
-    dplyr::mutate(rate = .data$rate_pct / 100) |>
-    dplyr::relocate(.data$rate, .after = .data$rate_pct)
+    dplyr::mutate(rate = rate_pct / 100) |>
+    dplyr::relocate(rate, .after = rate_pct)
 }
 
 
@@ -557,7 +557,7 @@ eonia_curve_benchmark_GQL <- function(
         dplyr::row_number() == jump_index,
         (flat_nodes$node_rate[[jump_index - 1L]] +
           flat_nodes$node_rate[[jump_index + 1L]]) / 2,
-        .data$node_rate
+        node_rate
       )
     )
 

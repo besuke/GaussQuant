@@ -339,18 +339,18 @@ prdc_expected_coupon_GQL <- function(
   ) |>
     dplyr::mutate(
       accrual_start = as.Date(
-        purrr::map_chr(.data$accrual_start_ql, iso_GQL)
+        purrr::map_chr(accrual_start_ql, iso_GQL)
       ),
       accrual_end = as.Date(
-        purrr::map_chr(.data$accrual_end_ql, iso_GQL)
+        purrr::map_chr(accrual_end_ql, iso_GQL)
       ),
       accrual_fraction = purrr::map2_dbl(
-        .data$accrual_start_ql,
-        .data$accrual_end_ql,
+        accrual_start_ql,
+        accrual_end_ql,
         ~ as.numeric(day_counter$yearFraction(.x, .y))
       )
     ) |>
-    dplyr::filter(.data$accrual_end > valuation_date_r) |>
+    dplyr::filter(accrual_end > valuation_date_r) |>
     dplyr::mutate(coupon_number = dplyr::row_number()) |>
     dplyr::select(
       "coupon_number",
@@ -418,24 +418,24 @@ prdc_cashflow_table_GQL <- function(
     ) |>
     dplyr::mutate(
       coupon_amount = as.numeric(notional) *
-        .data$final_coupon_rate *
-        .data$accrual_fraction,
+        final_coupon_rate *
+        accrual_fraction,
       discount_factor = purrr::map_dbl(
-        .data$accrual_end_ql,
+        accrual_end_ql,
         ~ curve_discount_safe_GQL(discount_curve, .x)
       ),
-      coupon_present_value = .data$coupon_amount *
-        .data$discount_factor,
+      coupon_present_value = coupon_amount *
+        discount_factor,
       redemption_amount = dplyr::if_else(
-        .data$coupon_number == max(.data$coupon_number),
+        coupon_number == max(coupon_number),
         as.numeric(redemption_amount),
         0
       ),
-      redemption_present_value = .data$redemption_amount *
-        .data$discount_factor,
-      total_amount = .data$coupon_amount + .data$redemption_amount,
-      total_present_value = .data$coupon_present_value +
-        .data$redemption_present_value
+      redemption_present_value = redemption_amount *
+        discount_factor,
+      total_amount = coupon_amount + redemption_amount,
+      total_present_value = coupon_present_value +
+        redemption_present_value
     ) |>
     dplyr::select(
       -dplyr::any_of(c("accrual_start_ql", "accrual_end_ql"))
@@ -586,8 +586,8 @@ prdc_cap_floor_probability_GQL <- function(
   ) |>
     dplyr::mutate(
       interior_probability = 1 -
-        .data$floor_probability -
-        .data$cap_probability
+        floor_probability -
+        cap_probability
     )
 
   if (!is.null(coupon_dates)) {
@@ -742,7 +742,7 @@ prdc_spot_sensitivity_GQL <- function(
   result <- spot_scenarios |>
     dplyr::mutate(
       prdc_npv = purrr::map_dbl(
-        .data$fx_spot,
+        fx_spot,
         function(spot_value) {
           process <- fx_process_GQL(
             spot = spot_value,
@@ -781,8 +781,8 @@ prdc_spot_sensitivity_GQL <- function(
 
   result |>
     dplyr::mutate(
-      npv_difference_from_base = .data$prdc_npv -
-        .data$prdc_npv[[base_index]]
+      npv_difference_from_base = prdc_npv -
+        prdc_npv[[base_index]]
     )
 }
 
@@ -833,7 +833,7 @@ prdc_volatility_sensitivity_GQL <- function(
   result <- volatility_scenarios |>
     dplyr::mutate(
       prdc_npv = purrr::map_dbl(
-        .data$fx_volatility,
+        fx_volatility,
         function(volatility_value) {
           volatility_curve <- QuantLib::BlackConstantVol(
             valuation_date_ql,
@@ -883,7 +883,7 @@ prdc_volatility_sensitivity_GQL <- function(
 
   result |>
     dplyr::mutate(
-      npv_difference_from_base = .data$prdc_npv -
-        .data$prdc_npv[[base_index]]
+      npv_difference_from_base = prdc_npv -
+        prdc_npv[[base_index]]
     )
 }

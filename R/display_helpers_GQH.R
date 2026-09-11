@@ -61,16 +61,16 @@ curve_tbl_GQH <- function(
 
   tibble::tibble(
     tenor = tenors,
-    date = purrr::map(.data$tenor, ~ ref_date + period_GQL(.x)),
+    date = purrr::map(tenor, ~ ref_date + period_GQL(.x)),
     date_r = as.Date(
-      purrr::map_chr(.data$date, iso_GQL)
+      purrr::map_chr(date, iso_GQL)
     ),
     discount = purrr::map_dbl(
-      .data$date,
+      date,
       ~ tryCatch(curve$discount(.x), error = function(e) NA_real_)
     ),
     zero_rate = purrr::map_dbl(
-      .data$date,
+      date,
       function(d) {
         t <- tryCatch(
           curve$timeFromReference(d),
@@ -90,7 +90,7 @@ curve_tbl_GQH <- function(
       }
     )
   ) |>
-    dplyr::select(.data$tenor, date = .data$date_r, .data$discount, .data$zero_rate)
+    dplyr::select(tenor, date = date_r, discount, zero_rate)
 }
 
 #' Alias for curve_tbl_GQH

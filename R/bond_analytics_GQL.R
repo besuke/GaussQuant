@@ -441,27 +441,27 @@ bond_coupon_info_GQL <- function(bond, as_of = eval_date_get_GQL()) {
 
   cf <- tibble::as_tibble(cf) |>
     dplyr::mutate(
-      date = as.Date(.data$date),
-      amount = as.numeric(.data$amount),
-      is_future = .data$date > as_of
+      date = as.Date(date),
+      amount = as.numeric(amount),
+      is_future = date > as_of
     )
 
   # Redemption/principal を除き、coupon cashflow だけを推定する
   if ("type" %in% names(cf)) {
     coupons <- cf |>
       dplyr::filter(
-        !grepl("redemption|principal|notional", .data$type, ignore.case = TRUE)
+        !grepl("redemption|principal|notional", type, ignore.case = TRUE)
       )
   } else {
     # type 列がない場合は、最大金額を元本償還とみなして除外する簡易版
     max_amount <- max(abs(cf$amount), na.rm = TRUE)
 
     coupons <- cf |>
-      dplyr::filter(abs(.data$amount) < max_amount)
+      dplyr::filter(abs(amount) < max_amount)
   }
 
   coupons <- coupons |>
-    dplyr::arrange(.data$date)
+    dplyr::arrange(date)
 
   previous_candidates <- coupons$date[coupons$date <= as_of]
   next_candidates <- coupons$date[coupons$date > as_of]
@@ -482,9 +482,9 @@ bond_coupon_info_GQL <- function(bond, as_of = eval_date_get_GQL()) {
     dplyr::mutate(
       coupon_no = dplyr::row_number(),
       is_previous_coupon = !is.na(previous_coupon_date) &
-        .data$date == previous_coupon_date,
+        date == previous_coupon_date,
       is_next_coupon = !is.na(next_coupon_date) &
-        .data$date == next_coupon_date
+        date == next_coupon_date
     )
 }
 #' Get bond settlement information
@@ -500,10 +500,10 @@ bond_settlement_info_GQL <- function(bond, as_of = eval_date_get_GQL()) {
   coupon_info <- bond_coupon_info_GQL(bond, as_of = as_of)
 
   previous_coupon <- coupon_info |>
-    dplyr::filter(.data$is_previous_coupon)
+    dplyr::filter(is_previous_coupon)
 
   next_coupon <- coupon_info |>
-    dplyr::filter(.data$is_next_coupon)
+    dplyr::filter(is_next_coupon)
 
   previous_coupon_date <- if (nrow(previous_coupon) > 0) {
     previous_coupon$date[[1]]
@@ -635,7 +635,7 @@ bond_sensitivity_table_GQL <- function(
   ) |>
     dplyr::mutate(
       clean_price = purrr::map_dbl(
-        .data$yield,
+        yield,
         ~ bond_price_from_yield_GQL(
           bond,
           .x,
@@ -644,8 +644,8 @@ bond_sensitivity_table_GQL <- function(
           frequency = frequency
         )
       ),
-      price_change = .data$clean_price - base_clean_price,
-      price_change_pct = .data$price_change / base_clean_price
+      price_change = clean_price - base_clean_price,
+      price_change_pct = price_change / base_clean_price
     )
 
   out
