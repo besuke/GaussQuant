@@ -1,7 +1,6 @@
 # display_helpers_GQH.R
 
 
-
 #' Format a numeric value for display
 #'
 #' @param x Numeric vector.
@@ -44,8 +43,8 @@ show_tbl_GQH <- function(x, title = NULL, n = 10) {
 #' @return Tibble with dates, discount factors, and zero rates.
 #' @export
 curve_tbl_GQH <- function(
-    curve,
-    tenors = c("1D", "1W", "1M", "3M", "6M", "1Y", "2Y", "3Y", "5Y", "7Y", "10Y", "20Y", "30Y")
+  curve,
+  tenors = c("1D", "1W", "1M", "3M", "6M", "1Y", "2Y", "3Y", "5Y", "7Y", "10Y", "20Y", "30Y")
 ) {
   ref_date <- tryCatch(
     curve$referenceDate(),
@@ -57,7 +56,7 @@ curve_tbl_GQH <- function(
       )
     }
   )
-  
+
 
   tibble::tibble(
     tenor = tenors,

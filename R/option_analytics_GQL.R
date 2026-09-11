@@ -17,17 +17,17 @@
 #' @return QuantLib VanillaOption object.
 #' @export
 make_european_option_GQL <- function(
-    spot,
-    strike,
-    maturity_date,
-    option_type = "call",
-    valuation_date = eval_date_get_GQL(),
-    risk_free_rate = 0.03,
-    dividend_yield = 0,
-    volatility = 0.20,
-    day_counter = QuantLib::Actual365Fixed(),
-    calendar = QuantLib::TARGET(),
-    pricing_engine = NULL
+  spot,
+  strike,
+  maturity_date,
+  option_type = "call",
+  valuation_date = eval_date_get_GQL(),
+  risk_free_rate = 0.03,
+  dividend_yield = 0,
+  volatility = 0.20,
+  day_counter = QuantLib::Actual365Fixed(),
+  calendar = QuantLib::TARGET(),
+  pricing_engine = NULL
 ) {
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
@@ -35,13 +35,12 @@ make_european_option_GQL <- function(
   valuation_date_chr <- (
     if (
       is.character(valuation_date) ||
-      inherits(valuation_date, "Date")
+        inherits(valuation_date, "Date")
     ) {
       as.character(valuation_date)
     } else {
       iso_GQL(valuation_date)
-    }
-  ) |>
+    }) |>
     lubridate::ymd() |>
     format("%Y-%m-%d")
 
@@ -239,8 +238,8 @@ option_summary_GQL <- function(option) {
 #' @return QuantLib VanillaOption object.
 #' @export
 make_european_option_from_trade_GQL <- function(
-    trade,
-    pricing_engine = NULL
+  trade,
+  pricing_engine = NULL
 ) {
   use_quantlib_GQH()
 
@@ -325,19 +324,19 @@ make_european_option_from_trade_GQL <- function(
 #' @return Numeric implied volatility.
 #' @export
 option_implied_volatility_GQL <- function(
-    option,
-    target_value,
-    spot,
-    valuation_date = eval_date_get_GQL(),
-    risk_free_rate = 0.03,
-    dividend_yield = 0,
-    volatility = 0.20,
-    day_counter = QuantLib::Actual365Fixed(),
-    calendar = QuantLib::TARGET(),
-    accuracy = 1e-6,
-    max_evaluations = 100,
-    min_vol = 1e-7,
-    max_vol = 4.0
+  option,
+  target_value,
+  spot,
+  valuation_date = eval_date_get_GQL(),
+  risk_free_rate = 0.03,
+  dividend_yield = 0,
+  volatility = 0.20,
+  day_counter = QuantLib::Actual365Fixed(),
+  calendar = QuantLib::TARGET(),
+  accuracy = 1e-6,
+  max_evaluations = 100,
+  min_vol = 1e-7,
+  max_vol = 4.0
 ) {
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
@@ -345,13 +344,12 @@ option_implied_volatility_GQL <- function(
   valuation_date_chr <- (
     if (
       is.character(valuation_date) ||
-      inherits(valuation_date, "Date")
+        inherits(valuation_date, "Date")
     ) {
       as.character(valuation_date)
     } else {
       iso_GQL(valuation_date)
-    }
-  ) |>
+    }) |>
     lubridate::ymd() |>
     format("%Y-%m-%d")
 
@@ -424,18 +422,18 @@ option_implied_volatility_GQL <- function(
 #' @return QuantLib VanillaOption object.
 #' @export
 make_american_option_GQL <- function(
-    spot,
-    strike,
-    maturity_date,
-    option_type = "put",
-    valuation_date = eval_date_get_GQL(),
-    risk_free_rate = 0.03,
-    dividend_yield = 0,
-    volatility = 0.20,
-    day_counter = QuantLib::Actual365Fixed(),
-    calendar = QuantLib::TARGET(),
-    steps = 200L,
-    pricing_engine = NULL
+  spot,
+  strike,
+  maturity_date,
+  option_type = "put",
+  valuation_date = eval_date_get_GQL(),
+  risk_free_rate = 0.03,
+  dividend_yield = 0,
+  volatility = 0.20,
+  day_counter = QuantLib::Actual365Fixed(),
+  calendar = QuantLib::TARGET(),
+  steps = 200L,
+  pricing_engine = NULL
 ) {
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
@@ -443,13 +441,12 @@ make_american_option_GQL <- function(
   valuation_date_chr <- (
     if (
       is.character(valuation_date) ||
-      inherits(valuation_date, "Date")
+        inherits(valuation_date, "Date")
     ) {
       as.character(valuation_date)
     } else {
       iso_GQL(valuation_date)
-    }
-  ) |>
+    }) |>
     lubridate::ymd() |>
     format("%Y-%m-%d")
 
@@ -542,20 +539,20 @@ make_american_option_GQL <- function(
 #' @return QuantLib BarrierOption object.
 #' @export
 make_barrier_option_GQL <- function(
-    spot,
-    strike,
-    maturity_date,
-    barrier,
-    barrier_type = "down_out",
-    rebate = 0,
-    option_type = "call",
-    valuation_date = eval_date_get_GQL(),
-    risk_free_rate = 0.03,
-    dividend_yield = 0,
-    volatility = 0.20,
-    day_counter = QuantLib::Actual365Fixed(),
-    calendar = QuantLib::TARGET(),
-    pricing_engine = NULL
+  spot,
+  strike,
+  maturity_date,
+  barrier,
+  barrier_type = "down_out",
+  rebate = 0,
+  option_type = "call",
+  valuation_date = eval_date_get_GQL(),
+  risk_free_rate = 0.03,
+  dividend_yield = 0,
+  volatility = 0.20,
+  day_counter = QuantLib::Actual365Fixed(),
+  calendar = QuantLib::TARGET(),
+  pricing_engine = NULL
 ) {
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
@@ -563,13 +560,12 @@ make_barrier_option_GQL <- function(
   valuation_date_chr <- (
     if (
       is.character(valuation_date) ||
-      inherits(valuation_date, "Date")
+        inherits(valuation_date, "Date")
     ) {
       as.character(valuation_date)
     } else {
       iso_GQL(valuation_date)
-    }
-  ) |>
+    }) |>
     lubridate::ymd() |>
     format("%Y-%m-%d")
 
@@ -680,8 +676,8 @@ make_barrier_option_GQL <- function(
 #' @return QuantLib BarrierOption object.
 #' @export
 make_barrier_option_from_trade_GQL <- function(
-    trade,
-    pricing_engine = NULL
+  trade,
+  pricing_engine = NULL
 ) {
   use_quantlib_GQH()
 
@@ -774,8 +770,8 @@ make_barrier_option_from_trade_GQL <- function(
 #' @return QuantLib VanillaOption object.
 #' @export
 make_american_option_from_trade_GQL <- function(
-    trade,
-    pricing_engine = NULL
+  trade,
+  pricing_engine = NULL
 ) {
   use_quantlib_GQH()
 
@@ -860,8 +856,8 @@ make_american_option_from_trade_GQL <- function(
 #' @return QuantLib option object.
 #' @export
 make_option_from_trade_GQL <- function(
-    trade,
-    pricing_engine = NULL
+  trade,
+  pricing_engine = NULL
 ) {
   use_quantlib_GQH()
 
@@ -920,8 +916,8 @@ make_option_from_trade_GQL <- function(
 #' @return A tibble with option value and Greeks where available.
 #' @export
 option_summary_from_trade_GQL <- function(
-    trade,
-    pricing_engine = NULL
+  trade,
+  pricing_engine = NULL
 ) {
   option <- make_option_from_trade_GQL(
     trade = trade,

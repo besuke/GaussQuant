@@ -13,13 +13,13 @@ DateParser_parseISO_GQL <- function(x) {
   if (inherits(x, "Date")) {
     x <- format(x, "%Y-%m-%d")
   }
-  
+
   stopifnot(
     is.character(x),
     length(x) == 1L,
     !is.na(x)
   )
-  
+
   QuantLib::DateParser_parseISO(x)
 }
 
@@ -139,8 +139,8 @@ eval_date_get_GQL <- function() {
 #'
 #' @export
 day_counter_GQL <- function(
-    day_counter = "Actual365Fixed",
-    convention = "BondBasis"
+  day_counter = "Actual365Fixed",
+  convention = "BondBasis"
 ) {
   if (!is.character(day_counter)) {
     return(day_counter)
@@ -183,8 +183,7 @@ day_counter_GQL <- function(
     return(QuantLib::Thirty360(convention))
   }
 
-  switch(
-    day_counter,
+  switch(day_counter,
     Actual365Fixed = QuantLib::Actual365Fixed(),
     Actual360 = QuantLib::Actual360(),
     ActualActual_ISDA = QuantLib::ActualActual("ISDA"),

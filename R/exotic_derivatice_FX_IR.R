@@ -15,11 +15,11 @@
 }
 
 .prdc_validate_coupon_terms_GQL <- function(
-    fx_base,
-    leverage,
-    subtraction,
-    floor_rate,
-    cap_rate
+  fx_base,
+  leverage,
+  subtraction,
+  floor_rate,
+  cap_rate
 ) {
   finite_values <- c(
     fx_base = fx_base,
@@ -35,7 +35,7 @@
   }
 
   if (length(floor_rate) != 1L || is.na(floor_rate) ||
-      length(cap_rate) != 1L || is.na(cap_rate)) {
+    length(cap_rate) != 1L || is.na(cap_rate)) {
     stop("floor_rate and cap_rate must be non-missing scalars.", call. = FALSE)
   }
 
@@ -66,10 +66,10 @@
 #' @return QuantLib GarmanKohlagenProcess.
 #' @export
 fx_process_GQL <- function(
-    spot,
-    foreign_curve_handle,
-    domestic_curve_handle,
-    volatility_handle
+  spot,
+  foreign_curve_handle,
+  domestic_curve_handle,
+  volatility_handle
 ) {
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
@@ -103,10 +103,10 @@ fx_process_GQL <- function(
 #'   steps, and a `next_path` function.
 #' @export
 fx_path_generator_GQL <- function(
-    valuation_date,
-    coupon_schedule,
-    day_counter,
-    process
+  valuation_date,
+  coupon_schedule,
+  day_counter,
+  process
 ) {
   valuation_date_ql <- .as_ql_date_GQL(valuation_date)
   valuation_date_r <- as_r_date_GQH(valuation_date_ql)
@@ -180,9 +180,9 @@ fx_path_generator_GQL <- function(
 #' @return Numeric matrix with coupon dates in rows and paths in columns.
 #' @export
 prdc_path_matrix_GQL <- function(
-    path_generator,
-    n_paths,
-    seed = 1L
+  path_generator,
+  n_paths,
+  seed = 1L
 ) {
   n_paths <- as.integer(n_paths)
 
@@ -214,12 +214,12 @@ prdc_path_matrix_GQL <- function(
 #' @return Coupon rates with the same dimensions as `fx_rate`.
 #' @export
 prdc_coupon_GQL <- function(
-    fx_rate,
-    fx_base,
-    leverage,
-    subtraction,
-    floor_rate = 0,
-    cap_rate = Inf
+  fx_rate,
+  fx_base,
+  leverage,
+  subtraction,
+  floor_rate = 0,
+  cap_rate = Inf
 ) {
   .prdc_validate_coupon_terms_GQL(
     fx_base = fx_base,
@@ -251,16 +251,16 @@ prdc_coupon_GQL <- function(
 #' @return Tibble of expected FX and coupon statistics.
 #' @export
 prdc_expected_coupon_GQL <- function(
-    path_matrix,
-    coupon_dates,
-    coupon_times,
-    fx_base,
-    leverage,
-    subtraction,
-    floor_rate = 0,
-    cap_rate = Inf,
-    intro_coupon_dates = NULL,
-    intro_coupon_rate = NULL
+  path_matrix,
+  coupon_dates,
+  coupon_times,
+  fx_base,
+  leverage,
+  subtraction,
+  floor_rate = 0,
+  cap_rate = Inf,
+  intro_coupon_dates = NULL,
+  intro_coupon_rate = NULL
 ) {
   path_matrix <- .prdc_validate_matrix_GQL(path_matrix)
   coupon_dates <- as.Date(coupon_dates)
@@ -268,7 +268,7 @@ prdc_expected_coupon_GQL <- function(
   number_of_steps <- nrow(path_matrix)
 
   if (length(coupon_dates) != number_of_steps ||
-      length(coupon_times) != number_of_steps) {
+    length(coupon_times) != number_of_steps) {
     stop(
       "coupon_dates and coupon_times must match the path-matrix row count.",
       call. = FALSE
@@ -321,9 +321,9 @@ prdc_expected_coupon_GQL <- function(
 }
 
 .prdc_coupon_period_table_GQL <- function(
-    valuation_date,
-    coupon_schedule,
-    day_counter
+  valuation_date,
+  coupon_schedule,
+  day_counter
 ) {
   valuation_date_ql <- .as_ql_date_GQL(valuation_date)
   valuation_date_r <- as_r_date_GQH(valuation_date_ql)
@@ -375,13 +375,13 @@ prdc_expected_coupon_GQL <- function(
 #' @return Tibble containing coupon, redemption, and present values.
 #' @export
 prdc_cashflow_table_GQL <- function(
-    expected_coupon_tbl,
-    valuation_date,
-    coupon_schedule,
-    day_counter,
-    discount_curve,
-    notional,
-    redemption_amount = notional
+  expected_coupon_tbl,
+  valuation_date,
+  coupon_schedule,
+  day_counter,
+  discount_curve,
+  notional,
+  redemption_amount = notional
 ) {
   required_columns <- c(
     "coupon_number",
@@ -461,23 +461,23 @@ prdc_cashflow_table_GQL <- function(
 #' @return Numeric NPV, or a detailed valuation list.
 #' @export
 prdc_npv_GQL <- function(
-    valuation_date,
-    coupon_schedule,
-    process,
-    discount_curve,
-    notional,
-    fx_base,
-    leverage,
-    subtraction,
-    floor_rate = 0,
-    cap_rate = Inf,
-    day_counter = QuantLib::Actual360(),
-    intro_coupon_dates = NULL,
-    intro_coupon_rate = NULL,
-    n_paths = 10000L,
-    seed = 1L,
-    redemption_amount = notional,
-    return_details = FALSE
+  valuation_date,
+  coupon_schedule,
+  process,
+  discount_curve,
+  notional,
+  fx_base,
+  leverage,
+  subtraction,
+  floor_rate = 0,
+  cap_rate = Inf,
+  day_counter = QuantLib::Actual360(),
+  intro_coupon_dates = NULL,
+  intro_coupon_rate = NULL,
+  n_paths = 10000L,
+  seed = 1L,
+  redemption_amount = notional,
+  return_details = FALSE
 ) {
   set_eval_date_GQL(valuation_date)
 
@@ -553,15 +553,15 @@ prdc_npv_GQL <- function(
 #' @return Tibble of floor, cap, and interior probabilities.
 #' @export
 prdc_cap_floor_probability_GQL <- function(
-    path_matrix,
-    fx_base,
-    leverage,
-    subtraction,
-    floor_rate = 0,
-    cap_rate = Inf,
-    coupon_dates = NULL,
-    coupon_times = NULL,
-    tolerance = 1e-12
+  path_matrix,
+  fx_base,
+  leverage,
+  subtraction,
+  floor_rate = 0,
+  cap_rate = Inf,
+  coupon_dates = NULL,
+  coupon_times = NULL,
+  tolerance = 1e-12
 ) {
   path_matrix <- .prdc_validate_matrix_GQL(path_matrix)
   number_of_steps <- nrow(path_matrix)
@@ -614,17 +614,17 @@ prdc_cap_floor_probability_GQL <- function(
 #' @return List containing path present values and an error summary.
 #' @export
 prdc_monte_carlo_error_GQL <- function(
-    path_matrix,
-    cashflow_tbl,
-    notional,
-    fx_base,
-    leverage,
-    subtraction,
-    floor_rate = 0,
-    cap_rate = Inf,
-    intro_coupon_dates = NULL,
-    intro_coupon_rate = NULL,
-    confidence_level = 0.95
+  path_matrix,
+  cashflow_tbl,
+  notional,
+  fx_base,
+  leverage,
+  subtraction,
+  floor_rate = 0,
+  cap_rate = Inf,
+  intro_coupon_dates = NULL,
+  intro_coupon_rate = NULL,
+  confidence_level = 0.95
 ) {
   path_matrix <- .prdc_validate_matrix_GQL(path_matrix)
 
@@ -711,26 +711,26 @@ prdc_monte_carlo_error_GQL <- function(
 #' @return Scenario tibble with NPV differences.
 #' @export
 prdc_spot_sensitivity_GQL <- function(
-    spot_scenarios,
-    valuation_date,
-    coupon_schedule,
-    foreign_curve_handle,
-    domestic_curve_handle,
-    volatility_handle,
-    discount_curve,
-    notional,
-    fx_base,
-    leverage,
-    subtraction,
-    floor_rate = 0,
-    cap_rate = Inf,
-    day_counter = QuantLib::Actual360(),
-    intro_coupon_dates = NULL,
-    intro_coupon_rate = NULL,
-    n_paths = 2000L,
-    seed = 1L,
-    redemption_amount = notional,
-    base_scenario = "base"
+  spot_scenarios,
+  valuation_date,
+  coupon_schedule,
+  foreign_curve_handle,
+  domestic_curve_handle,
+  volatility_handle,
+  discount_curve,
+  notional,
+  fx_base,
+  leverage,
+  subtraction,
+  floor_rate = 0,
+  cap_rate = Inf,
+  day_counter = QuantLib::Actual360(),
+  intro_coupon_dates = NULL,
+  intro_coupon_rate = NULL,
+  n_paths = 2000L,
+  seed = 1L,
+  redemption_amount = notional,
+  base_scenario = "base"
 ) {
   if (!all(c("scenario", "fx_spot") %in% names(spot_scenarios))) {
     stop(
@@ -799,27 +799,27 @@ prdc_spot_sensitivity_GQL <- function(
 #' @return Scenario tibble with NPV differences.
 #' @export
 prdc_volatility_sensitivity_GQL <- function(
-    volatility_scenarios,
-    valuation_date,
-    coupon_schedule,
-    spot,
-    foreign_curve_handle,
-    domestic_curve_handle,
-    discount_curve,
-    notional,
-    fx_base,
-    leverage,
-    subtraction,
-    floor_rate = 0,
-    cap_rate = Inf,
-    day_counter = QuantLib::Actual360(),
-    calendar = QuantLib::NullCalendar(),
-    intro_coupon_dates = NULL,
-    intro_coupon_rate = NULL,
-    n_paths = 2000L,
-    seed = 1L,
-    redemption_amount = notional,
-    base_scenario = "base"
+  volatility_scenarios,
+  valuation_date,
+  coupon_schedule,
+  spot,
+  foreign_curve_handle,
+  domestic_curve_handle,
+  discount_curve,
+  notional,
+  fx_base,
+  leverage,
+  subtraction,
+  floor_rate = 0,
+  cap_rate = Inf,
+  day_counter = QuantLib::Actual360(),
+  calendar = QuantLib::NullCalendar(),
+  intro_coupon_dates = NULL,
+  intro_coupon_rate = NULL,
+  n_paths = 2000L,
+  seed = 1L,
+  redemption_amount = notional,
+  base_scenario = "base"
 ) {
   if (!all(c("scenario", "fx_volatility") %in% names(volatility_scenarios))) {
     stop(

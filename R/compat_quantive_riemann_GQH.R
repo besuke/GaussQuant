@@ -1,4 +1,3 @@
-
 # QuantiveRiemann compatibility helpers
 # These GQH functions keep LagrangeFinance workflows working while core
 # QuantLib pricing and analytics remain in the GaussQuant GQL layer.
@@ -30,20 +29,24 @@
 .cf_amount_GQH <- function(cf) {
   tryCatch(
     cf$amount(),
-    error = function(e) tryCatch(
-      QuantLib::CashFlow_amount(cf),
-      error = function(e2) NA_real_
-    )
+    error = function(e) {
+      tryCatch(
+        QuantLib::CashFlow_amount(cf),
+        error = function(e2) NA_real_
+      )
+    }
   )
 }
 
 .swap_leg_at_GQH <- function(swap, leg_index_zero_based) {
   tryCatch(
     swap$leg(as.integer(leg_index_zero_based)),
-    error = function(e) tryCatch(
-      QuantLib::Swap_leg(swap, as.integer(leg_index_zero_based)),
-      error = function(e2) NULL
-    )
+    error = function(e) {
+      tryCatch(
+        QuantLib::Swap_leg(swap, as.integer(leg_index_zero_based)),
+        error = function(e2) NULL
+      )
+    }
   )
 }
 
@@ -80,10 +83,10 @@ leg_cashflow_at_GQH <- function(leg_obj, i_one_based) {
 #' @return The filtered fixing table, invisibly.
 #' @export
 ir_apply_fixings_GQH <- function(
-    index_obj,
-    fixings_tbl,
-    currency = NULL,
-    instrument = NULL
+  index_obj,
+  fixings_tbl,
+  currency = NULL,
+  instrument = NULL
 ) {
   tbl <- tibble::as_tibble(fixings_tbl)
 
@@ -111,10 +114,12 @@ ir_apply_fixings_GQH <- function(
 
       tryCatch(
         index_obj$addFixing(d_ql, r),
-        error = function(e) tryCatch(
-          QuantLib::Index_addFixing(index_obj, d_ql, r),
-          error = function(e2) stop("Could not add fixing: ", conditionMessage(e2))
-        )
+        error = function(e) {
+          tryCatch(
+            QuantLib::Index_addFixing(index_obj, d_ql, r),
+            error = function(e2) stop("Could not add fixing: ", conditionMessage(e2))
+          )
+        }
       )
     }
   )
@@ -158,10 +163,10 @@ ir_show_swap_summary_GQH <- function(trade_env, title = "Swap summary") {
 #' @return Comparison tibble, invisibly.
 #' @export
 ir_show_fixing_before_after_GQH <- function(
-    before_tbl,
-    after_tbl,
-    title = "Fixing before / after",
-    n = NULL
+  before_tbl,
+  after_tbl,
+  title = "Fixing before / after",
+  n = NULL
 ) {
   message("========================================")
   message(title)
@@ -257,10 +262,12 @@ ir_fixing_table_GQH <- function(swap, curve, index) {
 
           tryCatch(
             calendar_obj$isBusinessDay(d_ql),
-            error = function(e) tryCatch(
-              QuantLib::Calendar_isBusinessDay(calendar_obj, d_ql),
-              error = function(e2) TRUE
-            )
+            error = function(e) {
+              tryCatch(
+                QuantLib::Calendar_isBusinessDay(calendar_obj, d_ql),
+                error = function(e2) TRUE
+              )
+            }
           )
         }
       )
@@ -286,13 +293,13 @@ ir_fixing_table_GQH <- function(swap, curve, index) {
 #' @return A tibble with daily forward/fixing decomposition.
 #' @export
 ois_daily_forward_table_GQH <- function(
-    swap,
-    curve,
-    index,
-    eval_date = NULL,
-    calendar = NULL,
-    day_count = NULL,
-    notional = 1e7
+  swap,
+  curve,
+  index,
+  eval_date = NULL,
+  calendar = NULL,
+  day_count = NULL,
+  notional = 1e7
 ) {
   if (is.null(eval_date)) {
     eval_date <- QuantLib::Settings_instance()$evaluationDate()
@@ -373,8 +380,7 @@ ois_daily_forward_table_GQH <- function(
   instrument <- toupper(trimws(instrument))
   key <- paste(currency, instrument, sep = "::")
 
-  switch(
-    key,
+  switch(key,
     "JPY::TONA" = list(
       currency = "JPY",
       instrument = "TONA",
@@ -471,11 +477,11 @@ ois_daily_forward_table_GQH <- function(
 #' @return A curve environment list containing curve, curve_handle, index, and metadata.
 #' @export
 ir_build_ois_curve_GQH <- function(
-    curve_data,
-    trade_date,
-    currency,
-    instrument,
-    verbose = TRUE
+  curve_data,
+  trade_date,
+  currency,
+  instrument,
+  verbose = TRUE
 ) {
   eval_date_GQL(trade_date)
 
@@ -565,9 +571,9 @@ ir_build_ois_curve_GQH <- function(
 #' @return Named list of curve environments.
 #' @export
 ir_build_ois_curve_envs_GQH <- function(
-    quotes,
-    trade_date = NULL,
-    verbose = TRUE
+  quotes,
+  trade_date = NULL,
+  verbose = TRUE
 ) {
   required_cols <- c("as_of_date", "currency", "instrument", "kind", "tenor", "rate")
   missing_cols <- setdiff(required_cols, names(quotes))
@@ -638,17 +644,17 @@ ir_build_ois_curve_envs_GQH <- function(
 }
 
 .ir_try_build_ois_trade_GQH <- function(
-    swap_type,
-    nominal,
-    fixed_schedule,
-    fixed_rate,
-    fixed_day_counter,
-    overnight_schedule,
-    index,
-    spread,
-    payment_lag,
-    effective,
-    maturity
+  swap_type,
+  nominal,
+  fixed_schedule,
+  fixed_rate,
+  fixed_day_counter,
+  overnight_schedule,
+  index,
+  spread,
+  payment_lag,
+  effective,
+  maturity
 ) {
   effective_chr <- as.character(effective)
   maturity_chr <- as.character(maturity)
@@ -743,20 +749,20 @@ ir_build_ois_curve_envs_GQH <- function(
 #' @return Trade environment list.
 #' @export
 trade_ois_swap_GQH <- function(
-    curve_env,
-    effective = NULL,
-    maturity,
-    nominal = 1e6,
-    fixed_rate,
-    float_spread = 0.0,
-    swap_type = QuantLib::Swap_Payer_get(),
-    fixed_bdc = "ModifiedFollowing",
-    date_rule = "Backward",
-    eom = FALSE,
-    fixed_schedule_tenor = NULL,
-    overnight_schedule_tenor = NULL,
-    payment_lag = NULL,
-    verbose = TRUE
+  curve_env,
+  effective = NULL,
+  maturity,
+  nominal = 1e6,
+  fixed_rate,
+  float_spread = 0.0,
+  swap_type = QuantLib::Swap_Payer_get(),
+  fixed_bdc = "ModifiedFollowing",
+  date_rule = "Backward",
+  eom = FALSE,
+  fixed_schedule_tenor = NULL,
+  overnight_schedule_tenor = NULL,
+  payment_lag = NULL,
+  verbose = TRUE
 ) {
   if (is.null(curve_env$curve_handle)) {
     stop("curve_env must contain $curve_handle")
@@ -876,20 +882,20 @@ trade_ois_swap_GQH <- function(
 #'
 #' @export
 trade_ois_swap_py_GQH <- function(
-    curve_env,
-    effective = NULL,
-    maturity,
-    notional = 1e6,
-    fixed_rate,
-    float_spread = 0.0,
-    pay_receive = c("pay", "receive"),
-    fixed_schedule_tenor = NULL,
-    floating_schedule_tenor = NULL,
-    pay_lag = NULL,
-    fixed_bdc = "ModifiedFollowing",
-    date_rule = "Backward",
-    eom = FALSE,
-    verbose = TRUE
+  curve_env,
+  effective = NULL,
+  maturity,
+  notional = 1e6,
+  fixed_rate,
+  float_spread = 0.0,
+  pay_receive = c("pay", "receive"),
+  fixed_schedule_tenor = NULL,
+  floating_schedule_tenor = NULL,
+  pay_lag = NULL,
+  fixed_bdc = "ModifiedFollowing",
+  date_rule = "Backward",
+  eom = FALSE,
+  verbose = TRUE
 ) {
   pay_receive <- match.arg(pay_receive)
 
@@ -984,10 +990,10 @@ trade_ois_swap_py_GQH <- function(
 #'
 #' @export
 ir_make_basis_curve_GQH <- function(
-    basis_data,
-    base_curve_env,
-    spread_label = "basis",
-    verbose = TRUE
+  basis_data,
+  base_curve_env,
+  spread_label = "basis",
+  verbose = TRUE
 ) {
   if (is.null(base_curve_env$curve)) {
     stop("base_curve_env must contain $curve")
@@ -1060,8 +1066,8 @@ ir_make_basis_curve_GQH <- function(
 #'
 #' @export
 ir_basis_table_GQH <- function(
-    basis_env,
-    tenors = c("1M", "3M", "6M", "1Y", "2Y", "3Y", "5Y", "10Y", "20Y", "30Y")
+  basis_env,
+  tenors = c("1M", "3M", "6M", "1Y", "2Y", "3Y", "5Y", "10Y", "20Y", "30Y")
 ) {
   ref_date <- basis_env$base_curve$referenceDate()
 
@@ -1078,54 +1084,60 @@ ir_basis_table_GQH <- function(
 }
 
 .try_make_asset_swap_GQH <- function(
-    bond,
-    clean_price,
-    ibor_index,
-    spread,
-    floating_schedule,
-    floating_day_counter,
-    par_asset_swap,
-    maturity_date,
-    pay_fixed_rate,
-    gearing,
-    non_par_repayment
+  bond,
+  clean_price,
+  ibor_index,
+  spread,
+  floating_schedule,
+  floating_day_counter,
+  par_asset_swap,
+  maturity_date,
+  pay_fixed_rate,
+  gearing,
+  non_par_repayment
 ) {
   candidates <- list(
-    function() QuantLib::AssetSwap(
-      pay_fixed_rate,
-      bond,
-      clean_price,
-      ibor_index,
-      spread,
-      floating_schedule,
-      floating_day_counter,
-      par_asset_swap
-    ),
-    function() QuantLib::AssetSwap(
-      pay_fixed_rate,
-      bond,
-      clean_price,
-      ibor_index,
-      spread,
-      floating_schedule,
-      floating_day_counter,
-      par_asset_swap,
-      gearing,
-      non_par_repayment
-    ),
-    function() QuantLib::AssetSwap(
-      pay_fixed_rate,
-      bond,
-      clean_price,
-      ibor_index,
-      spread,
-      floating_schedule,
-      floating_day_counter,
-      par_asset_swap,
-      maturity_date,
-      gearing,
-      non_par_repayment
-    )
+    function() {
+      QuantLib::AssetSwap(
+        pay_fixed_rate,
+        bond,
+        clean_price,
+        ibor_index,
+        spread,
+        floating_schedule,
+        floating_day_counter,
+        par_asset_swap
+      )
+    },
+    function() {
+      QuantLib::AssetSwap(
+        pay_fixed_rate,
+        bond,
+        clean_price,
+        ibor_index,
+        spread,
+        floating_schedule,
+        floating_day_counter,
+        par_asset_swap,
+        gearing,
+        non_par_repayment
+      )
+    },
+    function() {
+      QuantLib::AssetSwap(
+        pay_fixed_rate,
+        bond,
+        clean_price,
+        ibor_index,
+        spread,
+        floating_schedule,
+        floating_day_counter,
+        par_asset_swap,
+        maturity_date,
+        gearing,
+        non_par_repayment
+      )
+    }
   )
 
   candidates |>
@@ -1146,23 +1158,23 @@ ir_basis_table_GQH <- function(
 #'
 #' @export
 asset_swap_analysis_GQH <- function(
-    bond,
-    clean_price,
-    ibor_index,
-    spread,
-    settlement_date,
-    maturity_date,
-    calendar,
-    floating_schedule_frequency,
-    payment_convention,
-    date_generation,
-    end_of_month = FALSE,
-    floating_day_counter,
-    pay_fixed_rate = TRUE,
-    par_asset_swap = TRUE,
-    discount_curve_handle,
-    gearing = 1.0,
-    non_par_repayment = 100.0
+  bond,
+  clean_price,
+  ibor_index,
+  spread,
+  settlement_date,
+  maturity_date,
+  calendar,
+  floating_schedule_frequency,
+  payment_convention,
+  date_generation,
+  end_of_month = FALSE,
+  floating_day_counter,
+  pay_fixed_rate = TRUE,
+  par_asset_swap = TRUE,
+  discount_curve_handle,
+  gearing = 1.0,
+  non_par_repayment = 100.0
 ) {
   settlement_date <- date_GQL(settlement_date)
   maturity_date <- date_GQL(maturity_date)

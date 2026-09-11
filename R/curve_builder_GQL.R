@@ -9,8 +9,8 @@
 #'
 #' @export
 build_discount_curve_GQL <- function(
-    nodes,
-    day_counter = "Actual365Fixed"
+  nodes,
+  day_counter = "Actual365Fixed"
 ) {
   stopifnot(is.data.frame(nodes))
   stopifnot(all(c("date", "zero_rate") %in% names(nodes)))
@@ -44,9 +44,9 @@ build_discount_curve_GQL <- function(
 #'
 #' @export
 build_zero_curve_GQL <- function(
-    date_chr,
-    zero_rates,
-    day_counter = "Actual365Fixed"
+  date_chr,
+  zero_rates,
+  day_counter = "Actual365Fixed"
 ) {
   dates_ql <- make_date_vector_GQL(as.character(date_chr))
   dc <- day_counter_GQL(day_counter)
@@ -113,8 +113,8 @@ discount_table_GQL <- function(nodes) {
 #'
 #' @export
 ois_curve_GQL <- function(
-    nodes_tbl,
-    day_counter = "Actual365Fixed"
+  nodes_tbl,
+  day_counter = "Actual365Fixed"
 ) {
   stopifnot(is.data.frame(nodes_tbl))
   stopifnot(all(c("date", "zero_rate") %in% names(nodes_tbl)))
@@ -178,9 +178,9 @@ ois_curve_example_GQL <- function() {
 #'
 #' @export
 build_bond_discount_curve_GQL <- function(
-    settlement_date = "2008-09-18",
-    fixing_days = 3,
-    settlement_days = 3
+  settlement_date = "2008-09-18",
+  fixing_days = 3,
+  settlement_days = 3
 ) {
   calendar <- QuantLib::UnitedStates("GovernmentBond")
 
@@ -316,8 +316,8 @@ build_bond_discount_curve_GQL <- function(
 #'
 #' @export
 build_swap_curve_GQL <- function(
-    settlement_date = "2008-09-18",
-    fixing_days = 3
+  settlement_date = "2008-09-18",
+  fixing_days = 3
 ) {
   calendar <- QuantLib::UnitedStates("GovernmentBond")
 
@@ -421,14 +421,14 @@ build_swap_curve_GQL <- function(
 }
 
 DatedOISRateHelper_GQL <- function(
-    start_date,
-    end_date,
-    quote_handle,
-    overnight_index
+  start_date,
+  end_date,
+  quote_handle,
+  overnight_index
 ) {
   obj_start_date <- if (
     is.character(start_date) ||
-    inherits(start_date, "Date")
+      inherits(start_date, "Date")
   ) {
     DateParser_parseISO_GQL(start_date)
   } else {
@@ -437,7 +437,7 @@ DatedOISRateHelper_GQL <- function(
 
   obj_end_date <- if (
     is.character(end_date) ||
-    inherits(end_date, "Date")
+      inherits(end_date, "Date")
   ) {
     DateParser_parseISO_GQL(end_date)
   } else {

@@ -199,7 +199,7 @@ curve_discount_safe_GQL <- function(curve, x) {
     "YieldTermStructure_discount",
     "QuantLib"
   )
-  
+
   discount_value <- tryCatch(
     discount_fun(
       curve,
@@ -207,14 +207,14 @@ curve_discount_safe_GQL <- function(curve, x) {
     ),
     error = function(e) NA_real_
   )
-  
+
   if (
     length(discount_value) != 1L ||
-    !is.finite(discount_value)
+      !is.finite(discount_value)
   ) {
     return(NA_real_)
   }
-  
+
   as.numeric(discount_value)
 }
 
@@ -226,9 +226,9 @@ curve_discount_safe_GQL <- function(curve, x) {
 #' @return Tibble with time, date, discount factor, and zero rate.
 #' @export
 curve_grid_tbl_GQL <- function(
-    curve,
-    n = 200L,
-    extrapolate = TRUE
+  curve,
+  n = 200L,
+  extrapolate = TRUE
 ) {
   if (isTRUE(extrapolate)) {
     tryCatch(
@@ -236,20 +236,20 @@ curve_grid_tbl_GQL <- function(
       error = function(e) NULL
     )
   }
-  
+
   reference_date_ql <- curve$referenceDate()
-  
+
   reference_date <- as.Date(
     iso_GQL(reference_date_ql)
   )
-  
+
   max_date_ql <- tryCatch(
     curve$maxDate(),
     error = function(e) {
       max_time <- as.numeric(
         curve$maxTime()
       )
-      
+
       date_GQL(
         as.character(
           reference_date +
@@ -258,22 +258,22 @@ curve_grid_tbl_GQL <- function(
       )
     }
   )
-  
+
   max_date <- as.Date(
     iso_GQL(max_date_ql)
   )
-  
+
   curve_dates <- seq(
     from = reference_date,
     to = max_date,
     length.out = as.integer(n)
   )
-  
+
   ql_dates <- purrr::map(
     as.character(curve_dates),
     date_GQL
   )
-  
+
   times <- purrr::map_dbl(
     ql_dates,
     function(date_ql) {
@@ -290,7 +290,7 @@ curve_grid_tbl_GQL <- function(
       )
     }
   )
-  
+
   discount_factors <- purrr::map_dbl(
     ql_dates,
     function(date_ql) {
@@ -300,7 +300,7 @@ curve_grid_tbl_GQL <- function(
       )
     }
   )
-  
+
   tibble::tibble(
     time = times,
     discount_factor = discount_factors,
@@ -324,10 +324,10 @@ curve_grid_tbl_GQL <- function(
 #' @return QuantLib FlatForward object.
 #' @export
 flat_curve_GQL <- function(
-    reference_date,
-    rate,
-    day_counter = QuantLib::Actual365Fixed(),
-    compounding = "Continuous"
+  reference_date,
+  rate,
+  day_counter = QuantLib::Actual365Fixed(),
+  compounding = "Continuous"
 ) {
   QuantLib::FlatForward(
     reference_date,
@@ -349,12 +349,12 @@ flat_curve_GQL <- function(
 #' @return List containing curve, curve_handle, and spread_handle.
 #' @export
 make_zero_spreaded_curve_GQL <- function(
-    base_curve_handle,
-    spread_rate,
-    day_counter = QuantLib::Actual365Fixed(),
-    compounding = QuantLib::Compounding_Simple_get(),
-    frequency = QuantLib::Frequency_Annual_get(),
-    extrapolate = TRUE
+  base_curve_handle,
+  spread_rate,
+  day_counter = QuantLib::Actual365Fixed(),
+  compounding = QuantLib::Compounding_Simple_get(),
+  frequency = QuantLib::Frequency_Annual_get(),
+  extrapolate = TRUE
 ) {
   spread_handle <- quote_handle_GQL(spread_rate)
 
@@ -419,10 +419,10 @@ push_calibration_helpers_GQL <- function(helpers) {
 #' @return Updated metric table.
 #' @export
 complete_accrual_metrics_GQL <- function(
-    price_tbl,
-    bond_schedule,
-    settlement_date,
-    day_counter
+  price_tbl,
+  bond_schedule,
+  settlement_date,
+  day_counter
 ) {
   settlement_date_ql <- if (is.character(settlement_date) || inherits(settlement_date, "Date")) {
     date_GQL(settlement_date)
@@ -491,11 +491,11 @@ complete_accrual_metrics_GQL <- function(
 #' @return Numeric yield.
 #' @export
 bond_yield_from_clean_safe_GQL <- function(
-    bond,
-    clean_price,
-    day_counter,
-    compounding,
-    frequency
+  bond,
+  clean_price,
+  day_counter,
+  compounding,
+  frequency
 ) {
   attempts <- list(
     function() {
@@ -554,12 +554,12 @@ bond_yield_from_clean_safe_GQL <- function(
 #' @return Numeric clean price or NA.
 #' @export
 bond_clean_price_from_yield_safe_GQL <- function(
-    bond,
-    yield_rate,
-    day_counter,
-    compounding,
-    frequency,
-    settlement_date = NULL
+  bond,
+  yield_rate,
+  day_counter,
+  compounding,
+  frequency,
+  settlement_date = NULL
 ) {
   if (is.null(settlement_date)) {
     first_result <- tryCatch(
@@ -631,18 +631,18 @@ instrument_npv_safe_GQL <- function(instrument) {
 #' @return List with basket and CTD row.
 #' @export
 bond_futures_ctd_table_GQL <- function(
-    deliverable_tbl,
-    settlement_date,
-    futures_price,
-    repo_end_date,
-    repo_rate,
-    settlement_days = 1L,
-    calendar = QuantLib::UnitedStates("GovernmentBond"),
-    day_counter = QuantLib::ActualActual("Bond"),
-    compounding = QuantLib::Compounding_Compounded_get(),
-    frequency = QuantLib::Frequency_Semiannual_get(),
-    repo_day_counter = QuantLib::Actual360(),
-    carry_day_counter = QuantLib::Actual360()
+  deliverable_tbl,
+  settlement_date,
+  futures_price,
+  repo_end_date,
+  repo_rate,
+  settlement_days = 1L,
+  calendar = QuantLib::UnitedStates("GovernmentBond"),
+  day_counter = QuantLib::ActualActual("Bond"),
+  compounding = QuantLib::Compounding_Compounded_get(),
+  frequency = QuantLib::Frequency_Semiannual_get(),
+  repo_day_counter = QuantLib::Actual360(),
+  carry_day_counter = QuantLib::Actual360()
 ) {
   required_columns <- c(
     "issue_date",
@@ -664,14 +664,12 @@ bond_futures_ctd_table_GQL <- function(
 
   gross_tbl <- purrr::pmap_dfr(
     deliverable_tbl,
-    function(
-      issue_date,
-      maturity_date,
-      coupon_rate_pct,
-      conversion_factor,
-      market_yield_pct,
-      ...
-    ) {
+    function(issue_date,
+             maturity_date,
+             coupon_rate_pct,
+             conversion_factor,
+             market_yield_pct,
+             ...) {
       bond_futures_gross_basis_row_GQL(
         issue_date = issue_date,
         maturity_date = maturity_date,
@@ -697,13 +695,11 @@ bond_futures_ctd_table_GQL <- function(
       dirty_price = gross_tbl$dirty_price,
       gross_basis = gross_tbl$gross_basis
     ),
-    function(
-      bond_obj,
-      conversion_factor,
-      clean_price,
-      dirty_price,
-      gross_basis
-    ) {
+    function(bond_obj,
+             conversion_factor,
+             clean_price,
+             dirty_price,
+             gross_basis) {
       bond_futures_net_basis_row_GQL(
         bond_obj = bond_obj,
         conversion_factor = conversion_factor,
@@ -755,12 +751,12 @@ bond_futures_ctd_table_GQL <- function(
 #' @return List with process and term structures.
 #' @export
 black_process_bundle_GQL <- function(
-    valuation_date,
-    forward,
-    risk_free_rate,
-    volatility,
-    day_counter = QuantLib::Actual365Fixed(),
-    calendar = QuantLib::NullCalendar()
+  valuation_date,
+  forward,
+  risk_free_rate,
+  volatility,
+  day_counter = QuantLib::Actual365Fixed(),
+  calendar = QuantLib::NullCalendar()
 ) {
   discount_curve <- QuantLib::FlatForward(
     valuation_date,
@@ -807,13 +803,13 @@ black_process_bundle_GQL <- function(
 #' @return List with process and term structures.
 #' @export
 bsm_process_bundle_GQL <- function(
-    valuation_date,
-    spot,
-    risk_free_rate,
-    dividend_rate,
-    volatility,
-    day_counter = QuantLib::Actual365Fixed(),
-    calendar = QuantLib::TARGET()
+  valuation_date,
+  spot,
+  risk_free_rate,
+  dividend_rate,
+  volatility,
+  day_counter = QuantLib::Actual365Fixed(),
+  calendar = QuantLib::TARGET()
 ) {
   risk_free_curve <- QuantLib::FlatForward(
     valuation_date,
@@ -862,11 +858,11 @@ bsm_process_bundle_GQL <- function(
 #' @return Metric tibble.
 #' @export
 black_calculator_table_GQL <- function(
-    payoff,
-    forward,
-    volatility,
-    maturity,
-    discount_factor
+  payoff,
+  forward,
+  volatility,
+  maturity,
+  discount_factor
 ) {
   calculator <- QuantLib::BlackCalculator(
     payoff,
@@ -927,11 +923,11 @@ option_metric_table_GQL <- function(option, process = NULL) {
 #' @return QuantLib path generator.
 #' @export
 make_path_generator_GQL <- function(
-    process,
-    maturity,
-    n_steps,
-    seed = 1L,
-    sequence = c("pseudo", "sobol")
+  process,
+  maturity,
+  n_steps,
+  seed = 1L,
+  sequence = c("pseudo", "sobol")
 ) {
   sequence <- match.arg(sequence)
 
@@ -988,12 +984,12 @@ make_path_generator_GQL <- function(
 #' @return Long-form path tibble.
 #' @export
 generate_path_table_GQL <- function(
-    process,
-    maturity,
-    n_steps,
-    n_paths,
-    seed = 1L,
-    sequence = c("pseudo", "sobol")
+  process,
+  maturity,
+  n_steps,
+  n_paths,
+  seed = 1L,
+  sequence = c("pseudo", "sobol")
 ) {
   sequence <- match.arg(sequence)
 
@@ -1024,10 +1020,10 @@ generate_path_table_GQL <- function(
 #' @return List with terminal paths and summary.
 #' @export
 terminal_option_mc_GQL <- function(
-    path_tbl,
-    strike,
-    discount_factor,
-    option_type = c("call", "put")
+  path_tbl,
+  strike,
+  discount_factor,
+  option_type = c("call", "put")
 ) {
   option_type <- match.arg(option_type)
 
@@ -1071,9 +1067,9 @@ terminal_option_mc_GQL <- function(
 #' @return List with summary, exercise table, and diagnostics.
 #' @export
 lsm_american_put_GQL <- function(
-    path_tbl,
-    strike,
-    risk_free_rate
+  path_tbl,
+  strike,
+  risk_free_rate
 ) {
   ordered <- path_tbl |>
     dplyr::arrange(path_id, step)
@@ -1240,12 +1236,12 @@ lsm_american_put_GQL <- function(
 #' @return Numeric option value.
 #' @export
 normal_option_price_GQL <- function(
-    option_sign,
-    forward,
-    strike,
-    vol,
-    maturity,
-    discount_factor
+  option_sign,
+  forward,
+  strike,
+  vol,
+  maturity,
+  discount_factor
 ) {
   intrinsic_value <- max(
     option_sign * (forward - strike),
@@ -1287,13 +1283,13 @@ normal_option_price_GQL <- function(
 #' @return Metric tibble.
 #' @export
 normal_option_greeks_GQL <- function(
-    option_sign,
-    forward,
-    strike,
-    vol,
-    maturity,
-    discount_factor,
-    risk_free_rate
+  option_sign,
+  forward,
+  strike,
+  vol,
+  maturity,
+  discount_factor,
+  risk_free_rate
 ) {
   npv <- normal_option_price_GQL(
     option_sign,
@@ -1331,10 +1327,10 @@ normal_option_greeks_GQL <- function(
     "theta",
     risk_free_rate * npv -
       0.5 *
-      discount_factor *
-      stats::dnorm(d_value) *
-      vol /
-      sqrt(maturity)
+        discount_factor *
+        stats::dnorm(d_value) *
+        vol /
+        sqrt(maturity)
   )
 }
 
@@ -1350,19 +1346,17 @@ normal_option_greeks_GQL <- function(
 #' @return Pricing function.
 #' @export
 make_normal_calculator_GQL <- function(
-    option_sign,
-    strike,
-    maturity,
-    discount_factor,
-    forward,
-    vol
+  option_sign,
+  strike,
+  maturity,
+  discount_factor,
+  forward,
+  vol
 ) {
-  function(
-      forward_new = forward,
-      vol_new = vol,
-      maturity_new = maturity,
-      discount_factor_new = discount_factor
-  ) {
+  function(forward_new = forward,
+           vol_new = vol,
+           maturity_new = maturity,
+           discount_factor_new = discount_factor) {
     normal_option_price_GQL(
       option_sign = option_sign,
       forward = forward_new,
@@ -1381,12 +1375,12 @@ make_normal_calculator_GQL <- function(
 #' @return Object with an npv method.
 #' @export
 normal_calculator_GQL <- function(
-    option_sign,
-    strike,
-    maturity,
-    discount_factor,
-    forward,
-    vol
+  option_sign,
+  strike,
+  maturity,
+  discount_factor,
+  forward,
+  vol
 ) {
   structure(
     list(
@@ -1417,26 +1411,26 @@ normal_calculator_GQL <- function(
     xi_bar <- (
       0.032114372355 -
         g_value^2 *
-        (
-          0.016969777977 -
-            g_value^2 *
-            (
-              2.6207332461e-3 -
-                9.6066952861e-5 * g_value^2
-            )
-        )
+          (
+            0.016969777977 -
+              g_value^2 *
+                (
+                  2.6207332461e-3 -
+                    9.6066952861e-5 * g_value^2
+                )
+          )
     ) /
       (
         1 -
           g_value^2 *
-          (
-            0.6635646938 -
-              g_value^2 *
-              (
-                0.14528712196 -
-                  0.010472855461 * g_value^2
-              )
-          )
+            (
+              0.6635646938 -
+                g_value^2 *
+                  (
+                    0.14528712196 -
+                      0.010472855461 * g_value^2
+                  )
+            )
       )
 
     x_bar <- g_value *
@@ -1450,26 +1444,26 @@ normal_calculator_GQL <- function(
     x_bar <- (
       9.4883409779 -
         h_value *
-        (
-          9.6320903635 -
-            h_value *
-            (
-              0.58556997323 +
-                2.1464093351 * h_value
-            )
-        )
+          (
+            9.6320903635 -
+              h_value *
+                (
+                  0.58556997323 +
+                    2.1464093351 * h_value
+                )
+          )
     ) /
       (
         1 -
           h_value *
-          (
-            0.65174820867 +
-              h_value *
-              (
-                1.5120247828 +
-                  6.6437847132e-5 * h_value
-              )
-          )
+            (
+              0.65174820867 +
+                h_value *
+                  (
+                    1.5120247828 +
+                      6.6437847132e-5 * h_value
+                  )
+            )
       )
   }
 
@@ -1481,39 +1475,39 @@ normal_calculator_GQL <- function(
 
   x_bar +
     3 *
-    q_value *
-    x_bar^2 *
-    (
-      2 -
-        q_value *
-        x_bar *
-        (
-          2 +
-            x_bar^2
-        )
-    ) /
-    (
-      6 +
-        q_value *
-        x_bar *
-        (
-          -12 +
+      q_value *
+      x_bar^2 *
+      (
+        2 -
+          q_value *
             x_bar *
             (
-              6 * q_value +
-                x_bar *
-                (
-                  -6 +
-                    q_value *
-                    x_bar *
-                    (
-                      3 +
-                        x_bar^2
-                    )
-                )
+              2 +
+                x_bar^2
             )
-        )
-    )
+      ) /
+      (
+        6 +
+          q_value *
+            x_bar *
+            (
+              -12 +
+                x_bar *
+                  (
+                    6 * q_value +
+                      x_bar *
+                        (
+                          -6 +
+                            q_value *
+                              x_bar *
+                              (
+                                3 +
+                                  x_bar^2
+                              )
+                        )
+                  )
+            )
+      )
 }
 
 
@@ -1528,12 +1522,12 @@ normal_calculator_GQL <- function(
 #' @return Normal volatility.
 #' @export
 normal_vol_from_price_GQL <- function(
-    option_sign,
-    strike,
-    forward,
-    maturity,
-    option_npv,
-    discount_factor
+  option_sign,
+  strike,
+  forward,
+  maturity,
+  option_npv,
+  discount_factor
 ) {
   undiscounted_npv <- option_npv / discount_factor
 
@@ -1584,9 +1578,9 @@ normal_vol_from_price_GQL <- function(
 #' @return Numeric annuity.
 #' @export
 swap_annuity_from_schedule_GQL <- function(
-    schedule,
-    curve,
-    day_counter
+  schedule,
+  curve,
+  day_counter
 ) {
   dates <- .schedule_date_vector_ql_GQL(schedule)
 
@@ -1623,9 +1617,9 @@ swap_annuity_from_schedule_GQL <- function(
 #' @return Numeric forward swap rate.
 #' @export
 forward_swap_rate_from_schedule_GQL <- function(
-    schedule,
-    curve,
-    day_counter
+  schedule,
+  curve,
+  day_counter
 ) {
   dates <- .schedule_date_vector_ql_GQL(schedule)
 
@@ -1666,13 +1660,13 @@ rmse_GQH <- function(actual, fitted) {
 #' @return Numeric volatility or NA.
 #' @export
 safe_sabr_vol_GQL <- function(
-    strike,
-    forward,
-    maturity,
-    alpha,
-    beta,
-    volvol,
-    rho
+  strike,
+  forward,
+  maturity,
+  alpha,
+  beta,
+  volvol,
+  rho
 ) {
   tryCatch(
     QuantLib::sabrVolatility(
@@ -1697,9 +1691,9 @@ safe_sabr_vol_GQL <- function(
 #' @return Numeric gradient.
 #' @export
 approx_gradient_GQH <- function(
-    parameters,
-    objective_function,
-    epsilon = 1e-8
+  parameters,
+  objective_function,
+  epsilon = 1e-8
 ) {
   base_value <- objective_function(parameters)
 
@@ -1731,13 +1725,13 @@ approx_gradient_GQH <- function(
 #' @return Numeric normal volatility.
 #' @export
 normal_vol_hagan_GQL <- function(
-    strike,
-    forward,
-    maturity,
-    beta,
-    alpha,
-    volvol,
-    rho
+  strike,
+  forward,
+  maturity,
+  beta,
+  alpha,
+  volvol,
+  rho
 ) {
   log_fk <- log(forward / strike)
 
@@ -1810,7 +1804,7 @@ normal_vol_hagan_GQL <- function(
             correction_2 +
             correction_3
         ) *
-        maturity
+          maturity
     )
 }
 
@@ -1822,14 +1816,14 @@ normal_vol_hagan_GQL <- function(
 #' @return Numeric normal volatility or NA.
 #' @export
 shifted_normal_vol_hagan_GQL <- function(
-    strike,
-    forward,
-    maturity,
-    beta,
-    alpha,
-    volvol,
-    rho,
-    shift = 0.025
+  strike,
+  forward,
+  maturity,
+  beta,
+  alpha,
+  volvol,
+  rho,
+  shift = 0.025
 ) {
   shifted_strike <- strike + shift
   shifted_forward <- forward + shift
@@ -1911,8 +1905,8 @@ callable_bond_settlement_value_safe_GQL <- function(bond) {
 #' @return QuantLib CallabilitySchedule.
 #' @export
 make_callability_schedule_GQL <- function(
-    call_dates,
-    call_price_clean = 100
+  call_dates,
+  call_price_clean = 100
 ) {
   schedule <- QuantLib::CallabilitySchedule()
 
@@ -1958,9 +1952,9 @@ make_callability_schedule_GQL <- function(
 #' @return Numeric B.
 #' @export
 vasicek_b_GQL <- function(
-    time,
-    maturity,
-    mean_reversion
+  time,
+  maturity,
+  mean_reversion
 ) {
   time_to_maturity <- maturity - time
 
@@ -1987,11 +1981,11 @@ vasicek_b_GQL <- function(
 #' @return Numeric A.
 #' @export
 vasicek_a_GQL <- function(
-    time,
-    maturity,
-    mean_reversion,
-    sigma,
-    long_run_rate
+  time,
+  maturity,
+  mean_reversion,
+  sigma,
+  long_run_rate
 ) {
   time_to_maturity <- maturity - time
 
@@ -2013,15 +2007,15 @@ vasicek_a_GQL <- function(
       sigma^2 *
         b_value^2
     ) /
-    (
-      4 *
-        mean_reversion
-    ) -
+      (
+        4 *
+          mean_reversion
+      ) -
     long_run_rate *
-    (
-      time_to_maturity -
-        b_value
-    )
+      (
+        time_to_maturity -
+          b_value
+      )
 }
 
 
@@ -2032,12 +2026,12 @@ vasicek_a_GQL <- function(
 #' @return Numeric zero rate.
 #' @export
 vasicek_zero_rate_GQL <- function(
-    time,
-    maturity,
-    mean_reversion,
-    sigma,
-    long_run_rate,
-    short_rate
+  time,
+  maturity,
+  mean_reversion,
+  sigma,
+  long_run_rate,
+  short_rate
 ) {
   if (abs(maturity - time) < 1e-12) {
     return(short_rate)
@@ -2060,7 +2054,7 @@ vasicek_zero_rate_GQL <- function(
   -(
     a_value -
       short_rate *
-      b_value
+        b_value
   ) /
     (
       maturity -
@@ -2077,9 +2071,9 @@ vasicek_zero_rate_GQL <- function(
 #' @return Numeric B.
 #' @export
 hull_white_b_GQL <- function(
-    time,
-    maturity,
-    mean_reversion
+  time,
+  maturity,
+  mean_reversion
 ) {
   time_to_maturity <- maturity - time
 
@@ -2105,10 +2099,10 @@ hull_white_b_GQL <- function(
 #' @return Numeric variance term.
 #' @export
 hull_white_variance_GQL <- function(
-    time,
-    maturity,
-    mean_reversion,
-    sigma
+  time,
+  maturity,
+  mean_reversion,
+  sigma
 ) {
   time_to_maturity <- maturity - time
 
@@ -2119,24 +2113,24 @@ hull_white_variance_GQL <- function(
     (
       time_to_maturity +
         (2 / mean_reversion) *
-        exp(
-          -mean_reversion *
-            time_to_maturity
-        ) -
+          exp(
+            -mean_reversion *
+              time_to_maturity
+          ) -
         (
           1 /
             (2 * mean_reversion)
         ) *
-        exp(
-          -2 *
-            mean_reversion *
-            time_to_maturity
-        ) -
+          exp(
+            -2 *
+              mean_reversion *
+              time_to_maturity
+          ) -
         3 /
-        (
-          2 *
-            mean_reversion
-        )
+          (
+            2 *
+              mean_reversion
+          )
     )
 }
 
@@ -2147,10 +2141,10 @@ hull_white_variance_GQL <- function(
 #' @return Numeric A.
 #' @export
 hull_white_a_GQL <- function(
-    time,
-    maturity,
-    mean_reversion,
-    sigma
+  time,
+  maturity,
+  mean_reversion,
+  sigma
 ) {
   0.5 *
     (
@@ -2187,12 +2181,12 @@ hull_white_a_GQL <- function(
 #' @return Numeric zero rate.
 #' @export
 hull_white_zero_rate_GQL <- function(
-    time,
-    maturity,
-    curve,
-    mean_reversion,
-    sigma,
-    state_variable = 0
+  time,
+  maturity,
+  curve,
+  mean_reversion,
+  sigma,
+  state_variable = 0
 ) {
   if (abs(maturity - time) < 1e-12) {
     small_time <- 0.0001
@@ -2248,7 +2242,7 @@ hull_white_zero_rate_GQL <- function(
     ) +
       a_value -
       state_variable *
-      b_value
+        b_value
   ) /
     (
       maturity -
@@ -2267,11 +2261,11 @@ hull_white_zero_rate_GQL <- function(
 #' @return Numeric drift adjustment.
 #' @export
 hull_white_forward_drift_GQL <- function(
-    start_time,
-    exercise_time,
-    maturity,
-    mean_reversion,
-    sigma
+  start_time,
+  exercise_time,
+  maturity,
+  mean_reversion,
+  sigma
 ) {
   if (abs(mean_reversion) < 1e-12) {
     return(
@@ -2381,13 +2375,13 @@ cds_buyer_side_GQL <- function() {
 #' @return CDS cashflow table.
 #' @export
 cds_cashflow_table_GQL <- function(
-    cds_schedule,
-    protection_start_date,
-    coupon_rate,
-    hazard_curve,
-    discount_curve,
-    trade_date,
-    notional
+  cds_schedule,
+  protection_start_date,
+  coupon_rate,
+  hazard_curve,
+  discount_curve,
+  trade_date,
+  notional
 ) {
   schedule_dates <- .schedule_date_vector_ql_GQL(
     cds_schedule
@@ -2581,9 +2575,9 @@ cds_cashflow_table_GQL <- function(
 #' @return QuantLib IsdaCdsEngine.
 #' @export
 cds_isda_engine_GQL <- function(
-    hazard_curve_handle,
-    recovery_rate,
-    discount_curve_handle
+  hazard_curve_handle,
+  recovery_rate,
+  discount_curve_handle
 ) {
   QuantLib::IsdaCdsEngine(
     hazard_curve_handle,

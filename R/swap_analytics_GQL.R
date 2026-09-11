@@ -191,8 +191,6 @@ ois_summary_GQL <- function(fixed_leg, overnight_leg) {
 # R/swap_analytics.R
 
 
-
-
 # R/swap_analytics.R
 
 cashflow_pick_col_GQL <- function(x, candidates) {
@@ -248,9 +246,9 @@ cashflow_standardise_GQL <- function(x) {
 #'
 #' @export
 leg_cashflow_schedule_GQL <- function(
-    leg,
-    leg_name,
-    leg_no = NA_integer_
+  leg,
+  leg_name,
+  leg_no = NA_integer_
 ) {
   use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
@@ -325,16 +323,11 @@ ois_cashflow_schedule_GQL <- function(swap) {
 }
 
 
-
-
-
-
-
 # R/swap_analytics.R
 
 curve_discount_factor_GQL <- function(
-    curve,
-    date
+  curve,
+  date
 ) {
   use_quantlib_GQH()
 
@@ -352,9 +345,9 @@ curve_discount_factor_GQL <- function(
 
 
 day_count_fraction_GQL <- function(
-    start_date,
-    end_date,
-    day_counter = "Actual365Fixed"
+  start_date,
+  end_date,
+  day_counter = "Actual365Fixed"
 ) {
   use_quantlib_GQH()
 
@@ -386,10 +379,10 @@ day_count_fraction_GQL <- function(
 #'
 #' @export
 apply_discount_factors_GQL <- function(
-    cashflows,
-    discount_curve,
-    payment_date_col = "payment_date",
-    amount_col = "amount"
+  cashflows,
+  discount_curve,
+  payment_date_col = "payment_date",
+  amount_col = "amount"
 ) {
   requireNamespace("dplyr", quietly = TRUE)
 
@@ -430,9 +423,9 @@ apply_discount_factors_GQL <- function(
 #'
 #' @export
 apply_fixings_GQL <- function(
-    cashflows,
-    fixings,
-    evaluation_date = NULL
+  cashflows,
+  fixings,
+  evaluation_date = NULL
 ) {
   requireNamespace("dplyr", quietly = TRUE)
 
@@ -465,7 +458,7 @@ apply_fixings_GQL <- function(
 
   join_cols <- if (
     "index" %in% names(out) &&
-    "index" %in% names(fixings_tbl)
+      "index" %in% names(fixings_tbl)
   ) {
     c("index", "fixing_date")
   } else {
@@ -497,11 +490,11 @@ apply_fixings_GQL <- function(
 #'
 #' @export
 apply_forward_rates_GQL <- function(
-    cashflows,
-    forecast_curve,
-    accrual_start_col = "accrual_start_date",
-    accrual_end_col = "accrual_end_date",
-    day_counter = "Actual365Fixed"
+  cashflows,
+  forecast_curve,
+  accrual_start_col = "accrual_start_date",
+  accrual_end_col = "accrual_end_date",
+  day_counter = "Actual365Fixed"
 ) {
   requireNamespace("dplyr", quietly = TRUE)
 
@@ -544,9 +537,9 @@ apply_forward_rates_GQL <- function(
 
       if (
         is.na(accrual_start[i]) ||
-        is.na(accrual_end[i]) ||
-        is.na(yf) ||
-        yf <= 0
+          is.na(accrual_end[i]) ||
+          is.na(yf) ||
+          yf <= 0
       ) {
         return(NA_real_)
       }
@@ -563,8 +556,8 @@ apply_forward_rates_GQL <- function(
 
       if (
         is.na(df_start) ||
-        is.na(df_end) ||
-        df_end == 0
+          is.na(df_end) ||
+          df_end == 0
       ) {
         return(NA_real_)
       }
@@ -594,11 +587,11 @@ apply_forward_rates_GQL <- function(
 #'
 #' @export
 value_cashflow_schedule_GQL <- function(
-    cashflows,
-    discount_curve,
-    forecast_curve = NULL,
-    fixings = NULL,
-    evaluation_date = NULL
+  cashflows,
+  discount_curve,
+  forecast_curve = NULL,
+  fixings = NULL,
+  evaluation_date = NULL
 ) {
   requireNamespace("dplyr", quietly = TRUE)
 
@@ -682,8 +675,8 @@ cashflow_leg_summary_GQL <- function(cashflows) {
 #'
 #' @export
 ois_cashflow_schedule_from_trade_GQL <- function(
-    trade,
-    forecast_handle
+  trade,
+  forecast_handle
 ) {
   use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
@@ -722,11 +715,11 @@ ois_cashflow_schedule_from_trade_GQL <- function(
 #'
 #' @export
 value_ois_cashflow_schedule_from_trade_GQL <- function(
-    trade,
-    forecast_handle,
-    discount_curve,
-    fixings = NULL,
-    evaluation_date = NULL
+  trade,
+  forecast_handle,
+  discount_curve,
+  fixings = NULL,
+  evaluation_date = NULL
 ) {
   use_quantlib_GQH()
 
@@ -755,8 +748,8 @@ value_ois_cashflow_schedule_from_trade_GQL <- function(
 #'
 #' @export
 swap_cashflow_schedule_from_trade_GQL <- function(
-    trade,
-    forecast_handle = NULL
+  trade,
+  forecast_handle = NULL
 ) {
   use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
@@ -795,11 +788,11 @@ swap_cashflow_schedule_from_trade_GQL <- function(
 #'
 #' @export
 value_swap_cashflow_schedule_from_trade_GQL <- function(
-    trade,
-    forecast_handle,
-    discount_curve,
-    fixings = NULL,
-    evaluation_date = NULL
+  trade,
+  forecast_handle,
+  discount_curve,
+  fixings = NULL,
+  evaluation_date = NULL
 ) {
   use_quantlib_GQH()
 
@@ -854,8 +847,8 @@ trade_product_GQL <- function(trade) {
 #'
 #' @export
 cashflow_schedule_from_trade_GQL <- function(
-    trade,
-    forecast_handle
+  trade,
+  forecast_handle
 ) {
   use_quantlib_GQH()
 
@@ -895,11 +888,11 @@ cashflow_schedule_from_trade_GQL <- function(
 #'
 #' @export
 value_cashflow_schedule_from_trade_GQL <- function(
-    trade,
-    forecast_handle,
-    discount_curve,
-    fixings = NULL,
-    evaluation_date = NULL
+  trade,
+  forecast_handle,
+  discount_curve,
+  fixings = NULL,
+  evaluation_date = NULL
 ) {
   use_quantlib_GQH()
 
@@ -942,8 +935,8 @@ value_cashflow_schedule_from_trade_GQL <- function(
 #'
 #' @export
 cashflow_schedule_from_trades_GQL <- function(
-    trades,
-    forecast_handle
+  trades,
+  forecast_handle
 ) {
   use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
@@ -985,11 +978,11 @@ cashflow_schedule_from_trades_GQL <- function(
 #'
 #' @export
 value_cashflow_schedule_from_trades_GQL <- function(
-    trades,
-    forecast_handle,
-    discount_curve,
-    fixings = NULL,
-    evaluation_date = NULL
+  trades,
+  forecast_handle,
+  discount_curve,
+  fixings = NULL,
+  evaluation_date = NULL
 ) {
   use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)

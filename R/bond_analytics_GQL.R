@@ -29,46 +29,46 @@
 #' @return A QuantLib FixedRateBond object.
 #' @export
 fixed_rate_bond_GQL <- function(
-    issue_date = "2007-05-15",
-    maturity_date = "2017-05-15",
-    coupon_rate = 0.045,
-    face_amount = 100,
-    settlement_days = 3,
-    frequency = QuantLib::Period("Semiannual"),
-    calendar = QuantLib::UnitedStates("GovernmentBond"),
-    accrual_day_counter = QuantLib::ActualActual("Bond"),
-    payment_convention = "ModifiedFollowing",
-    schedule_convention = "Unadjusted",
-    maturity_convention = "Unadjusted",
-    date_generation = "Backward",
-    end_of_month = FALSE,
-    redemption = 100,
-    schedule_frequency = frequency,
-    first_date = NULL,
-    next_to_last_date = NULL
+  issue_date = "2007-05-15",
+  maturity_date = "2017-05-15",
+  coupon_rate = 0.045,
+  face_amount = 100,
+  settlement_days = 3,
+  frequency = QuantLib::Period("Semiannual"),
+  calendar = QuantLib::UnitedStates("GovernmentBond"),
+  accrual_day_counter = QuantLib::ActualActual("Bond"),
+  payment_convention = "ModifiedFollowing",
+  schedule_convention = "Unadjusted",
+  maturity_convention = "Unadjusted",
+  date_generation = "Backward",
+  end_of_month = FALSE,
+  redemption = 100,
+  schedule_frequency = frequency,
+  first_date = NULL,
+  next_to_last_date = NULL
 ) {
   issue_date_ql <- date_GQL(as.character(issue_date))
   maturity_date_ql <- date_GQL(as.character(maturity_date))
-  
+
   first_date_ql <- if (is.null(first_date)) {
     QuantLib::Date()
   } else {
     date_GQL(as.character(first_date))
   }
-  
+
   next_to_last_date_ql <- if (is.null(next_to_last_date)) {
     QuantLib::Date()
   } else {
     date_GQL(as.character(next_to_last_date))
   }
-  
+
   if (is.character(date_generation)) {
     date_generation <- QuantLib::copyToR(
       QuantLib::DateGeneration(),
       date_generation
     )
   }
-  
+
   schedule <- QuantLib::Schedule(
     issue_date_ql,
     maturity_date_ql,
@@ -81,7 +81,7 @@ fixed_rate_bond_GQL <- function(
     first_date_ql,
     next_to_last_date_ql
   )
-  
+
   QuantLib::FixedRateBond(
     settlement_days,
     face_amount,
@@ -190,7 +190,6 @@ bond_accrued_GQL <- function(bond) {
 #' Bond Example
 #' @export
 bond_example_GQL <- function() {
-
   eval_date_GQL("2010-01-01")
   curve <- build_bond_discount_curve_GQL()
   bond <- zero_coupon_bond_GQL(curve)
@@ -376,10 +375,10 @@ bond_cashflow_table_GQL <- function(bond) {
 #'
 #' @export
 zero_coupon_bond_GQL <- function(
-    discount_curve,
-    maturity = "2013-08-15",
-    issue = "2008-08-15",
-    face = 100
+  discount_curve,
+  maturity = "2013-08-15",
+  issue = "2008-08-15",
+  face = 100
 ) {
   calendar <- QuantLib::UnitedStates("GovernmentBond")
 
@@ -896,9 +895,9 @@ futures_bpv_GQL <- function(ctd_bpv,
   }
 
   if (!is.numeric(conversion_factor) ||
-      length(conversion_factor) < 1L ||
-      anyNA(conversion_factor) ||
-      any(conversion_factor == 0)) {
+    length(conversion_factor) < 1L ||
+    anyNA(conversion_factor) ||
+    any(conversion_factor == 0)) {
     stop("conversion_factor must be numeric, non-missing, and non-zero.", call. = FALSE)
   }
 
@@ -939,8 +938,7 @@ bond_futures_bpv_GQL <- function(bond,
                                  frequency = "Annual") {
   measure <- match.arg(measure)
 
-  ctd_bpv <- switch(
-    measure,
+  ctd_bpv <- switch(measure,
     dv01 = bond_dv01_GQL(
       bond = bond,
       ytm = ytm,
@@ -980,12 +978,12 @@ bond_futures_bpv_GQL <- function(bond,
 #' @return Numeric yield.
 #' @export
 bond_yield_from_clean_price_GQL <- function(
-    bond,
-    clean_price,
-    day_counter = QuantLib::Actual360(),
-    compounding = "Compounded",
-    frequency = "Annual",
-    settlement_date = NULL
+  bond,
+  clean_price,
+  day_counter = QuantLib::Actual360(),
+  compounding = "Compounded",
+  frequency = "Annual",
+  settlement_date = NULL
 ) {
   bond_yield_from_price_GQL(
     bond = bond,
@@ -1010,13 +1008,13 @@ bond_yield_from_clean_price_GQL <- function(
 #' @return A tibble with price-related measures.
 #' @export
 bond_price_measures_GQL <- function(
-    bond,
-    yield,
-    day_counter = QuantLib::Actual360(),
-    compounding = "Compounded",
-    frequency = "Annual",
-    settlement_date = NULL,
-    schedule = NULL
+  bond,
+  yield,
+  day_counter = QuantLib::Actual360(),
+  compounding = "Compounded",
+  frequency = "Annual",
+  settlement_date = NULL,
+  schedule = NULL
 ) {
   accrued_amount <- tryCatch(
     bond_accrued_GQL(bond),
@@ -1032,10 +1030,12 @@ bond_price_measures_GQL <- function(
       frequency = frequency,
       settlement_date = settlement_date
     ),
-    error = function(e) tryCatch(
-      bond$cleanPrice(yield, day_counter, compounding, frequency),
-      error = function(e) NA_real_
-    )
+    error = function(e) {
+      tryCatch(
+        bond$cleanPrice(yield, day_counter, compounding, frequency),
+        error = function(e) NA_real_
+      )
+    }
   )
 
   dirty_price <- tryCatch(
@@ -1112,11 +1112,11 @@ bond_price_measures_GQL <- function(
 #' @return A tibble with duration, BPV/PV01, and convexity measures.
 #' @export
 bond_risk_measures_GQL <- function(
-    bond,
-    yield,
-    day_counter = QuantLib::Actual360(),
-    compounding = "Compounded",
-    frequency = "Annual"
+  bond,
+  yield,
+  day_counter = QuantLib::Actual360(),
+  compounding = "Compounded",
+  frequency = "Annual"
 ) {
   modified_duration <- tryCatch(
     bond_duration_GQL(
@@ -1189,11 +1189,11 @@ bond_risk_measures_GQL <- function(
 #' @return QuantLib YieldTermStructureHandle.
 #' @export
 bond_flat_forward_handle_GQL <- function(
-    settlement_date,
-    rate,
-    day_counter = QuantLib::Actual360(),
-    compounding = "Compounded",
-    frequency = "Annual"
+  settlement_date,
+  rate,
+  day_counter = QuantLib::Actual360(),
+  compounding = "Compounded",
+  frequency = "Annual"
 ) {
   settlement_date <- date_GQL(settlement_date)
 
@@ -1216,8 +1216,8 @@ bond_flat_forward_handle_GQL <- function(
 #' @return Numeric NPV.
 #' @export
 bond_npv_with_curve_GQL <- function(
-    bond,
-    curve_handle
+  bond,
+  curve_handle
 ) {
   engine <- QuantLib::DiscountingBondEngine(curve_handle)
   bond$setPricingEngine(engine)
@@ -1240,12 +1240,12 @@ bond_npv_with_curve_GQL <- function(
 #' @return Numeric NPV.
 #' @export
 bond_npv_with_flat_yield_GQL <- function(
-    bond,
-    settlement_date,
-    rate,
-    day_counter = QuantLib::Actual360(),
-    compounding = "Compounded",
-    frequency = "Annual"
+  bond,
+  settlement_date,
+  rate,
+  day_counter = QuantLib::Actual360(),
+  compounding = "Compounded",
+  frequency = "Annual"
 ) {
   curve_handle <- bond_flat_forward_handle_GQL(
     settlement_date = settlement_date,
@@ -1273,12 +1273,12 @@ bond_npv_with_flat_yield_GQL <- function(
 #' @return A list with spread curve, spread curve handle, and NPV.
 #' @export
 bond_npv_with_zspread_GQL <- function(
-    bond,
-    base_curve_handle,
-    z_spread,
-    compounding = "Compounded",
-    frequency = "Annual",
-    day_counter = QuantLib::Actual360()
+  bond,
+  base_curve_handle,
+  z_spread,
+  compounding = "Compounded",
+  frequency = "Annual",
+  day_counter = QuantLib::Actual360()
 ) {
   spread_curve <- QuantLib::ZeroSpreadedTermStructure(
     base_curve_handle,
@@ -1317,14 +1317,14 @@ bond_npv_with_zspread_GQL <- function(
 #' @return A tibble with hand-calculated risk measures.
 #' @export
 bond_risk_handcalc_GQL <- function(
-    bond,
-    yield,
-    dirty_price,
-    modified_duration,
-    convexity,
-    day_counter = QuantLib::Actual360(),
-    compounding = "Compounded",
-    frequency = "Annual"
+  bond,
+  yield,
+  dirty_price,
+  modified_duration,
+  convexity,
+  day_counter = QuantLib::Actual360(),
+  compounding = "Compounded",
+  frequency = "Annual"
 ) {
   price_up_1bp <- tryCatch(
     bond$dirtyPrice(yield + 0.0001, day_counter, compounding, frequency),
@@ -1384,13 +1384,13 @@ bond_risk_handcalc_GQL <- function(
 #' @return A list containing the bond, schedule, and input metadata.
 #' @export
 us_treasury_bond_GQL <- function(
-    effective_date,
-    maturity_date,
-    coupon_rate_pct,
-    face_amount = 100,
-    settlement_days = 1L,
-    calendar = QuantLib::UnitedStates("GovernmentBond"),
-    day_counter = QuantLib::ActualActual("Bond")
+  effective_date,
+  maturity_date,
+  coupon_rate_pct,
+  face_amount = 100,
+  settlement_days = 1L,
+  calendar = QuantLib::UnitedStates("GovernmentBond"),
+  day_counter = QuantLib::ActualActual("Bond")
 ) {
   effective_date <- date_GQL(effective_date)
   maturity_date <- date_GQL(maturity_date)
@@ -1442,18 +1442,18 @@ us_treasury_bond_GQL <- function(
 #' @return A one-row tibble with gross basis inputs and measures.
 #' @export
 bond_futures_gross_basis_row_GQL <- function(
-    issue_date,
-    maturity_date,
-    coupon_rate_pct,
-    conversion_factor,
-    market_yield_pct,
-    settlement_date,
-    futures_price,
-    settlement_days = 1L,
-    calendar = QuantLib::UnitedStates("GovernmentBond"),
-    day_counter = QuantLib::ActualActual("Bond"),
-    compounding = "Compounded",
-    frequency = "Semiannual"
+  issue_date,
+  maturity_date,
+  coupon_rate_pct,
+  conversion_factor,
+  market_yield_pct,
+  settlement_date,
+  futures_price,
+  settlement_days = 1L,
+  calendar = QuantLib::UnitedStates("GovernmentBond"),
+  day_counter = QuantLib::ActualActual("Bond"),
+  compounding = "Compounded",
+  frequency = "Semiannual"
 ) {
   settlement_date_ql <- date_GQL(settlement_date)
 
@@ -1489,16 +1489,18 @@ bond_futures_gross_basis_row_GQL <- function(
       frequency = frequency,
       settlement_date = settlement_date_ql
     ),
-    error = function(e) tryCatch(
-      bond_obj$cleanPrice(
-        ytm,
-        day_counter,
-        compounding,
-        frequency,
-        settlement_date_ql
-      ),
-      error = function(e2) NA_real_
-    )
+    error = function(e) {
+      tryCatch(
+        bond_obj$cleanPrice(
+          ytm,
+          day_counter,
+          compounding,
+          frequency,
+          settlement_date_ql
+        ),
+        error = function(e2) NA_real_
+      )
+    }
   )
 
   dirty_price <- tryCatch(
@@ -1509,21 +1511,23 @@ bond_futures_gross_basis_row_GQL <- function(
       frequency,
       settlement_date_ql
     ),
-    error = function(e) tryCatch(
-      bond_obj$dirtyPrice(ytm, day_counter, compounding, frequency),
-      error = function(e2) {
-        accrued <- tryCatch(
-          bond_obj$accruedAmount(settlement_date_ql),
-          error = function(e3) tryCatch(bond_obj$accruedAmount(), error = function(e4) NA_real_)
-        )
+    error = function(e) {
+      tryCatch(
+        bond_obj$dirtyPrice(ytm, day_counter, compounding, frequency),
+        error = function(e2) {
+          accrued <- tryCatch(
+            bond_obj$accruedAmount(settlement_date_ql),
+            error = function(e3) tryCatch(bond_obj$accruedAmount(), error = function(e4) NA_real_)
+          )
 
-        if (is.na(clean_price) || is.na(accrued)) {
-          NA_real_
-        } else {
-          clean_price + accrued
+          if (is.na(clean_price) || is.na(accrued)) {
+            NA_real_
+          } else {
+            clean_price + accrued
+          }
         }
-      }
-    )
+      )
+    }
   )
 
   gross_basis <- clean_price - futures_price * conversion_factor
@@ -1559,17 +1563,17 @@ bond_futures_gross_basis_row_GQL <- function(
 #' @return A one-row tibble with carry, net basis, and implied repo.
 #' @export
 bond_futures_net_basis_row_GQL <- function(
-    bond_obj,
-    conversion_factor,
-    clean_price,
-    dirty_price,
-    gross_basis,
-    settlement_date,
-    repo_end_date,
-    repo_rate,
-    repo_day_counter = QuantLib::Actual360(),
-    carry_day_counter = QuantLib::Actual360(),
-    futures_price
+  bond_obj,
+  conversion_factor,
+  clean_price,
+  dirty_price,
+  gross_basis,
+  settlement_date,
+  repo_end_date,
+  repo_rate,
+  repo_day_counter = QuantLib::Actual360(),
+  carry_day_counter = QuantLib::Actual360(),
+  futures_price
 ) {
   settlement_date <- date_GQL(settlement_date)
   repo_end_date <- date_GQL(repo_end_date)

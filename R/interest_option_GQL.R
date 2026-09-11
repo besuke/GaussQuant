@@ -4,19 +4,19 @@
 #'
 #' @export
 make_cap_GQL <- function(
-    notional,
-    start_date,
-    maturity_date,
-    cap_rate,
-    valuation_date = eval_date_get_GQL(),
-    tenor_months = 6L,
-    discount_rate = 0.03,
-    forecast_rate = discount_rate,
-    volatility = 0.20,
-    day_counter = QuantLib::Actual365Fixed(),
-    calendar = QuantLib::TARGET(),
-    convention = QuantLib::BusinessDayConvention_ModifiedFollowing_get(),
-    pricing_engine = NULL
+  notional,
+  start_date,
+  maturity_date,
+  cap_rate,
+  valuation_date = eval_date_get_GQL(),
+  tenor_months = 6L,
+  discount_rate = 0.03,
+  forecast_rate = discount_rate,
+  volatility = 0.20,
+  day_counter = QuantLib::Actual365Fixed(),
+  calendar = QuantLib::TARGET(),
+  convention = QuantLib::BusinessDayConvention_ModifiedFollowing_get(),
+  pricing_engine = NULL
 ) {
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
@@ -53,19 +53,19 @@ make_cap_GQL <- function(
 #'
 #' @export
 make_floor_GQL <- function(
-    notional,
-    start_date,
-    maturity_date,
-    floor_rate,
-    valuation_date = eval_date_get_GQL(),
-    tenor_months = 6L,
-    discount_rate = 0.03,
-    forecast_rate = discount_rate,
-    volatility = 0.20,
-    day_counter = QuantLib::Actual365Fixed(),
-    calendar = QuantLib::TARGET(),
-    convention = QuantLib::BusinessDayConvention_ModifiedFollowing_get(),
-    pricing_engine = NULL
+  notional,
+  start_date,
+  maturity_date,
+  floor_rate,
+  valuation_date = eval_date_get_GQL(),
+  tenor_months = 6L,
+  discount_rate = 0.03,
+  forecast_rate = discount_rate,
+  volatility = 0.20,
+  day_counter = QuantLib::Actual365Fixed(),
+  calendar = QuantLib::TARGET(),
+  convention = QuantLib::BusinessDayConvention_ModifiedFollowing_get(),
+  pricing_engine = NULL
 ) {
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
@@ -151,18 +151,18 @@ cap_floor_summary_GQL <- function(cap_floor) {
 }
 
 .interest_option_parts_GQL <- function(
-    notional,
-    start_date,
-    maturity_date,
-    valuation_date,
-    tenor_months,
-    discount_rate,
-    forecast_rate,
-    volatility,
-    day_counter,
-    calendar,
-    convention,
-    pricing_engine = NULL
+  notional,
+  start_date,
+  maturity_date,
+  valuation_date,
+  tenor_months,
+  discount_rate,
+  forecast_rate,
+  volatility,
+  day_counter,
+  calendar,
+  convention,
+  pricing_engine = NULL
 ) {
   valuation_date <- as.character(as.Date(valuation_date))
   eval_date_GQL(valuation_date)
@@ -249,8 +249,8 @@ cap_floor_summary_GQL <- function(cap_floor) {
 #' @return QuantLib Cap object.
 #' @export
 make_cap_from_trade_GQL <- function(
-    trade,
-    pricing_engine = NULL
+  trade,
+  pricing_engine = NULL
 ) {
   use_quantlib_GQH()
 
@@ -328,8 +328,8 @@ make_cap_from_trade_GQL <- function(
 #' @return QuantLib Floor object.
 #' @export
 make_floor_from_trade_GQL <- function(
-    trade,
-    pricing_engine = NULL
+  trade,
+  pricing_engine = NULL
 ) {
   use_quantlib_GQH()
 
@@ -409,8 +409,8 @@ make_floor_from_trade_GQL <- function(
 #' @return QuantLib Cap or Floor object.
 #' @export
 make_interest_option_from_trade_GQL <- function(
-    trade,
-    pricing_engine = NULL
+  trade,
+  pricing_engine = NULL
 ) {
   use_quantlib_GQH()
 
@@ -468,9 +468,9 @@ make_interest_option_from_trade_GQL <- function(
 }
 
 .interest_option_trade_field_GQL <- function(
-    trade,
-    names,
-    default = NULL
+  trade,
+  names,
+  default = NULL
 ) {
   values <- purrr::map(
     names,
@@ -495,9 +495,9 @@ make_interest_option_from_trade_GQL <- function(
   matches[[1]][[1]]
 }
 .interest_option_required_field_GQL <- function(
-    trade,
-    names,
-    label = names[[1]]
+  trade,
+  names,
+  label = names[[1]]
 ) {
   value <- .interest_option_trade_field_GQL(
     trade = trade,
@@ -532,12 +532,12 @@ make_interest_option_from_trade_GQL <- function(
 #' @return QuantLib HullWhite model object.
 #' @export
 hull_white_model_GQL <- function(
-    term_structure = NULL,
-    valuation_date = eval_date_get_GQL(),
-    rate = 0.03,
-    a = 0.03,
-    sigma = 0.01,
-    day_counter = QuantLib::Actual365Fixed()
+  term_structure = NULL,
+  valuation_date = eval_date_get_GQL(),
+  rate = 0.03,
+  a = 0.03,
+  sigma = 0.01,
+  day_counter = QuantLib::Actual365Fixed()
 ) {
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
@@ -571,14 +571,14 @@ hull_white_model_GQL <- function(
 #' @return QuantLib cap/floor pricing engine.
 #' @export
 hull_white_cap_floor_engine_GQL <- function(
-    term_structure = NULL,
-    valuation_date = eval_date_get_GQL(),
-    rate = 0.03,
-    a = 0.03,
-    sigma = 0.01,
-    method = c("analytic", "tree"),
-    time_steps = 60L,
-    day_counter = QuantLib::Actual365Fixed()
+  term_structure = NULL,
+  valuation_date = eval_date_get_GQL(),
+  rate = 0.03,
+  a = 0.03,
+  sigma = 0.01,
+  method = c("analytic", "tree"),
+  time_steps = 60L,
+  day_counter = QuantLib::Actual365Fixed()
 ) {
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
@@ -616,9 +616,9 @@ hull_white_cap_floor_engine_GQL <- function(
 }
 
 .interest_option_flat_curve_GQL <- function(
-    valuation_date,
-    rate,
-    day_counter = QuantLib::Actual365Fixed()
+  valuation_date,
+  rate,
+  day_counter = QuantLib::Actual365Fixed()
 ) {
   valuation_date <- as.character(as.Date(valuation_date))
   eval_date_GQL(valuation_date)
@@ -647,14 +647,14 @@ hull_white_cap_floor_engine_GQL <- function(
 #' @return QuantLib swaption pricing engine.
 #' @export
 hull_white_swaption_engine_GQL <- function(
-    term_structure = NULL,
-    valuation_date = eval_date_get_GQL(),
-    rate = 0.03,
-    a = 0.03,
-    sigma = 0.01,
-    method = c("jamshidian", "tree"),
-    time_steps = 60L,
-    day_counter = QuantLib::Actual365Fixed()
+  term_structure = NULL,
+  valuation_date = eval_date_get_GQL(),
+  rate = 0.03,
+  a = 0.03,
+  sigma = 0.01,
+  method = c("jamshidian", "tree"),
+  time_steps = 60L,
+  day_counter = QuantLib::Actual365Fixed()
 ) {
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
@@ -700,9 +700,9 @@ hull_white_swaption_engine_GQL <- function(
 #' @return QuantLib Swaption object.
 #' @export
 make_swaption_GQL <- function(
-    underlying_swap,
-    exercise_date,
-    pricing_engine = NULL
+  underlying_swap,
+  exercise_date,
+  pricing_engine = NULL
 ) {
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
@@ -802,10 +802,10 @@ swaption_summary_GQL <- function(swaption) {
 #' @return QuantLib Swaption object.
 #' @export
 make_swaption_from_trade_GQL <- function(
-    trade,
-    forecast_handle = NULL,
-    discount_handle = NULL,
-    pricing_engine = NULL
+  trade,
+  forecast_handle = NULL,
+  discount_handle = NULL,
+  pricing_engine = NULL
 ) {
   use_quantlib_GQH()
 
@@ -898,9 +898,9 @@ make_swaption_from_trade_GQL <- function(
 #' @return QuantLib Swaption object.
 #' @export
 make_bermudan_swaption_GQL <- function(
-    underlying_swap,
-    exercise_dates,
-    pricing_engine = NULL
+  underlying_swap,
+  exercise_dates,
+  pricing_engine = NULL
 ) {
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
@@ -934,10 +934,10 @@ make_bermudan_swaption_GQL <- function(
 #' @return QuantLib Swaption object.
 #' @export
 make_bermudan_swaption_from_trade_GQL <- function(
-    trade,
-    forecast_handle = NULL,
-    discount_handle = NULL,
-    pricing_engine = NULL
+  trade,
+  forecast_handle = NULL,
+  discount_handle = NULL,
+  pricing_engine = NULL
 ) {
   use_quantlib_GQH()
 
@@ -1080,9 +1080,9 @@ make_bermudan_swaption_from_trade_GQL <- function(
 }
 
 .interest_option_raw_field_GQL <- function(
-    trade,
-    names,
-    default = NULL
+  trade,
+  names,
+  default = NULL
 ) {
   values <- purrr::map(
     names,
@@ -1117,11 +1117,11 @@ make_bermudan_swaption_from_trade_GQL <- function(
 #' @return Numeric convexity bias.
 #' @export
 hull_white_convexity_bias_GQL <- function(
-    future_price,
-    t,
-    T,
-    sigma = 0.01,
-    a = 0.03
+  future_price,
+  t,
+  T,
+  sigma = 0.01,
+  a = 0.03
 ) {
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)

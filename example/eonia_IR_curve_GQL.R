@@ -9,20 +9,25 @@ devtools::load_all()
 # =============================================================================
 # 1. EONIA curve bootstrapping
 # =============================================================================
-curves_eonia =NULL
-obj_date_today <- GaussQuant::DateParser_parseISO_GQL("2012-12-11")
+
+obj_date_today <-
+  GaussQuant::DateParser_parseISO_GQL("2012-12-11")
+
 GaussQuant::set_eval_date_GQL(obj_date_today)
-curves_eonia <- GaussQuant::eonia_curve_benchmark_GQL()
-curves_eonia$final_validation$quote_repricing |>
-  select( pillar_date, discount_factor,zero_rate,inst_fwd_rate)
+
+lst_curves_eonia <-
+  GaussQuant::eonia_curve_benchmark_GQL()
+
+lst_curves_eonia$final_validation$quote_repricing |>
+  dplyr::select(
+    pillar_date,
+    discount_factor,
+    zero_rate,
+    inst_fwd_rate
+  )
 
 obj_calendar_target <- QuantLib::TARGET()
-
-obj_day_counter_actual_360 <-
-  QuantLib::Actual360()
-
-obj_period_one_day <-
-  GaussQuant::period_GQL("1D")
+obj_day_counter_actual_360 <- QuantLib::Actual360()
 obj_day_counter_actual_365_fixed <- QuantLib::Actual365Fixed()
 obj_period_one_day <- GaussQuant::period_GQL("1D")
 
@@ -33,12 +38,17 @@ tbl_deposit_quotes <- tibble::tribble(
   0.04, 2L
 )
 
-lst_helper_deposit <- tbl_deposit_quotes |>
+lst_helper_deposit <-
+  tbl_deposit_quotes |>
   dplyr::mutate(
     num_rate = num_rate_pct / 100,
     obj_quote_handle = purrr::map(
       num_rate,
-      \(num_rate) QuantLib::QuoteHandle(QuantLib::SimpleQuote(num_rate))
+      \(num_rate) {
+        QuantLib::QuoteHandle(
+          QuantLib::SimpleQuote(num_rate)
+        )
+      }
     ),
     obj_rate_helper = purrr::map2(
       obj_quote_handle,
@@ -68,17 +78,24 @@ tbl_ois_short_quotes <- tibble::tribble(
   0.074, 1L, "Months"
 )
 
-lst_helper_ois_short <- tbl_ois_short_quotes |>
+lst_helper_ois_short <-
+  tbl_ois_short_quotes |>
   dplyr::mutate(
     num_rate = num_rate_pct / 100,
     obj_period = purrr::map2(
       int_tenor,
       str_unit,
-      \(int_tenor, str_unit) GaussQuant::period_GQL(int_tenor, str_unit)
+      \(int_tenor, str_unit) {
+        GaussQuant::period_GQL(int_tenor, str_unit)
+      }
     ),
     obj_quote_handle = purrr::map(
       num_rate,
-      \(num_rate) QuantLib::QuoteHandle(QuantLib::SimpleQuote(num_rate))
+      \(num_rate) {
+        QuantLib::QuoteHandle(
+          QuantLib::SimpleQuote(num_rate)
+        )
+      }
     ),
     obj_rate_helper = purrr::map2(
       obj_period,
@@ -97,26 +114,24 @@ lst_helper_ois_short <- tbl_ois_short_quotes |>
 
 tbl_ois_dated_quotes <- tibble::tribble(
   ~num_rate_pct, ~str_start_date, ~str_end_date,
-  0.046, "2013-01-16", "2013-02-13",
-  0.016, "2013-02-13", "2013-03-13",
+   0.046, "2013-01-16", "2013-02-13",
+   0.016, "2013-02-13", "2013-03-13",
   -0.007, "2013-03-13", "2013-04-10",
   -0.013, "2013-04-10", "2013-05-08",
   -0.014, "2013-05-08", "2013-06-12"
 )
+
 lst_helper_ois_dated <-
   tbl_ois_dated_quotes |>
   dplyr::mutate(
     num_rate = num_rate_pct / 100,
-    
     obj_rate_helper = purrr::pmap(
       list(
         str_start_date,
         str_end_date,
         num_rate
       ),
-      \(str_start_date,
-        str_end_date,
-        num_rate) {
+      \(str_start_date, str_end_date, num_rate) {
         GaussQuant:::eonia_dated_ois_helper_GQL(
           start_date = str_start_date,
           end_date = str_end_date,
@@ -150,17 +165,24 @@ tbl_ois_long_quotes <- tibble::tribble(
   2.038, 30L, "Years"
 )
 
-lst_helper_ois_long <- tbl_ois_long_quotes |>
+lst_helper_ois_long <-
+  tbl_ois_long_quotes |>
   dplyr::mutate(
     num_rate = num_rate_pct / 100,
     obj_period = purrr::map2(
       int_tenor,
       str_unit,
-      \(int_tenor, str_unit) GaussQuant::period_GQL(int_tenor, str_unit)
+      \(int_tenor, str_unit) {
+        GaussQuant::period_GQL(int_tenor, str_unit)
+      }
     ),
     obj_quote_handle = purrr::map(
       num_rate,
-      \(num_rate) QuantLib::QuoteHandle(QuantLib::SimpleQuote(num_rate))
+      \(num_rate) {
+        QuantLib::QuoteHandle(
+          QuantLib::SimpleQuote(num_rate)
+        )
+      }
     ),
     obj_rate_helper = purrr::map2(
       obj_period,
@@ -184,49 +206,70 @@ lst_rate_helpers <- c(
   lst_helper_ois_long
 )
 
-obj_rate_helper_vector <- GaussQuant::push_rate_helpers_GQL(lst_rate_helpers)
+obj_rate_helper_vector <-
+  GaussQuant::push_rate_helpers_GQL(
+    lst_rate_helpers
+  )
 
-obj_curve_eonia_log_cubic_raw <- QuantLib::PiecewiseLogCubicDiscount(
-  0L,
-  obj_calendar_target,
-  obj_rate_helper_vector,
-  obj_day_counter_actual_365_fixed
-)
+# =============================================================================
+# 1.1 Log-cubic discount curve and instantaneous forward rates
+# =============================================================================
+
+obj_curve_eonia_log_cubic_raw <-
+  QuantLib::PiecewiseLogCubicDiscount(
+    0L,
+    obj_calendar_target,
+    obj_rate_helper_vector,
+    obj_day_counter_actual_365_fixed
+  )
 
 obj_curve_eonia_log_cubic_raw$enableExtrapolation()
 
-obj_date_reference <- obj_curve_eonia_log_cubic_raw$referenceDate()
-obj_date_end_two_years <- obj_date_reference + GaussQuant::period_GQL("2Y")
+obj_date_reference <-
+  obj_curve_eonia_log_cubic_raw$referenceDate()
 
-vec_serial_daily <- seq.int(
-  obj_date_reference$serialNumber(),
-  obj_date_end_two_years$serialNumber()
-)
+obj_date_end_two_years <-
+  obj_date_reference +
+  GaussQuant::period_GQL("2Y")
 
-lst_date_daily <- purrr::map(vec_serial_daily, QuantLib::Date)
+vec_serial_daily <-
+  seq.int(
+    obj_date_reference$serialNumber(),
+    obj_date_end_two_years$serialNumber()
+  )
 
-vec_forward_rate_log_cubic_raw <- purrr::map_dbl(
-  lst_date_daily,
-  \(obj_date) {
-    obj_date_next <- obj_calendar_target$advance(obj_date, 1L, "Days")
-    obj_curve_eonia_log_cubic_raw$forwardRate(
-      obj_date,
-      obj_date_next,
-      obj_day_counter_actual_360,
-      "Simple"
-    )$rate()
-  }
-)
+lst_date_daily <-
+  purrr::map(
+    vec_serial_daily,
+    QuantLib::Date
+  )
 
-tbl_forward_log_cubic_raw <- tibble::tibble(
-  date = as.Date(
-    purrr::map_chr(
-      lst_date_daily,
-      GaussQuant::str_date_ISO_GQL
-    )
-  ),
-  num_forward_rate = vec_forward_rate_log_cubic_raw
-)
+vec_inst_fwd_rate_log_cubic_raw <-
+  purrr::map_dbl(
+    lst_date_daily,
+    \(obj_date) {
+      obj_curve_eonia_log_cubic_raw$
+        forwardRate(
+          obj_date,
+          obj_date,
+          obj_day_counter_actual_360,
+          "Continuous"
+        )$
+        rate()
+    }
+  )
+
+tbl_forward_log_cubic_raw <-
+  tibble::tibble(
+    date = as.Date(
+      purrr::map_chr(
+        lst_date_daily,
+        GaussQuant::str_date_ISO_GQL
+      )
+    ),
+    inst_fwd_rate =
+      vec_inst_fwd_rate_log_cubic_raw
+  )
 
 tbl_forward_log_cubic_raw
 
@@ -234,60 +277,84 @@ ggplot2::ggplot(
   tbl_forward_log_cubic_raw,
   ggplot2::aes(
     x = date,
-    y = num_forward_rate
+    y = inst_fwd_rate
   )
 ) +
   ggplot2::geom_line() +
   ggplot2::scale_y_continuous(
-    labels = scales::label_percent(accuracy = 0.001)
+    labels =
+      scales::label_percent(
+        accuracy = 0.001
+      )
   ) +
   ggplot2::labs(
-    title = "EONIA daily overnight forwards: raw log-cubic curve",
+    title = paste(
+      "EONIA instantaneous forward rates:",
+      "raw log-cubic curve"
+    ),
     x = NULL,
-    y = "Forward rate"
+    y = "Instantaneous forward rate"
   ) +
   ggplot2::theme_minimal()
 
-obj_curve_eonia_flat_forward_raw <- QuantLib::PiecewiseFlatForward(
-  0L,
-  obj_calendar_target,
-  obj_rate_helper_vector,
-  obj_day_counter_actual_365_fixed
-)
+# =============================================================================
+# 1.2 Flat-forward curve and instantaneous forward rates
+# =============================================================================
+
+obj_curve_eonia_flat_forward_raw <-
+  QuantLib::PiecewiseFlatForward(
+    0L,
+    obj_calendar_target,
+    obj_rate_helper_vector,
+    obj_day_counter_actual_365_fixed
+  )
 
 obj_curve_eonia_flat_forward_raw$enableExtrapolation()
 
-obj_date_end_six_months <- obj_date_reference + GaussQuant::period_GQL("6M")
+obj_date_end_six_months <-
+  obj_date_reference +
+  GaussQuant::period_GQL("6M")
 
-vec_serial_six_months <- seq.int(
-  obj_date_reference$serialNumber(),
-  obj_date_end_six_months$serialNumber()
-)
+vec_serial_six_months <-
+  seq.int(
+    obj_date_reference$serialNumber(),
+    obj_date_end_six_months$serialNumber()
+  )
 
-lst_date_six_months <- purrr::map(vec_serial_six_months, QuantLib::Date)
+lst_date_six_months <-
+  purrr::map(
+    vec_serial_six_months,
+    QuantLib::Date
+  )
 
-vec_forward_rate_flat_forward_raw <- purrr::map_dbl(
-  lst_date_six_months,
-  \(obj_date) {
-    obj_date_next <- obj_calendar_target$advance(obj_date, 1L, "Days")
-    obj_curve_eonia_flat_forward_raw$forwardRate(
-      obj_date,
-      obj_date_next,
-      obj_day_counter_actual_360,
-      "Simple"
-    )$rate()
-  }
-)
+vec_inst_fwd_rate_flat_forward_raw <-
+  purrr::map_dbl(
+    lst_date_six_months,
+    \(obj_date) {
+      obj_curve_eonia_flat_forward_raw$
+        forwardRate(
+          obj_date,
+          obj_date,
+          obj_day_counter_actual_360,
+          "Continuous"
+        )$
+        rate()
+    }
+  )
 
-tbl_forward_flat_forward_raw <- tibble::tibble(
-  date = as.Date(
-    purrr::map_chr(
-      lst_date_six_months,
-      GaussQuant::str_date_ISO_GQL
-    )
-  ),
-  num_forward_rate = vec_forward_rate_flat_forward_raw
-)
+tbl_forward_flat_forward_raw <-
+  tibble::tibble(
+    date = as.Date(
+      purrr::map_chr(
+        lst_date_six_months,
+        GaussQuant::str_date_ISO_GQL
+      )
+    ),
+    inst_fwd_rate =
+      vec_inst_fwd_rate_flat_forward_raw
+  )
+
+tbl_forward_flat_forward_raw
 
 tbl_nodes_raw <-
   GaussQuant:::eonia_curve_nodes_GQL(
@@ -296,18 +363,8 @@ tbl_nodes_raw <-
 
 tbl_nodes_raw
 
-tbl_nodes_raw
-tbl_forward_flat_forward_raw
-
-obj_nodes_raw <- obj_curve_eonia_flat_forward_raw$nodes()
-obj_nodes_raw
-
-# The remaining Cookbook steps depend on how this QuantLib R binding exposes
-# the node vector. After confirming node extraction, continue with:
-# 1. replace node 7 by the average of nodes 6 and 8;
-# 2. construct ForwardCurve from the modified nodes;
-# 3. estimate the turn-of-year jump;
-# 4. build PiecewiseFlatForward and PiecewiseLogCubicDiscount with jump vectors.
+# Do not call curve$nodes() directly. Some QuantLib/SWIG environments can
+# overflow the R node stack while converting the returned C++ node vector.
 
 tbl_wrapper_audit_eonia <- tibble::tribble(
   ~str_area, ~str_current_state, ~str_candidate,
@@ -317,17 +374,11 @@ tbl_wrapper_audit_eonia <- tibble::tribble(
   "RateHelperVector construction", "covered", "push_rate_helpers_GQL",
   "DepositRateHelper construction", "raw QuantLib", "deposit_rate_helper_GQL",
   "OISRateHelper construction", "raw QuantLib", "ois_rate_helper_GQL",
-  "DatedOISRateHelper construction", "raw QuantLib", "dated_ois_rate_helper_GQL",
+  "DatedOISRateHelper construction", "internal GaussQuant", "eonia_dated_ois_helper_GQL",
   "Eonia index construction", "raw QuantLib", "eonia_GQL",
   "Piecewise curve construction", "raw QuantLib", "piecewise_curve_GQL",
-  "Daily forward-rate extraction", "analysis code", "tbl_forward_curve_GQL",
-  "Curve-node extraction", "binding-dependent", "tbl_curve_nodes_GQL"
+  "Instantaneous forward extraction", "covered", "forwardRate(date, date)",
+  "Curve-node extraction", "internal GaussQuant", "eonia_curve_nodes_GQL"
 )
 
 tbl_wrapper_audit_eonia
-
-# =============================================================================
-# 2. Euribor curve bootstrapping
-# =============================================================================
-
-# Add after the EONIA section runs and node extraction is confirmed.

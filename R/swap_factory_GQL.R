@@ -9,9 +9,9 @@
 #' @return A QuantLib OIS swap object.
 #' @export
 build_ois_GQL <- function(
-    swap_tenor,
-    overnight_index,
-    fixed_rate
+  swap_tenor,
+  overnight_index,
+  fixed_rate
 ) {
   use_quantlib_GQH()
 
@@ -33,9 +33,9 @@ build_ois_GQL <- function(
 #' @return A QuantLib OIS swap object.
 #' @export
 build_eonia_ois_GQL <- function(
-    swap_tenor,
-    forecast_handle,
-    fixed_rate
+  swap_tenor,
+  forecast_handle,
+  fixed_rate
 ) {
   use_quantlib_GQH()
 
@@ -51,14 +51,7 @@ build_eonia_ois_GQL <- function(
 # R/swap_factory.R
 
 
-
-
-
-
 # R/swap_factory.R
-
-
-
 
 
 #' Build an OIS from trade data
@@ -70,8 +63,8 @@ build_eonia_ois_GQL <- function(
 #'
 #' @export
 build_ois_from_trade_GQL <- function(
-    trade,
-    forecast_handle
+  trade,
+  forecast_handle
 ) {
   use_quantlib_GQH()
 
@@ -143,8 +136,8 @@ vanilla_swap_type_GQL <- function(type = "payer") {
 
 
 make_ibor_index_GQL <- function(
-    index = "Euribor6M",
-    forecast_handle = NULL
+  index = "Euribor6M",
+  forecast_handle = NULL
 ) {
   use_quantlib_GQH()
 
@@ -197,14 +190,14 @@ make_ibor_index_GQL <- function(
 
 
 make_schedule_GQL <- function(
-    effective_date,
-    maturity_date,
-    tenor = QuantLib::Period(1, "Years"),
-    calendar = QuantLib::TARGET(),
-    convention = "ModifiedFollowing",
-    termination_convention = "ModifiedFollowing",
-    date_generation = "Forward",
-    end_of_month = FALSE
+  effective_date,
+  maturity_date,
+  tenor = QuantLib::Period(1, "Years"),
+  calendar = QuantLib::TARGET(),
+  convention = "ModifiedFollowing",
+  termination_convention = "ModifiedFollowing",
+  date_generation = "Forward",
+  end_of_month = FALSE
 ) {
   use_quantlib_GQH()
 
@@ -247,22 +240,22 @@ make_schedule_GQL <- function(
 #'
 #' @export
 make_vanilla_swap_GQL <- function(
-    effective_date,
-    maturity_date,
-    fixed_rate,
-    notional = 1,
-    forecast_handle = NULL,
-    discount_handle = NULL,
-    swap_type = "payer",
-    index = "Euribor6M",
-    spread = 0,
-    fixed_tenor = QuantLib::Period(1, "Years"),
-    floating_tenor = QuantLib::Period(6, "Months"),
-    fixed_day_counter = QuantLib::Thirty360("European"),
-    floating_day_counter = QuantLib::Actual360(),
-    calendar = QuantLib::TARGET(),
-    fixed_convention = "ModifiedFollowing",
-    floating_convention = "ModifiedFollowing"
+  effective_date,
+  maturity_date,
+  fixed_rate,
+  notional = 1,
+  forecast_handle = NULL,
+  discount_handle = NULL,
+  swap_type = "payer",
+  index = "Euribor6M",
+  spread = 0,
+  fixed_tenor = QuantLib::Period(1, "Years"),
+  floating_tenor = QuantLib::Period(6, "Months"),
+  fixed_day_counter = QuantLib::Thirty360("European"),
+  floating_day_counter = QuantLib::Actual360(),
+  calendar = QuantLib::TARGET(),
+  fixed_convention = "ModifiedFollowing",
+  floating_convention = "ModifiedFollowing"
 ) {
   use_quantlib_GQH()
 
@@ -311,9 +304,9 @@ make_vanilla_swap_GQL <- function(
 
 
 trade_value_GQL <- function(
-    trade,
-    name,
-    default = NULL
+  trade,
+  name,
+  default = NULL
 ) {
   stopifnot(is.data.frame(trade))
 
@@ -332,11 +325,11 @@ trade_value_GQL <- function(
 
 
 trade_period_GQL <- function(
-    trade,
-    n_col,
-    unit_col,
-    default_n,
-    default_unit
+  trade,
+  n_col,
+  unit_col,
+  default_n,
+  default_unit
 ) {
   use_quantlib_GQH()
 
@@ -369,9 +362,9 @@ trade_period_GQL <- function(
 #'
 #' @export
 make_vanilla_swap_from_trade_GQL <- function(
-    trade,
-    forecast_handle = NULL,
-    discount_handle = NULL
+  trade,
+  forecast_handle = NULL,
+  discount_handle = NULL
 ) {
   use_quantlib_GQH()
 
@@ -487,20 +480,20 @@ make_vanilla_swap_from_trade_GQL <- function(
 #'
 #' @export
 make_asset_swap_GQL <- function(
-    bond,
-    clean_price,
-    floating_schedule,
-    index = "Euribor6M",
-    forecast_handle = NULL,
-    discount_handle = NULL,
-    floating_day_counter = "Actual360",
-    maturity_date = NULL,
-    deal_maturity = NULL,
-    pay_bond_coupon = TRUE,
-    spread = 0,
-    par_asset_swap = TRUE,
-    gearing = 1,
-    non_par_repayment = 100
+  bond,
+  clean_price,
+  floating_schedule,
+  index = "Euribor6M",
+  forecast_handle = NULL,
+  discount_handle = NULL,
+  floating_day_counter = "Actual360",
+  maturity_date = NULL,
+  deal_maturity = NULL,
+  pay_bond_coupon = TRUE,
+  spread = 0,
+  par_asset_swap = TRUE,
+  gearing = 1,
+  non_par_repayment = 100
 ) {
   use_quantlib_GQH()
 
@@ -631,9 +624,9 @@ asset_swap_summary_GQL <- function(asset_swap) {
 
 
 .trade_logical_GQL <- function(
-    trade,
-    name,
-    default = FALSE
+  trade,
+  name,
+  default = FALSE
 ) {
   value <- trade_value_GQL(
     trade = trade,
@@ -685,12 +678,12 @@ asset_swap_summary_GQL <- function(asset_swap) {
 #'
 #' @export
 make_asset_swap_from_trade_GQL <- function(
-    trade,
-    bond,
-    forecast_handle = NULL,
-    discount_handle = NULL,
-    floating_schedule = NULL,
-    calendar = QuantLib::TARGET()
+  trade,
+  bond,
+  forecast_handle = NULL,
+  discount_handle = NULL,
+  floating_schedule = NULL,
+  calendar = QuantLib::TARGET()
 ) {
   use_quantlib_GQH()
 
@@ -832,16 +825,16 @@ make_asset_swap_from_trade_GQL <- function(
 #' @return QuantLib CreditDefaultSwap object.
 #' @export
 make_cds_GQL <- function(
-    maturity_date,
-    running_spread,
-    notional = 1,
-    side = "buyer",
-    trade_date = NULL,
-    coupon_tenor = "3M",
-    day_counter = "Actual360",
-    date_generation_rule = "CDS2015",
-    pricing_engine = NULL,
-    upfront_rate = NULL
+  maturity_date,
+  running_spread,
+  notional = 1,
+  side = "buyer",
+  trade_date = NULL,
+  coupon_tenor = "3M",
+  day_counter = "Actual360",
+  date_generation_rule = "CDS2015",
+  pricing_engine = NULL,
+  upfront_rate = NULL
 ) {
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
@@ -914,8 +907,8 @@ make_cds_GQL <- function(
 #' @return QuantLib CreditDefaultSwap object.
 #' @export
 make_cds_from_trade_GQL <- function(
-    trade,
-    pricing_engine = NULL
+  trade,
+  pricing_engine = NULL
 ) {
   use_quantlib_GQH()
 
@@ -1153,9 +1146,9 @@ cds_summary_GQL <- function(cds) {
 #' @return QuantLib DefaultProbabilityTermStructureHandle.
 #' @export
 flat_hazard_rate_GQL <- function(
-    hazard_rate,
-    reference_date,
-    day_counter = "Actual365Fixed"
+  hazard_rate,
+  reference_date,
+  day_counter = "Actual365Fixed"
 ) {
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
@@ -1190,13 +1183,13 @@ flat_hazard_rate_GQL <- function(
 #' @return QuantLib MidPointCdsEngine object.
 #' @export
 cds_midpoint_engine_GQL <- function(
-    probability_handle = NULL,
-    recovery_rate = 0.40,
-    discount_handle = NULL,
-    hazard_rate = NULL,
-    discount_rate = NULL,
-    reference_date = NULL,
-    day_counter = "Actual365Fixed"
+  probability_handle = NULL,
+  recovery_rate = 0.40,
+  discount_handle = NULL,
+  hazard_rate = NULL,
+  discount_rate = NULL,
+  reference_date = NULL,
+  day_counter = "Actual365Fixed"
 ) {
   use_quantlib_GQH()
   requireNamespace("QuantLib", quietly = TRUE)
