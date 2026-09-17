@@ -10,17 +10,22 @@ portfolio_optimize_GQL(
   date_col = "date",
   asset_col = "asset",
   return_col = "return",
-  method = c("minimum_variance", "mean_variance", "maximum_return"),
+  method = c("minimum_variance", "mean_variance", "maximum_return", "maximum_sharpe",
+    "minimum_ES", "risk_budget", "target_return", "target_risk"),
   solver = c("ROI", "optim"),
   risk_aversion = 1,
+  risk_free_rate = 0,
+  confidence_level = 0.95,
+  target_return = NULL,
+  target_volatility = NULL,
+  risk_budget = NULL,
   control = list()
 )
 }
 \arguments{
 \item{tbl_returns}{A tibble containing asset returns.}
 
-\item{portfolio}{A portfolio specification created by
-\code{portfolio_spec_GQL()}.}
+\item{portfolio}{A portfolio specification created by \code{portfolio_spec_GQL()}.}
 
 \item{date_col}{Name of the date column.}
 
@@ -30,10 +35,20 @@ portfolio_optimize_GQL(
 
 \item{method}{Portfolio optimization method.}
 
-\item{solver}{Optimization solver.}
+\item{solver}{Optimization solver. \code{"ROI"} dispatches to the appropriate
+ROI or nonlinear backend; \code{"optim"} uses the nonlinear backend.}
 
-\item{risk_aversion}{Risk-aversion parameter used by mean-variance
-optimization.}
+\item{risk_aversion}{Risk-aversion parameter for mean-variance optimization.}
+
+\item{risk_free_rate}{Per-period risk-free return for maximum Sharpe.}
+
+\item{confidence_level}{Confidence level for minimum ES.}
+
+\item{target_return}{Per-period target expected return.}
+
+\item{target_volatility}{Per-period target volatility.}
+
+\item{risk_budget}{Optional vector of risk budgets. Defaults to equal budgets.}
 
 \item{control}{Optional solver control list.}
 }
