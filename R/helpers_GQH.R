@@ -324,11 +324,22 @@ curve_grid_tbl_GQL <- function(
 #' @return QuantLib FlatForward object.
 #' @export
 flat_curve_GQL <- function(
-  reference_date,
-  rate,
-  day_counter = QuantLib::Actual365Fixed(),
-  compounding = "Continuous"
+    reference_date,
+    rate,
+    day_counter = QuantLib::Actual365Fixed(),
+    compounding = "Continuous"
 ) {
+  
+  if (is.character(day_counter)) {
+    day_counter <- switch(
+      day_counter,
+      "Actual365Fixed" = QuantLib::Actual365Fixed(),
+      "Actual360" = QuantLib::Actual360(),
+      "Thirty360" = QuantLib::Thirty360(),
+      stop("Unsupported day counter: ", day_counter)
+    )
+  }
+  
   QuantLib::FlatForward(
     reference_date,
     rate,
