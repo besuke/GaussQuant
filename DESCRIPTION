@@ -1,21 +1,28 @@
 Package: GaussQuant
 Title: Tidy R Interface to QuantLib for Quantitative Finance
-Version: 2026.9.12.1
+Version: 2026.06.18.1
 Authors@R: person("Eiichi", "Horigome", email = "besuke.poripori@outlook.com", role = c("aut", "cre"))
-Description: Provides reusable R interfaces to the SWIG version of QuantLib
-    for fixed income, derivatives, credit, pricing engines, cashflows,
-    risk analytics, and quantitative-finance workflows. GaussQuant is
+Description: Provides reusable tidy R interfaces to QuantLib for
+    quantitative finance, including fixed income, derivatives, credit,
+    interest-rate curve construction, portfolio analytics, pricing engines,
+    cashflows, and risk analytics. It also supports differentiable pricing
+    and automatic differentiation workflows using torch. GaussQuant is
     the formal successor to QuantLibGauss and uses QuantLib directly
     without depending on QuantLibGauss.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Depends:
-    R (>= 4.1.0)
+    R (>= 4.4.3)
 Imports:
     QuantLib,
     tibble,
     dplyr,
     purrr,
-    lubridate
+    furrr,
+    future,
+    lubridate,
+    torch,
+    PortfolioAnalytics,
+    PerformanceAnalytics
 Config/roxygen2/version: 8.0.0
