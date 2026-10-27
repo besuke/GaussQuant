@@ -4,12 +4,16 @@
 \alias{fmt_num_GQH}
 \title{Format a numeric value for display}
 \usage{
-fmt_num_GQH(x, digits = 6)
+fmt_num_GQH(x, digits = 6, format = c("fg", "f"))
 }
 \arguments{
 \item{x}{Numeric vector.}
 
 \item{digits}{Number of digits.}
+
+\item{format}{\code{"fg"} keeps \code{digits} significant digits and returns NA for
+missing values. \code{"f"} keeps \code{digits} decimal places via \code{sprintf()}, so
+missing values become \code{"NA"}.}
 }
 \value{
 Character vector.

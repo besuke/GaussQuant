@@ -54,6 +54,15 @@ tonar_rate_helper_GQL <- function(
   tenor_unit,
   tonar
 ) {
+  if (identical(instrument_type, "deposit")) {
+    return(
+      QuantLib::DepositRateHelper(
+        quote_handle_GQL(rate),
+        tonar
+      )
+    )
+  }
+
   if (instrument_type != "spot_ois") {
     stop(
       "Unsupported TONAR helper type: ",
@@ -83,6 +92,7 @@ tonar_make_curve_GQL <- function(
   constructor <- switch(
     curve_type,
     log_cubic_discount = QuantLib::PiecewiseLogCubicDiscount,
+    log_linear_discount = QuantLib::PiecewiseLogLinearDiscount,
     flat_forward = QuantLib::PiecewiseFlatForward,
     stop(
       "Unsupported TONAR curve type: ",
@@ -105,7 +115,8 @@ tonar_make_curve_GQL <- function(
 #' @param quotes Market-quote tibble returned by
 #'   `bluegamma_tonar_quotes_GQL()`.
 #' @param evaluation_date Evaluation date in ISO format.
-#' @param curve_type `"log_cubic_discount"` or `"flat_forward"`.
+#' @param curve_type `"log_cubic_discount"`, `"flat_forward"`, or
+#'   `"log_linear_discount"`.
 #' @param extrapolate Enable extrapolation beyond the final helper.
 #'
 #' @return A list containing the curve, curve handle, helper objects, input
@@ -114,7 +125,7 @@ tonar_make_curve_GQL <- function(
 build_tonar_curve_from_market_GQL <- function(
   quotes = bluegamma_tonar_quotes_GQL(),
   evaluation_date = "2026-09-10",
-  curve_type = c("log_cubic_discount", "flat_forward"),
+  curve_type = c("log_cubic_discount", "flat_forward", "log_linear_discount"),
   extrapolate = TRUE
 ) {
   curve_type <- match.arg(curve_type)
@@ -203,127 +214,6 @@ build_tonar_curve_from_market_GQL <- function(
 }
 
 
-tonar_curve_dates_GQL <- function(curve) {
-  curve_dates <- curve$dates()
-  n_dates <- as.integer(curve_dates$size())
-
-  purrr::map(
-    seq_len(n_dates),
-    function(i) curve_dates[i][[1L]]
-  )
-}
-
-
-#' Extract TONAR curve nodes safely
-#'
-#' Avoid direct use of `curve$nodes()`, which is unstable in some QuantLib
-#' SWIG environments.
-#'
-#' @param curve QuantLib TONAR curve object.
-#'
-#' @return A tibble containing node dates and continuously compounded forward
-#'   rates.
-#' @export
-tonar_curve_nodes_GQL <- function(curve) {
-  dates_ql <- tonar_curve_dates_GQL(curve)
-  n_dates <- length(dates_ql)
-
-  if (n_dates == 0L) {
-    return(
-      tibble::tibble(
-        node_date = as.Date(character()),
-        node_rate = numeric()
-      )
-    )
-  }
-
-  if (n_dates == 1L) {
-    return(
-      tibble::tibble(
-        node_date = as.Date(safe_iso_GQH(dates_ql[[1L]])),
-        node_rate = NA_real_
-      )
-    )
-  }
-
-  interval_rates <- purrr::map_dbl(
-    seq.int(2L, n_dates),
-    function(i) {
-      interest_rate <- curve$forwardRate(
-        dates_ql[[i - 1L]],
-        dates_ql[[i]],
-        curve$dayCounter(),
-        QuantLib::Compounding_Continuous_get()
-      )
-
-      safe_num_GQH(interest_rate$rate())
-    }
-  )
-
-  tibble::tibble(
-    node_date = as.Date(
-      purrr::map_chr(
-        dates_ql,
-        safe_iso_GQH
-      )
-    ),
-    node_rate = c(
-      interval_rates[[1L]],
-      interval_rates
-    )
-  )
-}
-
-
-#' Calculate a TONAR forward rate
-#'
-#' Setting `start_date` and `end_date` to the same date returns the
-#' instantaneous forward rate implied by the curve.
-#'
-#' @param curve QuantLib TONAR curve object.
-#' @param start_date Start date in ISO format.
-#' @param end_date End date in ISO format.
-#' @param day_counter QuantLib day-counter object.
-#' @param compounding QuantLib compounding convention.
-#'
-#' @return A numeric forward rate.
-#' @export
-tonar_forward_rate_GQL <- function(
-  curve,
-  start_date,
-  end_date,
-  day_counter = QuantLib::Actual365Fixed(),
-  compounding = QuantLib::Compounding_Continuous_get()
-) {
-  tryCatch(
-    curve$forwardRate(
-      date_GQL(start_date),
-      date_GQL(end_date),
-      day_counter,
-      compounding
-    )$rate(),
-    error = function(e) NA_real_
-  )
-}
-
-
-tonar_helper_date_GQL <- function(
-  helper,
-  method = c("pillarDate", "latestDate")
-) {
-  method <- match.arg(method)
-
-  tryCatch(
-    switch(
-      method,
-      pillarDate = helper$pillarDate(),
-      latestDate = helper$latestDate()
-    ),
-    error = function(e) NULL
-  )
-}
-
-
 #' Validate a TONAR curve
 #'
 #' Reprice every helper and report the discount factor, continuously
@@ -357,13 +247,13 @@ tonar_curve_validation_GQL <- function(curve_bundle) {
     seq_along(helpers),
     helpers,
     function(i, helper) {
-      pillar_date <- tonar_helper_date_GQL(
+      pillar_date <- rate_helper_date_GQL(
         helper,
         "pillarDate"
       )
 
       if (is.null(pillar_date)) {
-        pillar_date <- tonar_helper_date_GQL(
+        pillar_date <- rate_helper_date_GQL(
           helper,
           "latestDate"
         )
@@ -405,7 +295,7 @@ tonar_curve_validation_GQL <- function(curve_bundle) {
       inst_fwd_rate <- if (is.na(pillar_iso)) {
         NA_real_
       } else {
-        tonar_forward_rate_GQL(
+        curve_forward_rate_GQL(
           curve = curve,
           start_date = pillar_iso,
           end_date = pillar_iso,
@@ -434,7 +324,7 @@ tonar_curve_validation_GQL <- function(curve_bundle) {
 
   list(
     quote_repricing = tbl_quote_repricing,
-    curve_nodes = tonar_curve_nodes_GQL(curve)
+    curve_nodes = curve_forward_nodes_GQL(curve)
   )
 }
 

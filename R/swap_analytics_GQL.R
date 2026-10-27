@@ -94,7 +94,6 @@ swap_floating_leg_table_GQL <- function(swap) {
 #' @return A tibble summarising swap valuation measures.
 #' @export
 swap_summary_GQL <- function(swap) {
-  use_quantlib_GQH()
   requireNamespace("tibble", quietly = TRUE)
 
   tibble::tibble(
@@ -250,7 +249,6 @@ leg_cashflow_schedule_GQL <- function(
   leg_name,
   leg_no = NA_integer_
 ) {
-  use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
 
   leg_to_cashflow_tbl_GQL(leg) |>
@@ -271,7 +269,6 @@ leg_cashflow_schedule_GQL <- function(
 #'
 #' @export
 swap_cashflow_schedule_GQL <- function(swap) {
-  use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
 
   fixed_leg <- leg_cashflow_schedule_GQL(
@@ -301,7 +298,6 @@ swap_cashflow_schedule_GQL <- function(swap) {
 #'
 #' @export
 ois_cashflow_schedule_GQL <- function(swap) {
-  use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
 
   fixed_leg <- leg_cashflow_schedule_GQL(
@@ -325,32 +321,11 @@ ois_cashflow_schedule_GQL <- function(swap) {
 
 # R/swap_analytics.R
 
-curve_discount_factor_GQL <- function(
-  curve,
-  date
-) {
-  use_quantlib_GQH()
-
-  if (is.na(date)) {
-    return(NA_real_)
-  }
-
-  qd <- date_GQL(as.character(date))
-
-  tryCatch(
-    curve$discount(qd),
-    error = function(e) NA_real_
-  )
-}
-
-
 day_count_fraction_GQL <- function(
   start_date,
   end_date,
   day_counter = "Actual365Fixed"
 ) {
-  use_quantlib_GQH()
-
   if (is.na(start_date) || is.na(end_date)) {
     return(NA_real_)
   }
@@ -397,9 +372,9 @@ apply_discount_factors_GQL <- function(
   discount_factors <- vapply(
     seq_along(payment_dates),
     function(i) {
-      curve_discount_factor_GQL(
+      curve_discount_safe_GQL(
         curve = discount_curve,
-        date = payment_dates[i]
+        x = payment_dates[i]
       )
     },
     numeric(1)
@@ -544,14 +519,14 @@ apply_forward_rates_GQL <- function(
         return(NA_real_)
       }
 
-      df_start <- curve_discount_factor_GQL(
+      df_start <- curve_discount_safe_GQL(
         curve = forecast_curve,
-        date = accrual_start[i]
+        x = accrual_start[i]
       )
 
-      df_end <- curve_discount_factor_GQL(
+      df_end <- curve_discount_safe_GQL(
         curve = forecast_curve,
-        date = accrual_end[i]
+        x = accrual_end[i]
       )
 
       if (
@@ -678,7 +653,6 @@ ois_cashflow_schedule_from_trade_GQL <- function(
   trade,
   forecast_handle
 ) {
-  use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
 
   stopifnot(is.data.frame(trade))
@@ -721,8 +695,6 @@ value_ois_cashflow_schedule_from_trade_GQL <- function(
   fixings = NULL,
   evaluation_date = NULL
 ) {
-  use_quantlib_GQH()
-
   cashflows <- ois_cashflow_schedule_from_trade_GQL(
     trade = trade,
     forecast_handle = forecast_handle
@@ -751,7 +723,6 @@ swap_cashflow_schedule_from_trade_GQL <- function(
   trade,
   forecast_handle = NULL
 ) {
-  use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
 
   stopifnot(is.data.frame(trade))
@@ -794,8 +765,6 @@ value_swap_cashflow_schedule_from_trade_GQL <- function(
   fixings = NULL,
   evaluation_date = NULL
 ) {
-  use_quantlib_GQH()
-
   cashflows <- swap_cashflow_schedule_from_trade_GQL(
     trade = trade,
     forecast_handle = forecast_handle
@@ -850,8 +819,6 @@ cashflow_schedule_from_trade_GQL <- function(
   trade,
   forecast_handle
 ) {
-  use_quantlib_GQH()
-
   product <- trade_product_GQL(trade)
 
   if (product == "OIS") {
@@ -894,8 +861,6 @@ value_cashflow_schedule_from_trade_GQL <- function(
   fixings = NULL,
   evaluation_date = NULL
 ) {
-  use_quantlib_GQH()
-
   product <- trade_product_GQL(trade)
 
   if (product == "OIS") {
@@ -938,7 +903,6 @@ cashflow_schedule_from_trades_GQL <- function(
   trades,
   forecast_handle
 ) {
-  use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
 
   rows <- purrr::map(seq_len(nrow(trades)), ~ trades[.x, , drop = FALSE])
@@ -984,7 +948,6 @@ value_cashflow_schedule_from_trades_GQL <- function(
   fixings = NULL,
   evaluation_date = NULL
 ) {
-  use_quantlib_GQH()
   requireNamespace("dplyr", quietly = TRUE)
 
   rows <- purrr::map(seq_len(nrow(trades)), ~ trades[.x, , drop = FALSE])

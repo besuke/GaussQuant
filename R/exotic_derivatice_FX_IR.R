@@ -71,9 +71,6 @@ fx_process_GQL <- function(
   domestic_curve_handle,
   volatility_handle
 ) {
-  use_quantlib_GQH()
-  requireNamespace("QuantLib", quietly = TRUE)
-
   spot_handle <- if (is.numeric(spot)) {
     quote_handle_GQL(as.numeric(spot)[[1L]])
   } else {
@@ -108,7 +105,7 @@ fx_path_generator_GQL <- function(
   day_counter,
   process
 ) {
-  valuation_date_ql <- .as_ql_date_GQL(valuation_date)
+  valuation_date_ql <- date_GQL(valuation_date)
   valuation_date_r <- as_r_date_GQH(valuation_date_ql)
   coupon_dates_ql <- .schedule_date_vector_ql_GQL(coupon_schedule)
 
@@ -325,7 +322,7 @@ prdc_expected_coupon_GQL <- function(
   coupon_schedule,
   day_counter
 ) {
-  valuation_date_ql <- .as_ql_date_GQL(valuation_date)
+  valuation_date_ql <- date_GQL(valuation_date)
   valuation_date_r <- as_r_date_GQH(valuation_date_ql)
   schedule_dates_ql <- .schedule_date_vector_ql_GQL(coupon_schedule)
 
@@ -828,7 +825,7 @@ prdc_volatility_sensitivity_GQL <- function(
     )
   }
 
-  valuation_date_ql <- .as_ql_date_GQL(valuation_date)
+  valuation_date_ql <- date_GQL(valuation_date)
 
   result <- volatility_scenarios |>
     dplyr::mutate(

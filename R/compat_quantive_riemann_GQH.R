@@ -8,24 +8,6 @@
   }
 }
 
-.safe_engine_set_GQH <- function(instrument, engine) {
-  out <- tryCatch(
-    instrument$setPricingEngine(engine),
-    error = function(e) NULL
-  )
-
-  if (!is.null(out)) {
-    return(invisible(instrument))
-  }
-
-  tryCatch(
-    QuantLib::Instrument_setPricingEngine(instrument, engine),
-    error = function(e) stop("Could not set pricing engine: ", conditionMessage(e))
-  )
-
-  invisible(instrument)
-}
-
 .cf_amount_GQH <- function(cf) {
   tryCatch(
     cf$amount(),
@@ -483,7 +465,7 @@ ir_build_ois_curve_GQH <- function(
   instrument,
   verbose = TRUE
 ) {
-  eval_date_GQL(trade_date)
+  set_eval_date_GQL(trade_date)
 
   conv <- .ir_get_ois_convention_GQH(currency, instrument)
 
@@ -852,7 +834,9 @@ trade_ois_swap_GQH <- function(
   }
 
   engine <- QuantLib::DiscountingSwapEngine(curve_env$curve_handle)
-  .safe_engine_set_GQH(swap_obj, engine)
+  if (!instrument_set_engine_safe_GQL(swap_obj, engine)) {
+    stop("Could not set pricing engine.", call. = FALSE)
+  }
 
   out <- list(
     trade_type = "OIS_SWAP",
@@ -1218,7 +1202,9 @@ asset_swap_analysis_GQH <- function(
   }
 
   asset_swap_engine <- QuantLib::DiscountingSwapEngine(discount_curve_handle)
-  .safe_engine_set_GQH(asset_swap_obj, asset_swap_engine)
+  if (!instrument_set_engine_safe_GQL(asset_swap_obj, asset_swap_engine)) {
+    stop("Could not set pricing engine.", call. = FALSE)
+  }
 
   tibble::tibble(
     metric = c("fair_spread", "fair_clean_price", "status"),

@@ -1,13 +1,5 @@
 # Date and period utilities ------------------------------------------------
 
-.as_ql_date_GQL <- function(x) {
-  if (inherits(x, "_p_Date")) {
-    return(x)
-  }
-
-  date_GQL(x)
-}
-
 #' Convert QuantLib object to character
 #'
 #' @param x Object to print.
@@ -33,7 +25,7 @@ chr_GQL <- function(x) {
 #' @return The QuantLib Date invisibly.
 #' @export
 set_eval_date_GQL <- function(eval_date) {
-  d <- .as_ql_date_GQL(eval_date)
+  d <- date_GQL(eval_date)
   QuantLib::Settings_instance()$setEvaluationDate(d)
   invisible(d)
 }
@@ -41,7 +33,7 @@ set_eval_date_GQL <- function(eval_date) {
 .advance_days_ql_GQL <- function(calendar_obj, date_obj, n_days) {
   QuantLib::Calendar_advance(
     calendar_obj,
-    .as_ql_date_GQL(date_obj),
+    date_GQL(date_obj),
     as.integer(n_days),
     "Days"
   )
@@ -63,7 +55,7 @@ advance_days_GQL <- function(calendar_obj, date_obj, n_days) {
   date_obj <-
     date_obj |>
     safe_iso_GQH() |>
-    DateParser_parseISO_GQL()
+    date_GQL()
   as_r_date_GQH(
     .advance_days_ql_GQL(
       calendar_obj = calendar_obj,
@@ -76,12 +68,17 @@ advance_days_GQL <- function(calendar_obj, date_obj, n_days) {
 
 #' Build a QuantLib Period
 #'
-#' @param x Tenor string such as 1D, 1W, 3M, 18M, or 2Y.
+#' @param x Tenor string such as 1D, 1W, 3M, 18M, or 2Y, or a QuantLib
+#'   Period, which is returned unchanged.
 #' @param unit Optional unit when x is numeric.
 #'
 #' @return A QuantLib Period object.
 #' @export
 period_GQL <- function(x = 1, unit = NULL) {
+  if (inherits(x, "_p_Period")) {
+    return(x)
+  }
+
   if (!is.null(unit)) {
     unit <- tolower(as.character(unit)[1])
     n <- as.integer(x)
@@ -231,41 +228,29 @@ schedule_date_at_GQL <- function(schedule, i_one_based) {
   as_r_date_GQH(date_ql)
 }
 
-#' Extract a schedule date as local R Date
+#' Build an unadjusted monthly schedule table
 #'
-#' @param schedule QuantLib Schedule object.
-#' @param i_one_based One-based date index.
+#' Generates dates with `seq.Date()` from the effective date in steps of
+#' `tenor_months` months. No calendar adjustment is applied, and month-end
+#' dates roll over as in base R (for example, Aug 31 plus one month is Oct 1).
 #'
-#' @return An R Date, or NA if extraction fails.
+#' @param effective_date Effective date as an ISO string or R Date.
+#' @param maturity_date Maturity date as an ISO string or R Date.
+#' @param tenor_months Step in months.
+#'
+#' @return A tibble with ISO `schedule_date` strings.
 #' @export
-schedule_date_at_local_GQL <- function(schedule, i_one_based) {
-  schedule_date_at_GQL(
-    schedule = schedule,
-    i_one_based = i_one_based
-  )
-}
-
-#' Build a table of QuantLib schedule dates
-#'
-#' @param schedule QuantLib Schedule object.
-#'
-#' @return A tibble with schedule_date.
-#' @export
-schedule_dates_GQL <- function(schedule) {
-  n <- tryCatch(
-    schedule$size(),
-    error = function(e) NA_integer_
-  )
-
-  if (is.na(n) || n <= 0) {
-    return(tibble::tibble(schedule_date = as.Date(character())))
-  }
-
+unadjusted_schedule_tbl_GQL <- function(
+  effective_date,
+  maturity_date,
+  tenor_months
+) {
   tibble::tibble(
-    schedule_date = as.Date(
-      purrr::map_chr(
-        seq_len(n),
-        function(i) as.character(schedule_date_at_GQL(schedule, i))
+    schedule_date = as.character(
+      seq.Date(
+        from = as.Date(effective_date),
+        to = as.Date(maturity_date),
+        by = paste0(tenor_months, " months")
       )
     )
   )

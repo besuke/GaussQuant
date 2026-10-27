@@ -4,8 +4,42 @@
 \alias{bond_cashflow_table_GQL}
 \title{Bond Cashflow Table}
 \usage{
-bond_cashflow_table_GQL(bond)
+bond_cashflow_table_GQL(
+  bond,
+  detail = FALSE,
+  discount_curve = NULL,
+  interest_rate = NULL,
+  settlement_date = NULL,
+  include_past = TRUE
+)
+}
+\arguments{
+\item{bond}{QuantLib bond object.}
+
+\item{detail}{Return the detailed table.}
+
+\item{discount_curve}{Optional QuantLib yield curve or handle.}
+
+\item{interest_rate}{Optional QuantLib InterestRate object.}
+
+\item{settlement_date}{Optional settlement date. Defaults to the bond
+settlement date, or the evaluation date if that fails.}
+
+\item{include_past}{Keep flows paid before settlement.}
+}
+\value{
+A tibble of bond cashflows.
 }
 \description{
-Bond Cashflow Table
+With \code{detail = FALSE} the table holds payment dates and amounts. With
+\code{detail = TRUE} it adds coupon rates, accrual dates, discount factors,
+present values, and flow types. Discount factors follow the first
+available rule:
+}
+\details{
+\itemize{
+\item \code{discount_curve}: \code{discount_curve$discount(payment_date)} for every flow.
+\item \code{interest_rate}: \code{interest_rate$discountFactor(settlement_date, payment_date)} for flows on or after settlement, NA before.
+\item neither: 1 for flows on or before settlement, NA after.
+}
 }

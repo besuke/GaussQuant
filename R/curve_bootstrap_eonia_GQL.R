@@ -316,94 +316,6 @@ build_eonia_curve_from_market_GQL <- function(
 }
 
 
-eonia_curve_dates_GQL <- function(curve) {
-  curve_dates <- curve$dates()
-  n_dates <- as.integer(curve_dates$size())
-
-  purrr::map(
-    seq_len(n_dates),
-    function(i) curve_dates[i][[1L]]
-  )
-}
-
-#' @export
-eonia_curve_nodes_GQL <- function(curve) {
-  dates_ql <- eonia_curve_dates_GQL(curve)
-  n_dates <- length(dates_ql)
-
-  if (n_dates == 0L) {
-    return(
-      tibble::tibble(
-        node_date = as.Date(character()),
-        node_rate = numeric()
-      )
-    )
-  }
-
-  if (n_dates == 1L) {
-    return(
-      tibble::tibble(
-        node_date = as.Date(safe_iso_GQH(dates_ql[[1L]])),
-        node_rate = NA_real_
-      )
-    )
-  }
-
-  interval_rates <- purrr::map_dbl(
-    seq.int(2L, n_dates),
-    function(i) {
-      interest_rate <- curve$forwardRate(
-        dates_ql[[i - 1L]],
-        dates_ql[[i]],
-        curve$dayCounter(),
-        QuantLib::Compounding_Continuous_get()
-      )
-
-      safe_num_GQH(interest_rate$rate())
-    }
-  )
-
-  tibble::tibble(
-    node_date = as.Date(purrr::map_chr(dates_ql, safe_iso_GQH)),
-    node_rate = c(interval_rates[[1L]], interval_rates)
-  )
-}
-
-
-eonia_forward_rate_GQL <- function(
-  curve,
-  start_date,
-  end_date,
-  day_counter = QuantLib::Actual360()
-) {
-  tryCatch(
-    curve$forwardRate(
-      date_GQL(start_date),
-      date_GQL(end_date),
-      day_counter,
-      QuantLib::Compounding_Simple_get()
-    )$rate(),
-    error = function(e) NA_real_
-  )
-}
-
-
-eonia_helper_date_GQL <- function(
-  helper,
-  method = c("pillarDate", "latestDate")
-) {
-  method <- match.arg(method)
-
-  tryCatch(
-    switch(method,
-      pillarDate = helper$pillarDate(),
-      latestDate = helper$latestDate()
-    ),
-    error = function(e) NULL
-  )
-}
-
-
 #' Validate EONIA curve quotes, spot rates, and forward rates
 #'
 #' Reprice every helper and report the discount factor, continuously compounded
@@ -439,14 +351,14 @@ eonia_curve_validation_GQL <- function(curve_bundle) {
       helpers,
       function(i, helper) {
         pillar_date <-
-          eonia_helper_date_GQL(
+          rate_helper_date_GQL(
             helper,
             "pillarDate"
           )
 
         if (is.null(pillar_date)) {
           pillar_date <-
-            eonia_helper_date_GQL(
+            rate_helper_date_GQL(
               helper,
               "latestDate"
             )
@@ -495,10 +407,12 @@ eonia_curve_validation_GQL <- function(curve_bundle) {
             NA_real_
           } else {
             tryCatch(
-              eonia_forward_rate_GQL(
+              curve_forward_rate_GQL(
                 curve = curve,
                 start_date = pillar_iso,
-                end_date = pillar_iso
+                end_date = pillar_iso,
+                day_counter = QuantLib::Actual360(),
+                compounding = QuantLib::Compounding_Simple_get()
               ),
               error = function(e) NA_real_
             )
@@ -533,7 +447,7 @@ eonia_curve_validation_GQL <- function(curve_bundle) {
   list(
     quote_repricing = tbl_quote_repricing,
     curve_nodes =
-      eonia_curve_nodes_GQL(curve)
+      curve_forward_nodes_GQL(curve)
   )
 }
 
@@ -579,7 +493,7 @@ eonia_curve_benchmark_GQL <- function(
     )
 
   tbl_flat_nodes <-
-    eonia_curve_nodes_GQL(
+    curve_forward_nodes_GQL(
       lst_flat_bundle$curve
     )
 
@@ -633,32 +547,36 @@ eonia_curve_benchmark_GQL <- function(
   str_jump_end <- "2013-01-02"
 
   num_original_forward <-
-    eonia_forward_rate_GQL(
+    curve_forward_rate_GQL(
       curve = lst_flat_bundle$curve,
       start_date = str_forward_start,
-      end_date = str_forward_end
+      end_date = str_forward_end,
+      day_counter = QuantLib::Actual360(),
+      compounding = QuantLib::Compounding_Simple_get()
     )
 
   num_clean_forward <-
-    eonia_forward_rate_GQL(
+    curve_forward_rate_GQL(
       curve = obj_clean_forward_curve,
       start_date = str_forward_start,
-      end_date = str_forward_end
+      end_date = str_forward_end,
+      day_counter = QuantLib::Actual360(),
+      compounding = QuantLib::Compounding_Simple_get()
     )
 
   num_forward_time <-
     safe_num_GQH(
       obj_curve_day_counter$yearFraction(
-        DateParser_parseISO_GQL(str_forward_start),
-        DateParser_parseISO_GQL(str_forward_end)
+        date_GQL(str_forward_start),
+        date_GQL(str_forward_end)
       )
     )
 
   num_jump_time <-
     safe_num_GQH(
       obj_curve_day_counter$yearFraction(
-        DateParser_parseISO_GQL(str_jump_start),
-        DateParser_parseISO_GQL(str_jump_end)
+        date_GQL(str_jump_start),
+        date_GQL(str_jump_end)
       )
     )
 

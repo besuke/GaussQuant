@@ -18,9 +18,6 @@ make_cap_GQL <- function(
   convention = QuantLib::BusinessDayConvention_ModifiedFollowing_get(),
   pricing_engine = NULL
 ) {
-  use_quantlib_GQH()
-  requireNamespace("QuantLib", quietly = TRUE)
-
   parts <- .interest_option_parts_GQL(
     notional = notional,
     start_date = start_date,
@@ -67,9 +64,6 @@ make_floor_GQL <- function(
   convention = QuantLib::BusinessDayConvention_ModifiedFollowing_get(),
   pricing_engine = NULL
 ) {
-  use_quantlib_GQH()
-  requireNamespace("QuantLib", quietly = TRUE)
-
   parts <- .interest_option_parts_GQL(
     notional = notional,
     start_date = start_date,
@@ -165,7 +159,7 @@ cap_floor_summary_GQL <- function(cap_floor) {
   pricing_engine = NULL
 ) {
   valuation_date <- as.character(as.Date(valuation_date))
-  eval_date_GQL(valuation_date)
+  set_eval_date_GQL(valuation_date)
 
   eval_date <- date_GQL(valuation_date)
   start_date <- date_GQL(as.character(as.Date(start_date)))
@@ -252,8 +246,6 @@ make_cap_from_trade_GQL <- function(
   trade,
   pricing_engine = NULL
 ) {
-  use_quantlib_GQH()
-
   if (!is.data.frame(trade) || nrow(trade) != 1) {
     stop("trade must be a one-row data frame.", call. = FALSE)
   }
@@ -331,8 +323,6 @@ make_floor_from_trade_GQL <- function(
   trade,
   pricing_engine = NULL
 ) {
-  use_quantlib_GQH()
-
   if (!is.data.frame(trade) || nrow(trade) != 1) {
     stop("trade must be a one-row data frame.", call. = FALSE)
   }
@@ -412,8 +402,6 @@ make_interest_option_from_trade_GQL <- function(
   trade,
   pricing_engine = NULL
 ) {
-  use_quantlib_GQH()
-
   if (!is.data.frame(trade) || nrow(trade) != 1) {
     stop("trade must be a one-row data frame.", call. = FALSE)
   }
@@ -539,9 +527,6 @@ hull_white_model_GQL <- function(
   sigma = 0.01,
   day_counter = QuantLib::Actual365Fixed()
 ) {
-  use_quantlib_GQH()
-  requireNamespace("QuantLib", quietly = TRUE)
-
   if (is.null(term_structure)) {
     term_structure <- .interest_option_flat_curve_GQL(
       valuation_date = valuation_date,
@@ -580,9 +565,6 @@ hull_white_cap_floor_engine_GQL <- function(
   time_steps = 60L,
   day_counter = QuantLib::Actual365Fixed()
 ) {
-  use_quantlib_GQH()
-  requireNamespace("QuantLib", quietly = TRUE)
-
   method <- match.arg(method)
 
   if (is.null(term_structure)) {
@@ -621,7 +603,7 @@ hull_white_cap_floor_engine_GQL <- function(
   day_counter = QuantLib::Actual365Fixed()
 ) {
   valuation_date <- as.character(as.Date(valuation_date))
-  eval_date_GQL(valuation_date)
+  set_eval_date_GQL(valuation_date)
 
   eval_date <- date_GQL(valuation_date)
 
@@ -656,9 +638,6 @@ hull_white_swaption_engine_GQL <- function(
   time_steps = 60L,
   day_counter = QuantLib::Actual365Fixed()
 ) {
-  use_quantlib_GQH()
-  requireNamespace("QuantLib", quietly = TRUE)
-
   method <- match.arg(method)
 
   if (is.null(term_structure)) {
@@ -704,9 +683,6 @@ make_swaption_GQL <- function(
   exercise_date,
   pricing_engine = NULL
 ) {
-  use_quantlib_GQH()
-  requireNamespace("QuantLib", quietly = TRUE)
-
   exercise <- QuantLib::EuropeanExercise(
     date_GQL(as.character(as.Date(exercise_date)))
   )
@@ -807,8 +783,6 @@ make_swaption_from_trade_GQL <- function(
   discount_handle = NULL,
   pricing_engine = NULL
 ) {
-  use_quantlib_GQH()
-
   if (!is.data.frame(trade) || nrow(trade) != 1) {
     stop("trade must be a one-row data frame.", call. = FALSE)
   }
@@ -902,9 +876,6 @@ make_bermudan_swaption_GQL <- function(
   exercise_dates,
   pricing_engine = NULL
 ) {
-  use_quantlib_GQH()
-  requireNamespace("QuantLib", quietly = TRUE)
-
   exercise <- QuantLib::BermudanExercise__SWIG_1(
     .bermudan_exercise_date_vector_GQL(exercise_dates)
   )
@@ -939,8 +910,6 @@ make_bermudan_swaption_from_trade_GQL <- function(
   discount_handle = NULL,
   pricing_engine = NULL
 ) {
-  use_quantlib_GQH()
-
   if (!is.data.frame(trade) || nrow(trade) != 1) {
     stop("trade must be a one-row data frame.", call. = FALSE)
   }
@@ -1123,9 +1092,6 @@ hull_white_convexity_bias_GQL <- function(
   sigma = 0.01,
   a = 0.03
 ) {
-  use_quantlib_GQH()
-  requireNamespace("QuantLib", quietly = TRUE)
-
   as.numeric(
     QuantLib::HullWhite_convexityBias(
       as.numeric(future_price),

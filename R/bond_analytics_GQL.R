@@ -190,7 +190,7 @@ bond_accrued_GQL <- function(bond) {
 #' Bond Example
 #' @export
 bond_example_GQL <- function() {
-  eval_date_GQL("2010-01-01")
+  set_eval_date_GQL("2010-01-01")
   curve <- build_bond_discount_curve_GQL()
   bond <- zero_coupon_bond_GQL(curve)
 
@@ -366,9 +366,110 @@ bond_pv01_GQL <- function(
 
 #' Bond Cashflow Table
 #'
+#' With `detail = FALSE` the table holds payment dates and amounts. With
+#' `detail = TRUE` it adds coupon rates, accrual dates, discount factors,
+#' present values, and flow types. Discount factors follow the first
+#' available rule:
+#'
+#' * `discount_curve`: `discount_curve$discount(payment_date)` for every flow.
+#' * `interest_rate`: `interest_rate$discountFactor(settlement_date,
+#'   payment_date)` for flows on or after settlement, NA before.
+#' * neither: 1 for flows on or before settlement, NA after.
+#'
+#' @param bond QuantLib bond object.
+#' @param detail Return the detailed table.
+#' @param discount_curve Optional QuantLib yield curve or handle.
+#' @param interest_rate Optional QuantLib InterestRate object.
+#' @param settlement_date Optional settlement date. Defaults to the bond
+#'   settlement date, or the evaluation date if that fails.
+#' @param include_past Keep flows paid before settlement.
+#'
+#' @return A tibble of bond cashflows.
 #' @export
-bond_cashflow_table_GQL <- function(bond) {
-  leg_to_cashflow_tbl_GQL(QuantLib::Bond_cashflows(bond))
+bond_cashflow_table_GQL <- function(
+  bond,
+  detail = FALSE,
+  discount_curve = NULL,
+  interest_rate = NULL,
+  settlement_date = NULL,
+  include_past = TRUE
+) {
+  cashflow_leg <- QuantLib::Bond_cashflows(bond)
+  cashflows <- leg_to_cashflow_tbl_GQL(cashflow_leg)
+
+  if (!isTRUE(detail)) {
+    return(cashflows)
+  }
+
+  settlement_date_ql <- if (is.null(settlement_date)) {
+    tryCatch(
+      bond$settlementDate(),
+      error = function(e) QuantLib::Settings_instance()$evaluationDate()
+    )
+  } else {
+    date_GQL(settlement_date)
+  }
+
+  settlement_date_r <- as.Date(iso_GQL(settlement_date_ql))
+
+  out <- purrr::map_dfr(
+    seq_len(nrow(cashflows)),
+    function(i) {
+      cashflow <- leg_cashflow_at_GQH(cashflow_leg, i)
+      payment_date_ql <- QuantLib::CashFlow_date(cashflow)
+      payment_date_r <- as.Date(cashflows$date[[i]])
+      coupon <- tryCatch(QuantLib::as_coupon(cashflow), error = function(e) NULL)
+
+      discount_factor <- if (!is.null(discount_curve)) {
+        tryCatch(
+          discount_curve$discount(payment_date_ql),
+          error = function(e) NA_real_
+        )
+      } else if (!is.null(interest_rate)) {
+        if (payment_date_r >= settlement_date_r) {
+          tryCatch(
+            interest_rate$discountFactor(settlement_date_ql, payment_date_ql),
+            error = function(e) NA_real_
+          )
+        } else {
+          NA_real_
+        }
+      } else if (payment_date_r <= settlement_date_r) {
+        1
+      } else {
+        NA_real_
+      }
+
+      tibble::tibble(
+        pay_date = cashflows$date[[i]],
+        coupon_rate = if (!is.null(coupon)) {
+          tryCatch(coupon$rate(), error = function(e) NA_real_)
+        } else {
+          NA_real_
+        },
+        accrual_start = if (!is.null(coupon)) {
+          iso_GQL(QuantLib::Coupon_accrualStartDate(coupon))
+        } else {
+          NA_character_
+        },
+        accrual_end = if (!is.null(coupon)) {
+          iso_GQL(QuantLib::Coupon_accrualEndDate(coupon))
+        } else {
+          NA_character_
+        },
+        amount = cashflows$amount[[i]],
+        discount_factor = discount_factor,
+        pv = cashflows$amount[[i]] * discount_factor,
+        flow_type = if (!is.null(coupon)) "coupon" else "principal"
+      )
+    }
+  )
+
+  if (!isTRUE(include_past)) {
+    out <- dplyr::filter(out, as.Date(.data$pay_date) >= settlement_date_r)
+  }
+
+  out
 }
 
 #' Create a zero coupon bond
@@ -539,10 +640,10 @@ bond_settlement_info_GQL <- function(bond, as_of = eval_date_get_GQL()) {
   )
 
   settlement_date <- tryCatch(
-    .ql_date_to_r_date_GQL(QuantLib::Bond_settlementDate(bond)),
+    as_r_date_GQH(QuantLib::Bond_settlementDate(bond)),
     error = function(e) {
       tryCatch(
-        .ql_date_to_r_date_GQL(bond$settlementDate()),
+        as_r_date_GQH(bond$settlementDate()),
         error = function(e2) as.Date(NA)
       )
     }
@@ -567,23 +668,6 @@ bond_settlement_info_GQL <- function(bond, as_of = eval_date_get_GQL()) {
     days_since_previous_coupon = days_since_previous_coupon,
     days_to_next_coupon = days_to_next_coupon,
     accrued_amount = as.numeric(accrued_amount)
-  )
-}
-
-# Internal helper: convert QuantLib Date to R Date
-.ql_date_to_r_date_GQL <- function(x) {
-  if (inherits(x, "Date")) {
-    return(x)
-  }
-
-  tryCatch(
-    as.Date(QuantLib::Date_ISO(x)),
-    error = function(e1) {
-      tryCatch(
-        as.Date(x$ISO()),
-        error = function(e2) as.Date(NA)
-      )
-    }
   )
 }
 
@@ -961,37 +1045,6 @@ bond_futures_bpv_GQL <- function(bond,
     ctd_bpv = ctd_bpv,
     conversion_factor = conversion_factor,
     contracts = contracts
-  )
-}
-
-#' Bond yield from clean price
-#'
-#' Compatibility wrapper for examples that use an explicit clean-price name.
-#'
-#' @param bond QuantLib bond object.
-#' @param clean_price Clean price.
-#' @param day_counter QuantLib day counter.
-#' @param compounding QuantLib compounding convention or supported string.
-#' @param frequency QuantLib frequency convention or supported string.
-#' @param settlement_date Optional settlement date.
-#'
-#' @return Numeric yield.
-#' @export
-bond_yield_from_clean_price_GQL <- function(
-  bond,
-  clean_price,
-  day_counter = QuantLib::Actual360(),
-  compounding = "Compounded",
-  frequency = "Annual",
-  settlement_date = NULL
-) {
-  bond_yield_from_price_GQL(
-    bond = bond,
-    clean_price = clean_price,
-    day_counter = day_counter,
-    compounding = compounding,
-    frequency = frequency,
-    settlement_date = settlement_date
   )
 }
 
@@ -1616,18 +1669,3 @@ bond_futures_net_basis_row_GQL <- function(
   )
 }
 
-ql_date_to_r_date_GQH <- function(x) {
-  if (inherits(x, "Date")) {
-    return(x)
-  }
-
-  tryCatch(
-    as.Date(Date_ISO(x)),
-    error = function(e1) {
-      tryCatch(
-        as.Date(x$ISO()),
-        error = function(e2) as.Date(NA)
-      )
-    }
-  )
-}

@@ -5,15 +5,35 @@
 #'
 #' @param x Numeric vector.
 #' @param digits Number of digits.
+#' @param format `"fg"` keeps `digits` significant digits and returns NA for
+#'   missing values. `"f"` keeps `digits` decimal places via `sprintf()`, so
+#'   missing values become `"NA"`.
 #'
 #' @return Character vector.
 #' @export
-fmt_num_GQH <- function(x, digits = 6) {
+fmt_num_GQH <- function(x, digits = 6, format = c("fg", "f")) {
+  format <- match.arg(format)
+
+  if (identical(format, "f")) {
+    return(sprintf(paste0("%.", digits, "f"), x))
+  }
+
   ifelse(
     is.na(x),
     NA_character_,
     formatC(as.numeric(x), digits = digits, format = "fg", flag = "#")
   )
+}
+
+#' Format a rate as a percentage for display
+#'
+#' @param x Numeric vector of decimal rates.
+#' @param digits Number of decimal places.
+#'
+#' @return Character vector such as `"1.2345%"`.
+#' @export
+fmt_pct_GQH <- function(x, digits = 4) {
+  sprintf(paste0("%.", digits, "f%%"), 100 * x)
 }
 
 #' Print a compact table for examples
@@ -90,13 +110,6 @@ curve_tbl_GQH <- function(
     )
   ) |>
     dplyr::select(tenor, date = date_r, discount, zero_rate)
-}
-
-#' Alias for curve_tbl_GQH
-#'
-#' @export
-curve_table_GQH <- function(curve, tenors = c("1D", "1W", "1M", "3M", "6M", "1Y", "2Y", "3Y", "5Y", "7Y", "10Y", "20Y", "30Y")) {
-  curve_tbl_GQH(curve = curve, tenors = tenors)
 }
 
 #' Extract a value from a path-like object

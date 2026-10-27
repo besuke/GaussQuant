@@ -11,7 +11,7 @@ devtools::load_all()
 # =============================================================================
 
 obj_date_today <-
-  GaussQuant::DateParser_parseISO_GQL("2012-12-11")
+  GaussQuant::date_GQL("2012-12-11")
 
 GaussQuant::set_eval_date_GQL(obj_date_today)
 
@@ -264,7 +264,7 @@ tbl_forward_log_cubic_raw <-
     date = as.Date(
       purrr::map_chr(
         lst_date_daily,
-        GaussQuant::str_date_ISO_GQL
+        GaussQuant::iso_GQL
       )
     ),
     inst_fwd_rate =
@@ -347,7 +347,7 @@ tbl_forward_flat_forward_raw <-
     date = as.Date(
       purrr::map_chr(
         lst_date_six_months,
-        GaussQuant::str_date_ISO_GQL
+        GaussQuant::iso_GQL
       )
     ),
     inst_fwd_rate =
@@ -357,7 +357,7 @@ tbl_forward_flat_forward_raw <-
 tbl_forward_flat_forward_raw
 
 tbl_nodes_raw <-
-  GaussQuant:::eonia_curve_nodes_GQL(
+  GaussQuant::curve_forward_nodes_GQL(
     obj_curve_eonia_flat_forward_raw
   )
 
@@ -368,8 +368,8 @@ tbl_nodes_raw
 
 tbl_wrapper_audit_eonia <- tibble::tribble(
   ~str_area, ~str_current_state, ~str_candidate,
-  "ISO date parsing", "covered", "DateParser_parseISO_GQL",
-  "ISO date formatting", "covered", "str_date_ISO_GQL",
+  "ISO date parsing", "covered", "date_GQL",
+  "ISO date formatting", "covered", "iso_GQL",
   "Period construction", "covered", "period_GQL",
   "RateHelperVector construction", "covered", "push_rate_helpers_GQL",
   "DepositRateHelper construction", "raw QuantLib", "deposit_rate_helper_GQL",
@@ -378,7 +378,7 @@ tbl_wrapper_audit_eonia <- tibble::tribble(
   "Eonia index construction", "raw QuantLib", "eonia_GQL",
   "Piecewise curve construction", "raw QuantLib", "piecewise_curve_GQL",
   "Instantaneous forward extraction", "covered", "forwardRate(date, date)",
-  "Curve-node extraction", "internal GaussQuant", "eonia_curve_nodes_GQL"
+  "Curve-node extraction", "covered", "curve_forward_nodes_GQL"
 )
 
 tbl_wrapper_audit_eonia

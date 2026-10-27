@@ -119,7 +119,7 @@ ois_curve_GQL <- function(
   stopifnot(is.data.frame(nodes_tbl))
   stopifnot(all(c("date", "zero_rate") %in% names(nodes_tbl)))
 
-  eval_date_GQL(nodes_tbl$date[[1]])
+  set_eval_date_GQL(nodes_tbl$date[[1]])
 
   curve <- build_discount_curve_GQL(
     nodes = nodes_tbl,
@@ -430,7 +430,7 @@ DatedOISRateHelper_GQL <- function(
     is.character(start_date) ||
       inherits(start_date, "Date")
   ) {
-    DateParser_parseISO_GQL(start_date)
+    date_GQL(start_date)
   } else {
     start_date
   }
@@ -439,7 +439,7 @@ DatedOISRateHelper_GQL <- function(
     is.character(end_date) ||
       inherits(end_date, "Date")
   ) {
-    DateParser_parseISO_GQL(end_date)
+    date_GQL(end_date)
   } else {
     end_date
   }

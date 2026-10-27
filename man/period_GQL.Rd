@@ -7,7 +7,8 @@
 period_GQL(x = 1, unit = NULL)
 }
 \arguments{
-\item{x}{Tenor string such as 1D, 1W, 3M, 18M, or 2Y.}
+\item{x}{Tenor string such as 1D, 1W, 3M, 18M, or 2Y, or a QuantLib
+Period, which is returned unchanged.}
 
 \item{unit}{Optional unit when x is numeric.}
 }

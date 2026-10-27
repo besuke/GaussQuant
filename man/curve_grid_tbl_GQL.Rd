@@ -4,7 +4,12 @@
 \alias{curve_grid_tbl_GQL}
 \title{Build a dense curve grid table}
 \usage{
-curve_grid_tbl_GQL(curve, n = 200L, extrapolate = TRUE)
+curve_grid_tbl_GQL(
+  curve,
+  n = 200L,
+  extrapolate = TRUE,
+  grid = c("date", "time")
+)
 }
 \arguments{
 \item{curve}{QuantLib yield term structure.}
@@ -12,6 +17,12 @@ curve_grid_tbl_GQL(curve, n = 200L, extrapolate = TRUE)
 \item{n}{Number of grid points.}
 
 \item{extrapolate}{Enable extrapolation.}
+
+\item{grid}{Grid spacing. \code{"date"} spaces calendar dates evenly from the
+reference date to \code{maxDate()} and queries discount factors by date.
+\code{"time"} spaces year fractions evenly on \verb{[0, maxTime()]}, queries
+discount factors by time, and approximates \code{curve_date} as the
+reference date plus \code{round(time * 365)} days.}
 }
 \value{
 Tibble with time, date, discount factor, and zero rate.

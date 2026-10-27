@@ -13,7 +13,7 @@ devtools::load_all()
 str_evaluation_date <- "2026-09-10"
 
 obj_evaluation_date <-
-  GaussQuant::DateParser_parseISO_GQL(
+  GaussQuant::date_GQL(
     str_evaluation_date
   )
 
@@ -115,14 +115,14 @@ tbl_tonar_validation_summary
 # =============================================================================
 
 tbl_tonar_nodes_log_cubic <-
-  GaussQuant::tonar_curve_nodes_GQL(
+  GaussQuant::curve_forward_nodes_GQL(
     lst_tonar_log_cubic$
       curve_bundle$
       curve
   )
 
 tbl_tonar_nodes_flat_forward <-
-  GaussQuant::tonar_curve_nodes_GQL(
+  GaussQuant::curve_forward_nodes_GQL(
     lst_tonar_flat_forward$
       curve_bundle$
       curve
@@ -154,13 +154,14 @@ vec_inst_fwd_rate_log_cubic <-
   purrr::map_dbl(
     vec_date_iso,
     \(str_date) {
-      GaussQuant::tonar_forward_rate_GQL(
+      GaussQuant::curve_forward_rate_GQL(
         curve =
           lst_tonar_log_cubic$
             curve_bundle$
             curve,
         start_date = str_date,
-        end_date = str_date
+        end_date = str_date,
+        day_counter = QuantLib::Actual365Fixed()
       )
     }
   )
@@ -169,13 +170,14 @@ vec_inst_fwd_rate_flat_forward <-
   purrr::map_dbl(
     vec_date_iso,
     \(str_date) {
-      GaussQuant::tonar_forward_rate_GQL(
+      GaussQuant::curve_forward_rate_GQL(
         curve =
           lst_tonar_flat_forward$
             curve_bundle$
             curve,
         start_date = str_date,
-        end_date = str_date
+        end_date = str_date,
+        day_counter = QuantLib::Actual365Fixed()
       )
     }
   )
@@ -235,22 +237,24 @@ tbl_tonar_five_year_comparison <-
   tibble::tribble(
     ~curve_type, ~inst_fwd_rate,
     "log_cubic_discount",
-    GaussQuant::tonar_forward_rate_GQL(
+    GaussQuant::curve_forward_rate_GQL(
       curve =
         lst_tonar_log_cubic$
           curve_bundle$
           curve,
       start_date = str_five_year_date,
-      end_date = str_five_year_date
+      end_date = str_five_year_date,
+      day_counter = QuantLib::Actual365Fixed()
     ),
     "flat_forward",
-    GaussQuant::tonar_forward_rate_GQL(
+    GaussQuant::curve_forward_rate_GQL(
       curve =
         lst_tonar_flat_forward$
           curve_bundle$
           curve,
       start_date = str_five_year_date,
-      end_date = str_five_year_date
+      end_date = str_five_year_date,
+      day_counter = QuantLib::Actual365Fixed()
     )
   )
 

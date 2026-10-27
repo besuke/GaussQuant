@@ -7,7 +7,7 @@ devtools::load_all()
 # Date and calendar
 # -----------------------------------------------------------------------------
 
-obj_date <- GaussQuant::DateParser_parseISO_GQL("2015-03-31")
+obj_date <- GaussQuant::date_GQL("2015-03-31")
 
 obj_calendar_us <- QuantLib::UnitedStates(
   QuantLib::UnitedStates_GovernmentBond_get()
@@ -33,7 +33,7 @@ date_italy <- GaussQuant::advance_days_GQL(
 
 tbl_calendar_advance <- tibble::tribble(
   ~calculation, ~result_date,
-  "Add 60 calendar days", obj_date_raw |> GaussQuant::str_date_ISO_GQL(),
+  "Add 60 calendar days", obj_date_raw |> GaussQuant::iso_GQL(),
   "Add 60 business days in US", as.character(date_us),
   "Add 60 business days in Italy", as.character(date_italy)
 )
@@ -62,7 +62,7 @@ int_business_days_joint <- obj_calendar_joint$businessDaysBetween(
 tbl_calendar_joint <- tibble::tribble(
   ~calculation, ~result,
   "Add 60 business days in US-Italy",
-  obj_date_joint |> GaussQuant::str_date_ISO_GQL(),
+  obj_date_joint |> GaussQuant::iso_GQL(),
   "Business days in US-Italy",
   as.character(int_business_days_joint)
 )
@@ -73,8 +73,8 @@ tbl_calendar_joint
 # Regular monthly schedule
 # -----------------------------------------------------------------------------
 
-obj_date_effective <- GaussQuant::DateParser_parseISO_GQL("2015-01-01")
-obj_date_termination <- GaussQuant::DateParser_parseISO_GQL("2016-01-01")
+obj_date_effective <- GaussQuant::date_GQL("2015-01-01")
+obj_date_termination <- GaussQuant::date_GQL("2016-01-01")
 obj_tenor <- GaussQuant::period_GQL("1M")
 
 str_business_convention <- "Following"
@@ -101,9 +101,9 @@ tbl_schedule
 # Long stub at the front
 # -----------------------------------------------------------------------------
 
-obj_date_first <- GaussQuant::DateParser_parseISO_GQL("2015-02-01")
-obj_date_effective <- GaussQuant::DateParser_parseISO_GQL("2014-12-15")
-obj_date_termination <- GaussQuant::DateParser_parseISO_GQL("2016-01-01")
+obj_date_first <- GaussQuant::date_GQL("2015-02-01")
+obj_date_effective <- GaussQuant::date_GQL("2014-12-15")
+obj_date_termination <- GaussQuant::date_GQL("2016-01-01")
 
 obj_schedule_front_stub <- QuantLib::Schedule(
   obj_date_effective,
@@ -127,9 +127,9 @@ tbl_schedule_front_stub
 # Long stub at the back
 # -----------------------------------------------------------------------------
 
-obj_date_effective <- GaussQuant::DateParser_parseISO_GQL("2015-01-01")
-obj_date_penultimate <- GaussQuant::DateParser_parseISO_GQL("2015-12-01")
-obj_date_termination <- GaussQuant::DateParser_parseISO_GQL("2016-01-15")
+obj_date_effective <- GaussQuant::date_GQL("2015-01-01")
+obj_date_penultimate <- GaussQuant::date_GQL("2015-12-01")
+obj_date_termination <- GaussQuant::date_GQL("2016-01-15")
 obj_date_first <- QuantLib::Date()
 
 obj_schedule_back_stub <- QuantLib::Schedule(

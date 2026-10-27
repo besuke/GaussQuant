@@ -9,7 +9,7 @@ curve_discount_safe_GQL(curve, x)
 \arguments{
 \item{curve}{QuantLib yield curve.}
 
-\item{x}{QuantLib Date or time.}
+\item{x}{QuantLib Date, R Date, ISO date string, or time.}
 }
 \value{
 Numeric discount factor or NA.

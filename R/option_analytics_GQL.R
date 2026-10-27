@@ -29,9 +29,6 @@ make_european_option_GQL <- function(
   calendar = QuantLib::TARGET(),
   pricing_engine = NULL
 ) {
-  use_quantlib_GQH()
-  requireNamespace("QuantLib", quietly = TRUE)
-
   valuation_date_chr <- (
     if (
       is.character(valuation_date) ||
@@ -48,7 +45,7 @@ make_european_option_GQL <- function(
 
   eval_date <- date_GQL(valuation_date_chr)
 
-  maturity_date <- .option_date_GQL(maturity_date)
+  maturity_date <- date_GQL(maturity_date)
   option_type <- .option_type_GQL(option_type)
 
   spot_handle <- QuantLib::QuoteHandle(
@@ -115,7 +112,7 @@ make_european_option_GQL <- function(
 #' @return Numeric NPV.
 #' @export
 option_npv_GQL <- function(option) {
-  .option_value_GQL(option, "Instrument_NPV")
+  instrument_value_safe_GQL(option, "NPV")
 }
 
 #' Option delta
@@ -125,7 +122,7 @@ option_npv_GQL <- function(option) {
 #' @return Numeric delta.
 #' @export
 option_delta_GQL <- function(option) {
-  .option_value_GQL(option, "OneAssetOption_delta")
+  instrument_value_safe_GQL(option, "delta")
 }
 
 #' Option gamma
@@ -135,7 +132,7 @@ option_delta_GQL <- function(option) {
 #' @return Numeric gamma.
 #' @export
 option_gamma_GQL <- function(option) {
-  .option_value_GQL(option, "OneAssetOption_gamma")
+  instrument_value_safe_GQL(option, "gamma")
 }
 
 #' Option vega
@@ -145,7 +142,7 @@ option_gamma_GQL <- function(option) {
 #' @return Numeric vega.
 #' @export
 option_vega_GQL <- function(option) {
-  .option_value_GQL(option, "OneAssetOption_vega")
+  instrument_value_safe_GQL(option, "vega")
 }
 
 #' Option theta
@@ -155,7 +152,7 @@ option_vega_GQL <- function(option) {
 #' @return Numeric theta.
 #' @export
 option_theta_GQL <- function(option) {
-  .option_value_GQL(option, "OneAssetOption_theta")
+  instrument_value_safe_GQL(option, "theta")
 }
 
 #' Option rho
@@ -165,7 +162,7 @@ option_theta_GQL <- function(option) {
 #' @return Numeric rho.
 #' @export
 option_rho_GQL <- function(option) {
-  .option_value_GQL(option, "OneAssetOption_rho")
+  instrument_value_safe_GQL(option, "rho")
 }
 
 #' Summarise an option
@@ -197,22 +194,6 @@ option_summary_GQL <- function(option) {
   )
 }
 
-.option_value_GQL <- function(option, fun_name) {
-  out <- tryCatch(
-    .quantlib_fun_GQH(fun_name)(option),
-    error = function(e) NA_real_
-  )
-
-  as.numeric(out)
-}
-.option_date_GQL <- function(x) {
-  if (is.character(x) || inherits(x, "Date")) {
-    return(date_GQL(as.character(as.Date(x))))
-  }
-
-  x
-}
-
 .option_type_GQL <- function(x) {
   if (!is.character(x)) {
     return(x)
@@ -241,8 +222,6 @@ make_european_option_from_trade_GQL <- function(
   trade,
   pricing_engine = NULL
 ) {
-  use_quantlib_GQH()
-
   if (!is.data.frame(trade) || nrow(trade) != 1) {
     stop("trade must be a one-row data frame.", call. = FALSE)
   }
@@ -338,9 +317,6 @@ option_implied_volatility_GQL <- function(
   min_vol = 1e-7,
   max_vol = 4.0
 ) {
-  use_quantlib_GQH()
-  requireNamespace("QuantLib", quietly = TRUE)
-
   valuation_date_chr <- (
     if (
       is.character(valuation_date) ||
@@ -435,9 +411,6 @@ make_american_option_GQL <- function(
   steps = 200L,
   pricing_engine = NULL
 ) {
-  use_quantlib_GQH()
-  requireNamespace("QuantLib", quietly = TRUE)
-
   valuation_date_chr <- (
     if (
       is.character(valuation_date) ||
@@ -454,7 +427,7 @@ make_american_option_GQL <- function(
 
   eval_date <- date_GQL(valuation_date_chr)
 
-  maturity_date <- .option_date_GQL(maturity_date)
+  maturity_date <- date_GQL(maturity_date)
   option_type <- .option_type_GQL(option_type)
 
   spot_handle <- QuantLib::QuoteHandle(
@@ -554,9 +527,6 @@ make_barrier_option_GQL <- function(
   calendar = QuantLib::TARGET(),
   pricing_engine = NULL
 ) {
-  use_quantlib_GQH()
-  requireNamespace("QuantLib", quietly = TRUE)
-
   valuation_date_chr <- (
     if (
       is.character(valuation_date) ||
@@ -574,7 +544,7 @@ make_barrier_option_GQL <- function(
   eval_date <- date_GQL(valuation_date_chr)
 
 
-  maturity_date <- .option_date_GQL(maturity_date)
+  maturity_date <- date_GQL(maturity_date)
   option_type <- .option_type_GQL(option_type)
   barrier_type <- .barrier_type_GQL(barrier_type)
 
@@ -679,8 +649,6 @@ make_barrier_option_from_trade_GQL <- function(
   trade,
   pricing_engine = NULL
 ) {
-  use_quantlib_GQH()
-
   if (!is.data.frame(trade) || nrow(trade) != 1) {
     stop("trade must be a one-row data frame.", call. = FALSE)
   }
@@ -773,8 +741,6 @@ make_american_option_from_trade_GQL <- function(
   trade,
   pricing_engine = NULL
 ) {
-  use_quantlib_GQH()
-
   if (!is.data.frame(trade) || nrow(trade) != 1) {
     stop("trade must be a one-row data frame.", call. = FALSE)
   }
@@ -859,8 +825,6 @@ make_option_from_trade_GQL <- function(
   trade,
   pricing_engine = NULL
 ) {
-  use_quantlib_GQH()
-
   if (!is.data.frame(trade) || nrow(trade) != 1) {
     stop("trade must be a one-row data frame.", call. = FALSE)
   }

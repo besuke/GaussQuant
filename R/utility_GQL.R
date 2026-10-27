@@ -1,15 +1,20 @@
 # utility.R
 
-#' Parse an ISO date string as a QuantLib Date
+#' Create a QuantLib Date
 #'
 #' Converts a character scalar in `YYYY-MM-DD` format, or an R `Date`,
-#' to a QuantLib Date object.
+#' to a QuantLib Date object. A QuantLib Date is returned unchanged.
 #'
-#' @param x A character scalar in ISO date format or an R `Date`.
+#' @param x A character scalar in ISO date format, an R `Date`, or a
+#'   QuantLib Date.
 #'
 #' @return A QuantLib Date object.
 #' @export
-DateParser_parseISO_GQL <- function(x) {
+date_GQL <- function(x) {
+  if (inherits(x, "_p_Date")) {
+    return(x)
+  }
+
   if (inherits(x, "Date")) {
     x <- format(x, "%Y-%m-%d")
   }
@@ -21,16 +26,6 @@ DateParser_parseISO_GQL <- function(x) {
   )
 
   QuantLib::DateParser_parseISO(x)
-}
-
-#' Create a QuantLib Date
-#'
-#' @inheritParams DateParser_parseISO_GQL
-#'
-#' @return A QuantLib Date object.
-#' @export
-date_GQL <- function(x) {
-  DateParser_parseISO_GQL(x)
 }
 
 
@@ -66,36 +61,6 @@ as_r_date_GQH <- function(x) {
   }
 
   as.Date(iso_GQL(x))
-}
-
-
-#' Convert a QuantLib Date to an ISO date string
-#'
-#' @param date_obj A QuantLib Date object.
-#'
-#' @return A character scalar in YYYY-MM-DD format.
-#' @export
-str_date_ISO_GQL <- function(date_obj) {
-  tryCatch(
-    QuantLib::Date_ISO(date_obj),
-    error = function(e) as.character(date_obj)
-  )
-}
-#' Set QuantLib evaluation date
-#'
-#' @param x Date or character scalar.
-#'
-#' @return Invisibly returns QuantLib Date object.
-#'
-#' @export
-eval_date_GQL <- function(x) {
-  d <- date_GQL(x)
-
-  invisible(
-    QuantLib::Settings_instance()$setEvaluationDate(d = d)
-  )
-
-  invisible(d)
 }
 
 
@@ -147,6 +112,21 @@ day_counter_GQL <- function(
   }
 
   stopifnot(length(day_counter) == 1L)
+
+  day_counter_aliases <- c(
+    actual360 = "Actual360",
+    act360 = "Actual360",
+    actual365fixed = "Actual365Fixed",
+    act365fixed = "Actual365Fixed",
+    actual365 = "Actual365Fixed",
+    act365 = "Actual365Fixed"
+  )
+
+  alias_key <- tolower(gsub("[^A-Za-z0-9]", "", trimws(day_counter)))
+
+  if (alias_key %in% names(day_counter_aliases)) {
+    day_counter <- day_counter_aliases[[alias_key]]
+  }
 
   thirty360_conventions <- c(
     "USA",

@@ -191,10 +191,18 @@ schedule_table_GQL <- function(schedule) {
 #' Safely obtain a discount factor
 #'
 #' @param curve QuantLib yield curve.
-#' @param x QuantLib Date or time.
+#' @param x QuantLib Date, R Date, ISO date string, or time.
 #' @return Numeric discount factor or NA.
 #' @export
 curve_discount_safe_GQL <- function(curve, x) {
+  if (is.character(x) || inherits(x, "Date")) {
+    if (length(x) != 1L || is.na(x)) {
+      return(NA_real_)
+    }
+
+    x <- date_GQL(as.character(x))
+  }
+
   discount_fun <- getFromNamespace(
     "YieldTermStructure_discount",
     "QuantLib"
@@ -205,7 +213,12 @@ curve_discount_safe_GQL <- function(curve, x) {
       curve,
       x
     ),
-    error = function(e) NA_real_
+    error = function(e1) {
+      tryCatch(
+        curve$discount(x),
+        error = function(e2) NA_real_
+      )
+    }
   )
 
   if (
@@ -223,13 +236,21 @@ curve_discount_safe_GQL <- function(curve, x) {
 #' @param curve QuantLib yield term structure.
 #' @param n Number of grid points.
 #' @param extrapolate Enable extrapolation.
+#' @param grid Grid spacing. `"date"` spaces calendar dates evenly from the
+#'   reference date to `maxDate()` and queries discount factors by date.
+#'   `"time"` spaces year fractions evenly on `[0, maxTime()]`, queries
+#'   discount factors by time, and approximates `curve_date` as the
+#'   reference date plus `round(time * 365)` days.
 #' @return Tibble with time, date, discount factor, and zero rate.
 #' @export
 curve_grid_tbl_GQL <- function(
   curve,
   n = 200L,
-  extrapolate = TRUE
+  extrapolate = TRUE,
+  grid = c("date", "time")
 ) {
+  grid <- match.arg(grid)
+
   if (isTRUE(extrapolate)) {
     tryCatch(
       QuantLib::TermStructure_enableExtrapolation(curve),
@@ -242,6 +263,36 @@ curve_grid_tbl_GQL <- function(
   reference_date <- as.Date(
     iso_GQL(reference_date_ql)
   )
+
+  if (identical(grid, "time")) {
+    times <- seq(
+      from = 0,
+      to = as.numeric(curve$maxTime()),
+      length.out = as.integer(n)
+    )
+
+    discount_factors <- purrr::map_dbl(
+      times,
+      function(time_value) {
+        as.numeric(curve$discount(time_value))
+      }
+    )
+
+    return(
+      tibble::tibble(
+        time = times,
+        discount_factor = discount_factors,
+        zero_rate = dplyr::if_else(
+          time > 0,
+          -log(discount_factor) /
+            time,
+          0
+        ),
+        curve_date = reference_date +
+          round(time * 365)
+      )
+    )
+  }
 
   max_date_ql <- tryCatch(
     curve$maxDate(),
@@ -443,7 +494,7 @@ complete_accrual_metrics_GQL <- function(
 
   settlement_date_chr <- iso_GQL(settlement_date_ql)
 
-  schedule_dates_chr <- schedule_dates_GQL(bond_schedule)[[1L]] |>
+  schedule_dates_chr <- schedule_table_GQL(bond_schedule)$schedule_date |>
     as.character()
 
   schedule_dates_chr <- schedule_dates_chr[
@@ -489,68 +540,6 @@ complete_accrual_metrics_GQL <- function(
       "accrued_days",
       as.numeric(accrued_days)
     )
-}
-
-
-#' Safely calculate bond yield from clean price
-#'
-#' @param bond QuantLib bond.
-#' @param clean_price Clean price.
-#' @param day_counter QuantLib day counter.
-#' @param compounding Compounding convention.
-#' @param frequency Coupon frequency.
-#' @return Numeric yield.
-#' @export
-bond_yield_from_clean_safe_GQL <- function(
-  bond,
-  clean_price,
-  day_counter,
-  compounding,
-  frequency
-) {
-  attempts <- list(
-    function() {
-      bond_yield_from_clean_price_GQL(
-        bond = bond,
-        clean_price = clean_price,
-        day_counter = day_counter,
-        compounding = compounding,
-        frequency = frequency
-      )
-    },
-    function() {
-      bond_yield_from_price_GQL(
-        bond = bond,
-        clean_price = clean_price,
-        day_counter = day_counter,
-        compounding = compounding,
-        frequency = frequency
-      )
-    },
-    function() {
-      QuantLib::BondFunctions_yield(
-        bond,
-        clean_price,
-        day_counter,
-        compounding,
-        frequency
-      )
-    }
-  )
-
-  result <- purrr::detect(
-    purrr::map(
-      attempts,
-      ~ tryCatch(.x(), error = function(e) NULL)
-    ),
-    ~ !is.null(.x)
-  )
-
-  if (is.null(result)) {
-    stop("Unable to calculate bond yield from clean price.", call. = FALSE)
-  }
-
-  as.numeric(result)
 }
 
 
@@ -612,16 +601,68 @@ bond_clean_price_from_yield_safe_GQL <- function(
 }
 
 
+#' Safely call a numeric instrument method
+#'
+#' @param instrument QuantLib instrument.
+#' @param method Method name such as `"NPV"`, `"delta"`, or `"vega"`.
+#' @return Numeric value, or NA if the method is unavailable or fails.
+#' @export
+instrument_value_safe_GQL <- function(instrument, method) {
+  value_fun <- tryCatch(
+    do.call(`$`, list(instrument, method)),
+    error = function(e) NULL
+  )
+
+  if (!is.function(value_fun)) {
+    value_fun <- tryCatch(
+      instrument[[method]],
+      error = function(e) NULL
+    )
+  }
+
+  if (!is.function(value_fun)) {
+    return(NA_real_)
+  }
+
+  tryCatch(
+    as.numeric(value_fun()),
+    error = function(e) NA_real_
+  )
+}
+
 #' Safely calculate an instrument NPV
 #'
 #' @param instrument QuantLib instrument.
 #' @return Numeric NPV or NA.
 #' @export
 instrument_npv_safe_GQL <- function(instrument) {
-  tryCatch(
-    as.numeric(instrument$NPV()),
-    error = function(e) NA_real_
+  instrument_value_safe_GQL(instrument, "NPV")
+}
+
+#' Safely set an instrument pricing engine
+#'
+#' @param instrument QuantLib instrument.
+#' @param engine QuantLib pricing engine.
+#' @return TRUE if the engine was set, FALSE otherwise, invisibly.
+#' @export
+instrument_set_engine_safe_GQL <- function(instrument, engine) {
+  set_ok <- tryCatch(
+    {
+      QuantLib::Instrument_setPricingEngine(instrument, engine)
+      TRUE
+    },
+    error = function(e1) {
+      tryCatch(
+        {
+          instrument$setPricingEngine(engine)
+          TRUE
+        },
+        error = function(e2) FALSE
+      )
+    }
   )
+
+  invisible(set_ok)
 }
 
 
@@ -2595,19 +2636,6 @@ cds_isda_engine_GQL <- function(
     recovery_rate,
     discount_curve_handle
   )
-}
-
-#' Add a local QuantLib library path
-#'
-#' @param path Local library path containing the SWIG QuantLib package.
-#'
-#' @return The updated library search paths, invisibly.
-#' @export
-use_quantlib_GQH <- function(
-  path = "C:/AnalyticFin/Projects/QuantLib_tidy/library/windows"
-) {
-  .libPaths(c(path, .libPaths()))
-  invisible(.libPaths())
 }
 
 #' Test GaussQuant

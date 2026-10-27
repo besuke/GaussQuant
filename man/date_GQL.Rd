@@ -7,11 +7,13 @@
 date_GQL(x)
 }
 \arguments{
-\item{x}{A character scalar in ISO date format or an R \code{Date}.}
+\item{x}{A character scalar in ISO date format, an R \code{Date}, or a
+QuantLib Date.}
 }
 \value{
 A QuantLib Date object.
 }
 \description{
-Create a QuantLib Date
+Converts a character scalar in \code{YYYY-MM-DD} format, or an R \code{Date},
+to a QuantLib Date object. A QuantLib Date is returned unchanged.
 }

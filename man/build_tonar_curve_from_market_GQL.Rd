@@ -7,7 +7,7 @@
 build_tonar_curve_from_market_GQL(
   quotes = bluegamma_tonar_quotes_GQL(),
   evaluation_date = "2026-09-10",
-  curve_type = c("log_cubic_discount", "flat_forward"),
+  curve_type = c("log_cubic_discount", "flat_forward", "log_linear_discount"),
   extrapolate = TRUE
 )
 }
@@ -17,7 +17,8 @@ build_tonar_curve_from_market_GQL(
 
 \item{evaluation_date}{Evaluation date in ISO format.}
 
-\item{curve_type}{\code{"log_cubic_discount"} or \code{"flat_forward"}.}
+\item{curve_type}{\code{"log_cubic_discount"}, \code{"flat_forward"}, or
+\code{"log_linear_discount"}.}
 
 \item{extrapolate}{Enable extrapolation beyond the final helper.}
 }
