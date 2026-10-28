@@ -2,13 +2,16 @@
 #
 # Interest-rate curves, swaps, cashflow and fixing tables moved from QuantLib_tidy.
 
-#' normalize curve data
+#' Normalise curve quote input to a tibble
 #'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base02.R` (`normalize_curve_data()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Accepts either a data frame with `kind`, `tenor` and `rate_pct` columns or a
+#' list of `c(kind, tenor, rate_pct)` vectors, and returns the same three
+#' columns with character, character and numeric types.
 #'
-#' @param curve_data Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param curve_data Data frame or list of quote vectors.
+#'
+#' @return A tibble with `kind`, `tenor` and `rate_pct`.
+#' @note Moved from QuantLib_tidy: `R/bonds_basic/base02.R`.
 #' @export
 normalize_curve_data_GQL <- function(curve_data) {
   if (is.data.frame(curve_data)) {
@@ -29,13 +32,22 @@ normalize_curve_data_GQL <- function(curve_data) {
   )
 }
 
-#' make tibor curve
+#' Bootstrap a 6M TIBOR curve from deposit and swap quotes
 #'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base02.R` (`make_tibor_curve()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Sets the evaluation date to `trade_date`, settles two Japanese business days
+#' later, and bootstraps a log-linear discount curve (Actual/365 Fixed) from a
+#' 6M TIBOR deposit and semiannual swaps (Japan calendar, Modified Following,
+#' Actual/365 Fixed fixed leg). The deposit helper uses the 6M index tenor
+#' regardless of its quoted tenor. Swap tenors must be one of `6m`, `1y`,
+#' `18m`, `2y`, ..., `7y`.
 #'
-#' @param curve_data,trade_date Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param curve_data Quotes accepted by [normalize_curve_data_GQL()]; `kind` is
+#'   `"depo"` or `"swap"` and `rate_pct` is in percent.
+#' @param trade_date Trade date as an ISO string, R Date, or QuantLib Date.
+#'
+#' @return A list with `trade_date`, `settle_date`, `tibor_index` (linked to the
+#'   curve), `curve`, `curve_handle` (relinkable) and `par_tbl` (the quotes).
+#' @note Moved from QuantLib_tidy: `R/bonds_basic/base02.R`.
 #' @export
 make_tibor_curve_GQL <- function(curve_data, trade_date = "2022-08-19") {
   curve_input_tbl <- normalize_curve_data_GQL(curve_data)
@@ -111,13 +123,20 @@ make_tibor_curve_GQL <- function(curve_data, trade_date = "2022-08-19") {
   )
 }
 
-#' make schedule safe
+#' Build a QuantLib schedule with one business-day convention
 #'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base02.R` (`make_schedule_safe()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Uses the same convention for regular and termination dates and no
+#' end-of-month adjustment.
 #'
-#' @param effective_date,maturity_date,tenor_obj,calendar_obj,convention,rule Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param effective_date,maturity_date Start and end dates as ISO strings, R
+#'   Dates, or QuantLib Dates.
+#' @param tenor_obj QuantLib Period between schedule dates.
+#' @param calendar_obj QuantLib calendar.
+#' @param convention Business-day convention name.
+#' @param rule Date generation rule name, for example `"Backward"`.
+#'
+#' @return A QuantLib `Schedule`.
+#' @note Moved from QuantLib_tidy: `R/bonds_basic/base02.R`.
 #' @export
 make_schedule_safe_GQL <- function(effective_date, maturity_date, tenor_obj,
                                calendar_obj = QuantLib::Japan(),
@@ -135,13 +154,24 @@ make_schedule_safe_GQL <- function(effective_date, maturity_date, tenor_obj,
   )
 }
 
-#' make vanilla tibor swap
+#' Build a payer TIBOR vanilla swap with a discounting engine
 #'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base02.R` (`make_vanilla_tibor_swap()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Pays fixed and receives 6M TIBOR; both legs use Actual/365 (Fixed) and
+#' schedules from [make_schedule_safe_GQL()] (Japan calendar, Modified
+#' Following, backward generation). The same curve forecasts TIBOR and
+#' discounts.
 #'
-#' @param curve_handle,effective_date,maturity_date,nominal,fixed_rate,fixed_tenor,float_tenor,spread Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param curve_handle Yield term structure handle for forecasting and
+#'   discounting.
+#' @param effective_date,maturity_date Swap start and end dates.
+#' @param nominal Notional.
+#' @param fixed_rate Fixed rate, decimal.
+#' @param fixed_tenor,float_tenor QuantLib Periods of the two legs.
+#' @param spread Spread over TIBOR on the floating leg, decimal.
+#'
+#' @return A list with `swap`, `fixed_schedule`, `float_schedule`,
+#'   `tibor_index`, `engine`, `effective_date`, `maturity_date` and `spread`.
+#' @note Moved from QuantLib_tidy: `R/bonds_basic/base02.R`.
 #' @export
 make_vanilla_tibor_swap_GQL <- function(curve_handle,
                                     effective_date,
@@ -183,13 +213,22 @@ make_vanilla_tibor_swap_GQL <- function(curve_handle,
   )
 }
 
-#' swap cashflow tbl
+#' Tabulate the cashflows of one swap leg
 #'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base02.R` (`swap_cashflow_tbl()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Leg `1` is read as floating-rate coupons and leg `0` as fixed-rate coupons,
+#' which matches QuantLib `VanillaSwap` and `OvernightIndexedSwap`. Discount
+#' factors come from `curve_obj` and are `NA` for payments before the curve
+#' reference date.
 #'
-#' @param swap_obj,curve_obj,leg,day_count_obj Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param swap_obj QuantLib swap.
+#' @param curve_obj Discount curve.
+#' @param leg Leg number: `1` floating, `0` fixed.
+#' @param day_count_obj Day counter used for the `days` column.
+#'
+#' @return A tibble with `fixing_date` (`NA` on the fixed leg), `accrual_start`,
+#'   `accrual_end`, `pay_date`, `days`, `rate`, `spread`, `amount`, `df`, `pv`
+#'   and `leg` (`"floating"` or `"fixed"`).
+#' @note Moved from QuantLib_tidy: `R/bonds_basic/base02.R`, `R/bonds_basic/base03.R`.
 #' @export
 swap_cashflow_tbl_GQL <- function(swap_obj, curve_obj, leg = 1, day_count_obj = QuantLib::Actual365Fixed()) {
   target_leg <- swap_obj$leg(leg)
@@ -237,13 +276,24 @@ swap_cashflow_tbl_GQL <- function(swap_obj, curve_obj, leg = 1, day_count_obj = 
   })
 }
 
-#' coupon fixing status tbl
+#' Check floating coupon fixings against the evaluation date
 #'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base02.R` (`coupon_fixing_status_tbl()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' For each floating-rate coupon of a swap leg, reports whether its fixing date
+#' falls before, on, or after the evaluation date, the fixing stored in the
+#' index, and the coupon's rate, spread, amount and present value. Values that
+#' QuantLib cannot provide (for example a missing past fixing) become `NA`.
 #'
-#' @param swap_obj,curve_obj,index_obj,leg,eval_date Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param swap_obj QuantLib swap.
+#' @param curve_obj Discount curve.
+#' @param index_obj Floating-rate index whose fixings are inspected.
+#' @param leg Leg number of the floating leg.
+#' @param eval_date Evaluation date; defaults to the QuantLib evaluation date.
+#'
+#' @return A tibble with `fixing_date`, `fixing_before_eval`, `fixing_on_eval`,
+#'   `accrual_start`, `accrual_end`, `pay_date`, `amount`, `coupon_rate`,
+#'   `spread`, `fixing_value`, `implied_margin` (coupon rate minus fixing),
+#'   `df`, `pv` and `fixing_source`.
+#' @note Moved from QuantLib_tidy: `R/bonds_basic/base02.R`, `R/bonds_basic/base03.R`.
 #' @export
 coupon_fixing_status_tbl_GQL <- function(
     swap_obj,
@@ -322,13 +372,21 @@ coupon_fixing_status_tbl_GQL <- function(
   })
 }
 
-#' make tona curve
+#' Bootstrap a TONA curve from a list of deposit and OIS quotes
 #'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base03.R` (`make_tona_curve()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Converts `list(c(kind, tenor, rate_pct), ...)` quotes and calls
+#' [build_tonar_curve_from_market_GQL()] with `curve_type =
+#' "log_linear_discount"`: deposits become deposit helpers, swaps become spot
+#' OIS helpers with two fixing days. The returned index forecasts from the
+#' bootstrapped curve.
 #'
-#' @param curve_data,trade_date Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param curve_data List of quote vectors: `kind` (`"depo"` or `"swap"`),
+#'   `tenor` such as `"1w"` or `"10y"`, and `rate_pct` in percent.
+#' @param trade_date Evaluation date as an ISO string, R Date, or QuantLib Date.
+#'
+#' @return A list with `trade_date`, `settle_date` (curve reference date),
+#'   `index`, `curve`, `curve_handle` (relinkable) and `quote_tbl`.
+#' @note Moved from QuantLib_tidy: `R/bonds_basic/base03.R`, `R/bonds_basic/base04.R`.
 #' @export
 make_tona_curve_GQL <- function(curve_data, trade_date = "2022-08-19") {
   .ois_curve_from_list_GQL(
@@ -339,13 +397,28 @@ make_tona_curve_GQL <- function(curve_data, trade_date = "2022-08-19") {
   )
 }
 
-#' make ois swap
+#' Build a payer overnight indexed swap with a discounting engine
 #'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base03.R` (`make_ois_swap()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Constructs an `OvernightIndexedSwap` from an explicit fixed-leg schedule
+#' (backward generation, no end-of-month adjustment). Unlike [build_ois_GQL()],
+#' which uses `MakeOIS` defaults, the schedule, calendar, payment lag and fixed
+#' day counter are set here.
 #'
-#' @param index_obj,curve_handle,effective_date,maturity_date,nominal,fixed_rate,spread,fixed_day_count,schedule_tenor,pay_lag,calendar_obj,convention Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param index_obj Overnight index, linked to its forecasting curve.
+#' @param curve_handle Discounting curve handle.
+#' @param effective_date,maturity_date Swap start and end dates.
+#' @param nominal Notional.
+#' @param fixed_rate Fixed rate, decimal.
+#' @param spread Spread over the overnight rate, decimal.
+#' @param fixed_day_count Fixed-leg day counter.
+#' @param schedule_tenor QuantLib Period of the schedule.
+#' @param pay_lag Payment lag in business days.
+#' @param calendar_obj Schedule calendar.
+#' @param convention Business-day convention name.
+#'
+#' @return A list with `swap`, `fixed_schedule`, `effective_date`,
+#'   `maturity_date`, `pay_lag`, `spread`, `fixed_rate`, `index` and `engine`.
+#' @note Moved from QuantLib_tidy: `R/bonds_basic/base03.R`.
 #' @export
 make_ois_swap_GQL <- function(index_obj,
                           curve_handle,
@@ -397,13 +470,20 @@ make_ois_swap_GQL <- function(index_obj,
   )
 }
 
-#' tona daily fixing tbl
+#' Tabulate daily overnight fixings over an accrual period
 #'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base03.R` (`tona_daily_fixing_tbl()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Lists the business days in `[accrual_start, accrual_end)` and, for each
+#' one, whether it is before or on the evaluation date and the fixing stored
+#' in the index (`NA` when none is stored).
 #'
-#' @param accrual_start,accrual_end,index_obj,eval_date,calendar_obj Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param accrual_start,accrual_end Accrual period dates.
+#' @param index_obj Overnight index.
+#' @param eval_date Evaluation date as an ISO string or R Date.
+#' @param calendar_obj Calendar defining business days.
+#'
+#' @return A tibble with `accrual_date`, `fixing_date`, `fixing_before_eval`,
+#'   `fixing_on_eval`, `fixing_value` and `fixing_source`.
+#' @note Moved from QuantLib_tidy: `R/bonds_basic/base03.R`.
 #' @export
 tona_daily_fixing_tbl_GQL <- function(
     accrual_start,
@@ -445,13 +525,16 @@ tona_daily_fixing_tbl_GQL <- function(
     )
 }
 
-#' make sofr curve
+#' Bootstrap a SOFR curve from a list of deposit and OIS quotes
 #'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base03.R` (`make_sofr_curve()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Same as [make_tona_curve_GQL()] but uses
+#' [build_sofr_curve_from_market_GQL()] (SOFR fixing calendar, Actual/360).
 #'
-#' @param curve_data,trade_date Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @inheritParams make_tona_curve_GQL
+#'
+#' @return A list with `trade_date`, `settle_date`, `index`, `curve`,
+#'   `curve_handle` and `quote_tbl`.
+#' @note Moved from QuantLib_tidy: `R/bonds_basic/base03.R`.
 #' @export
 make_sofr_curve_GQL <- function(curve_data, trade_date = "2023-09-26") {
   .ois_curve_from_list_GQL(
@@ -501,13 +584,19 @@ make_sofr_curve_GQL <- function(curve_data, trade_date = "2023-09-26") {
   )
 }
 
-#' make term sofr basis curve
+#' Bootstrap a 3M Term SOFR curve from SOFR basis swaps
 #'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base03.R` (`make_term_sofr_basis_curve()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Builds a 3M Term SOFR Ibor index (two fixing days, Modified Following,
+#' end-of-month, Actual/360) and bootstraps its curve from a 3M deposit and
+#' SOFR vs Term SOFR basis swaps, discounting on the SOFR curve. The basis
+#' quote is passed to QuantLib as `basis_bp / 100`, as in the original script.
 #'
-#' @param sofr_bundle,term_sofr_3m_rate,basis_data Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param sofr_bundle SOFR curve bundle from [make_sofr_curve_GQL()].
+#' @param term_sofr_3m_rate 3M Term SOFR deposit rate in percent.
+#' @param basis_data List of `c(tenor, basis_bp)` vectors.
+#'
+#' @return A list with `index`, `curve` and `curve_handle`.
+#' @note Moved from QuantLib_tidy: `R/bonds_basic/base03.R`.
 #' @export
 make_term_sofr_basis_curve_GQL <- function(sofr_bundle,
                                        term_sofr_3m_rate = 5.38558,
@@ -572,13 +661,19 @@ make_term_sofr_basis_curve_GQL <- function(sofr_bundle,
   )
 }
 
-#' cashflow leg tbl
+#' Tabulate a cashflow leg with discount factors
 #'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base07.R` (`cashflow_leg_tbl()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Coupons report their accrual dates and rate; other cashflows (for example
+#' redemptions) leave those columns `NA`. Discount factors come from
+#' `curve_obj$discount()` at the payment date and are `NA` when no curve is
+#' given or the curve cannot discount the date.
 #'
-#' @param leg_obj,curve_obj Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param leg_obj QuantLib Leg.
+#' @param curve_obj Optional discount curve.
+#'
+#' @return A tibble with `pay_date`, `accrual_start`, `accrual_end`, `amount`,
+#'   `rate`, `df` and `pv`.
+#' @note Moved from QuantLib_tidy: `R/bonds_basic/base07.R`, `R/swaps/QuantLib_study02_tidy.R`.
 #' @export
 cashflow_leg_tbl_GQL <- function(leg_obj, curve_obj = NULL) {
   ref_date_r <- if (!is.null(curve_obj)) as.Date(iso_GQL(curve_obj$referenceDate())) else NA
@@ -610,13 +705,15 @@ cashflow_leg_tbl_GQL <- function(leg_obj, curve_obj = NULL) {
   })
 }
 
-#' fixed leg detail tbl
+#' Tabulate fixed-rate coupon details
 #'
-#' Moved from `QuantLib_tidy/R/swaps/tidy_cashflow.R` (`fixed_leg_detail_tbl()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' @param leg QuantLib Leg of fixed-rate coupons.
+#' @param eval_date QuantLib Date at which accrued amounts are measured.
 #'
-#' @param leg,eval_date Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @return A tibble with `date`, `amount`, `accrualStartDate`,
+#'   `accrualEndDate`, `accrualPeriod` (year fraction), `accrualDays`,
+#'   `accrualDayCounter`, `accruedAmount`, `rate` and `rateDayCount`.
+#' @note Moved from QuantLib_tidy: `R/swaps/tidy_cashflow.R`.
 #' @export
 fixed_leg_detail_tbl_GQL <- function(leg, eval_date) {
   tibble::tibble(
@@ -694,13 +791,16 @@ fixed_leg_detail_tbl_GQL <- function(leg, eval_date) {
     )
 }
 
-#' floating leg detail tbl
+#' Tabulate floating-rate coupon details
 #'
-#' Moved from `QuantLib_tidy/R/swaps/tidy_cashflow.R` (`floating_leg_detail_tbl()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' @param leg QuantLib Leg of floating-rate coupons.
+#' @param eval_date QuantLib Date at which accrued amounts are measured.
 #'
-#' @param leg,eval_date Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @return A tibble with `date`, `amount`, `accrualStartDate`,
+#'   `accrualEndDate`, `accrualPeriod`, `accrualDays`, `accrualDayCounter`,
+#'   `accruedAmount`, `spread`, `gearing`, `adjFix` (adjusted fixing),
+#'   `dtFix` (fixing date) and `convexityAdj`.
+#' @note Moved from QuantLib_tidy: `R/swaps/tidy_cashflow.R`.
 #' @export
 floating_leg_detail_tbl_GQL <- function(leg, eval_date) {
   tibble::tibble(
@@ -789,16 +889,23 @@ floating_leg_detail_tbl_GQL <- function(leg, eval_date) {
     )
 }
 
-#' curve pillar report tbl
+#' Report zero rates, discount factors and implied quotes at helper pillars
 #'
-#' Moved from `QuantLib_tidy/R/swaps/tisy_swap.R` (`print_curve_tbl()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' For each rate helper used to bootstrap `curve`, reports the zero rate at the
+#' helper's pillar date, the discount factor there, and the quote the curve
+#' implies for the helper. Zero-rate conventions can differ per helper, for
+#' example Actual/360 simple rates for deposits and 30/360
+#' `"SimpleThenCompounded"` rates for swaps.
 #'
-#' @param curve,helpers Arguments of the original helper.
-#' @param day_counter QuantLib day counter, or a list with one per helper.
-#' @param compounding Compounding name, or one per helper.
+#' @param curve Bootstrapped yield curve.
+#' @param helpers QuantLib `RateHelperVector` used for the curve.
+#' @param day_counter Day counter, or a list with one per helper (recycled).
+#' @param compounding Compounding name, or one per helper (recycled).
 #' @param frequency Frequency name used for the zero rates.
-#' @return The value returned by the original QuantLib_tidy helper.
+#'
+#' @return A tibble with `pillar` (ISO date), `zeroRate` (percent), `df` and
+#'   `impliedRate`.
+#' @note Moved from QuantLib_tidy: `R/swaps/tisy_swap.R`, `R/swaps/tidy_bootstrap.R`.
 #' @export
 curve_pillar_report_tbl_GQL <- function(
   curve,

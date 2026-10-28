@@ -2,17 +2,28 @@
 % Please edit documentation in R/qlt_rates_GQL.R
 \name{make_tibor_curve_GQL}
 \alias{make_tibor_curve_GQL}
-\title{make tibor curve}
+\title{Bootstrap a 6M TIBOR curve from deposit and swap quotes}
 \usage{
 make_tibor_curve_GQL(curve_data, trade_date = "2022-08-19")
 }
 \arguments{
-\item{curve_data, trade_date}{Arguments of the original helper.}
+\item{curve_data}{Quotes accepted by \code{\link[=normalize_curve_data_GQL]{normalize_curve_data_GQL()}}; \code{kind} is
+\code{"depo"} or \code{"swap"} and \code{rate_pct} is in percent.}
+
+\item{trade_date}{Trade date as an ISO string, R Date, or QuantLib Date.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A list with \code{trade_date}, \code{settle_date}, \code{tibor_index} (linked to the
+curve), \code{curve}, \code{curve_handle} (relinkable) and \code{par_tbl} (the quotes).
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base02.R} (\code{make_tibor_curve()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Sets the evaluation date to \code{trade_date}, settles two Japanese business days
+later, and bootstraps a log-linear discount curve (Actual/365 Fixed) from a
+6M TIBOR deposit and semiannual swaps (Japan calendar, Modified Following,
+Actual/365 Fixed fixed leg). The deposit helper uses the 6M index tenor
+regardless of its quoted tenor. Swap tenors must be one of \verb{6m}, \verb{1y},
+\verb{18m}, \verb{2y}, ..., \verb{7y}.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base02.R}.
 }

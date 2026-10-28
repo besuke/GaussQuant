@@ -2,17 +2,20 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{append_default_helpers_GQL}
 \alias{append_default_helpers_GQL}
-\title{append default helpers}
+\title{Collect default probability helpers into a QuantLib vector}
 \usage{
 append_default_helpers_GQL(helper_list)
 }
 \arguments{
-\item{helper_list}{Arguments of the original helper.}
+\item{helper_list}{List of QuantLib default probability helpers, for
+example CDS spread helpers.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A QuantLib \code{DefaultProbabilityHelperVector}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/swaps/tidy_CDS.R} (\code{append_default_helpers()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Collect default probability helpers into a QuantLib vector
+}
+\note{
+Moved from QuantLib_tidy: \code{R/swaps/tidy_CDS.R}.
 }

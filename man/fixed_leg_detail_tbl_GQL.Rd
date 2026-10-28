@@ -2,17 +2,23 @@
 % Please edit documentation in R/qlt_rates_GQL.R
 \name{fixed_leg_detail_tbl_GQL}
 \alias{fixed_leg_detail_tbl_GQL}
-\title{fixed leg detail tbl}
+\title{Tabulate fixed-rate coupon details}
 \usage{
 fixed_leg_detail_tbl_GQL(leg, eval_date)
 }
 \arguments{
-\item{leg, eval_date}{Arguments of the original helper.}
+\item{leg}{QuantLib Leg of fixed-rate coupons.}
+
+\item{eval_date}{QuantLib Date at which accrued amounts are measured.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A tibble with \code{date}, \code{amount}, \code{accrualStartDate},
+\code{accrualEndDate}, \code{accrualPeriod} (year fraction), \code{accrualDays},
+\code{accrualDayCounter}, \code{accruedAmount}, \code{rate} and \code{rateDayCount}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/swaps/tidy_cashflow.R} (\code{fixed_leg_detail_tbl()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Tabulate fixed-rate coupon details
+}
+\note{
+Moved from QuantLib_tidy: \code{R/swaps/tidy_cashflow.R}.
 }

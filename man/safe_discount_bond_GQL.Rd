@@ -2,17 +2,25 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{safe_discount_bond_GQL}
 \alias{safe_discount_bond_GQL}
-\title{safe discount bond}
+\title{Zero-coupon bond price from a short-rate model}
 \usage{
 safe_discount_bond_GQL(model_obj, t0, t1, short_rate = 0.03)
 }
 \arguments{
-\item{model_obj, t0, t1, short_rate}{Arguments of the original helper.}
+\item{model_obj}{QuantLib short-rate model such as Vasicek, CIR or
+Hull-White; \code{NULL} gives \code{NA}.}
+
+\item{t0, t1}{Start and maturity times in years.}
+
+\item{short_rate}{Short rate at \code{t0}, decimal.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+Numeric discount bond price, or \code{NA} if neither call works.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base06.R} (\code{safe_discount_bond()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Calls the model's \code{discountBond(t0, t1, r)}, falling back to
+\code{discountBond(t1, r)} for models that expose only that form.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base06.R}.
 }

@@ -2,17 +2,21 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{set_swaption_engines_GQL}
 \alias{set_swaption_engines_GQL}
-\title{set swaption engines}
+\title{Attach a pricing engine to every swaption helper in a basket}
 \usage{
 set_swaption_engines_GQL(basket, engine)
 }
 \arguments{
-\item{basket, engine}{Arguments of the original helper.}
+\item{basket}{QuantLib calibration helper vector of swaption helpers.}
+
+\item{engine}{Swaption pricing engine, for example a Gaussian1d engine.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+\code{NULL}, invisibly.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/options/tidy_gaussina1d.R} (\code{set_swaption_engines()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Modifies the helpers in place.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/options/tidy_gaussina1d.R}.
 }

@@ -2,17 +2,28 @@
 % Please edit documentation in R/qlt_bonds_GQL.R
 \name{as_spread_from_price_GQL}
 \alias{as_spread_from_price_GQL}
-\title{as spread from price}
+\title{Asset swap spread implied by a bond price}
 \usage{
 as_spread_from_price_GQL(target_dirty_price, discount_price, annuity)
 }
 \arguments{
-\item{target_dirty_price, discount_price, annuity}{Arguments of the original helper.}
+\item{target_dirty_price}{Dirty price of the bond, per 100 notional.}
+
+\item{discount_price}{Price of the bond cashflows discounted on the swap
+curve, per 100 notional.}
+
+\item{annuity}{Annuity of the floating leg, per 100 notional.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+Numeric spread, in the same units as \code{annuity} implies (decimal
+when the annuity is per unit of rate).
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base04.R} (\code{calc_as_spread_from_price()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Solves the par asset swap identity for the spread: the gap between the
+price of the bond's cashflows discounted on the swap curve and the bond's
+dirty price, divided by the annuity (PV of one unit of spread per year on
+the floating leg).
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base04.R}.
 }

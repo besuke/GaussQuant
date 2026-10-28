@@ -2,17 +2,23 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{basket_european_engine_GQL}
 \alias{basket_european_engine_GQL}
-\title{basket european engine}
+\title{Monte Carlo engine for European basket options}
 \usage{
 basket_european_engine_GQL(process, seed = 42)
 }
 \arguments{
-\item{process, seed}{Arguments of the original helper.}
+\item{process}{Multi-dimensional process, for example a
+\code{StochasticProcessArray}.}
+
+\item{seed}{Random seed of the engine.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A QuantLib pricing engine.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/options/tisy_basket.R} (\code{build_european_engine()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Pseudo-random \code{MCPREuropeanBasketEngine} with one time step per year,
+required tolerance 0.02 and at most 10000 samples.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/options/tisy_basket.R}.
 }

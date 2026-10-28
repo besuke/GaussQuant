@@ -2,7 +2,7 @@
 % Please edit documentation in R/qlt_rates_GQL.R
 \name{swap_cashflow_tbl_GQL}
 \alias{swap_cashflow_tbl_GQL}
-\title{swap cashflow tbl}
+\title{Tabulate the cashflows of one swap leg}
 \usage{
 swap_cashflow_tbl_GQL(
   swap_obj,
@@ -12,12 +12,25 @@ swap_cashflow_tbl_GQL(
 )
 }
 \arguments{
-\item{swap_obj, curve_obj, leg, day_count_obj}{Arguments of the original helper.}
+\item{swap_obj}{QuantLib swap.}
+
+\item{curve_obj}{Discount curve.}
+
+\item{leg}{Leg number: \code{1} floating, \code{0} fixed.}
+
+\item{day_count_obj}{Day counter used for the \code{days} column.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A tibble with \code{fixing_date} (\code{NA} on the fixed leg), \code{accrual_start},
+\code{accrual_end}, \code{pay_date}, \code{days}, \code{rate}, \code{spread}, \code{amount}, \code{df}, \code{pv}
+and \code{leg} (\code{"floating"} or \code{"fixed"}).
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base02.R} (\code{swap_cashflow_tbl()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Leg \code{1} is read as floating-rate coupons and leg \code{0} as fixed-rate coupons,
+which matches QuantLib \code{VanillaSwap} and \code{OvernightIndexedSwap}. Discount
+factors come from \code{curve_obj} and are \code{NA} for payments before the curve
+reference date.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base02.R}, \code{R/bonds_basic/base03.R}.
 }

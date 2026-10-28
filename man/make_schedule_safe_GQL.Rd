@@ -2,7 +2,7 @@
 % Please edit documentation in R/qlt_rates_GQL.R
 \name{make_schedule_safe_GQL}
 \alias{make_schedule_safe_GQL}
-\title{make schedule safe}
+\title{Build a QuantLib schedule with one business-day convention}
 \usage{
 make_schedule_safe_GQL(
   effective_date,
@@ -14,12 +14,24 @@ make_schedule_safe_GQL(
 )
 }
 \arguments{
-\item{effective_date, maturity_date, tenor_obj, calendar_obj, convention, rule}{Arguments of the original helper.}
+\item{effective_date, maturity_date}{Start and end dates as ISO strings, R
+Dates, or QuantLib Dates.}
+
+\item{tenor_obj}{QuantLib Period between schedule dates.}
+
+\item{calendar_obj}{QuantLib calendar.}
+
+\item{convention}{Business-day convention name.}
+
+\item{rule}{Date generation rule name, for example \code{"Backward"}.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A QuantLib \code{Schedule}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base02.R} (\code{make_schedule_safe()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Uses the same convention for regular and termination dates and no
+end-of-month adjustment.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base02.R}.
 }

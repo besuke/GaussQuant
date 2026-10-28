@@ -2,17 +2,24 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{basket_american_engine_GQL}
 \alias{basket_american_engine_GQL}
-\title{basket american engine}
+\title{Least-squares Monte Carlo engine for American basket options}
 \usage{
 basket_american_engine_GQL(process, seed = 42)
 }
 \arguments{
-\item{process, seed}{Arguments of the original helper.}
+\item{process}{Multi-dimensional process, for example a
+\code{StochasticProcessArray}.}
+
+\item{seed}{Random seed of the engine.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A QuantLib pricing engine.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/options/tisy_basket.R} (\code{build_american_engine()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Pseudo-random \code{MCPRAmericanBasketEngine} with 10 time steps, 50000
+required samples (tolerance 0.02, at most 100000), 5000 calibration
+samples and a fifth-order Hermite basis.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/options/tisy_basket.R}.
 }

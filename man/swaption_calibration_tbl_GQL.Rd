@@ -2,17 +2,24 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{swaption_calibration_tbl_GQL}
 \alias{swaption_calibration_tbl_GQL}
-\title{swaption calibration tbl}
+\title{Compare model and market values of a calibrated swaption basket}
 \usage{
 swaption_calibration_tbl_GQL(basket, volatilities)
 }
 \arguments{
-\item{basket, volatilities}{Arguments of the original helper.}
+\item{basket}{QuantLib calibration helper vector of swaption helpers.}
+
+\item{volatilities}{Calibrated model volatilities, one per helper.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A tibble with \code{expiry}, \code{modelSigma}, \code{modelPrice}, \code{marketPrice},
+\code{modelImpVol} and \code{marketImpVol}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/options/tidy_gaussina1d.R} (\code{calibration_data_tbl()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Model implied volatilities invert each helper's model price with
+\code{impliedVolatility()} (accuracy 1e-6, at most 1000 evaluations, volatility
+between 0 and 2).
+}
+\note{
+Moved from QuantLib_tidy: \code{R/options/tidy_gaussina1d.R}.
 }

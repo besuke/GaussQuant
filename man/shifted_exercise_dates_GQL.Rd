@@ -2,17 +2,24 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{shifted_exercise_dates_GQL}
 \alias{shifted_exercise_dates_GQL}
-\title{shifted exercise dates}
+\title{Bermudan exercise dates from a swap schedule}
 \usage{
 shifted_exercise_dates_GQL(schedule_obj, calendar, lag_days = 2)
 }
 \arguments{
-\item{schedule_obj, calendar, lag_days}{Arguments of the original helper.}
+\item{schedule_obj}{QuantLib schedule of the underlying swap.}
+
+\item{calendar}{Calendar used for the shift.}
+
+\item{lag_days}{Business days between exercise and coupon start.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A QuantLib \code{DateVector}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/options/tidy_gaussina1d.R} (\code{schedule_dates_to_shifted_exercise_dates()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Moves every schedule date back by \code{lag_days} business days and drops the
+first and last dates, giving exercise dates that precede each coupon start.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/options/tidy_gaussina1d.R}.
 }

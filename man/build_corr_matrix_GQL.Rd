@@ -2,17 +2,19 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{build_corr_matrix_GQL}
 \alias{build_corr_matrix_GQL}
-\title{build corr matrix}
+\title{Two-asset correlation matrix}
 \usage{
 build_corr_matrix_GQL(rho = 0.5)
 }
 \arguments{
-\item{rho}{Arguments of the original helper.}
+\item{rho}{Correlation between the two assets.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A 2 x 2 QuantLib \code{Matrix}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/options/tisy_basket.R} (\code{build_corr_matrix()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Two-asset correlation matrix
+}
+\note{
+Moved from QuantLib_tidy: \code{R/options/tisy_basket.R}.
 }

@@ -2,17 +2,22 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{option_npv_at_spot_GQL}
 \alias{option_npv_at_spot_GQL}
-\title{option npv at spot}
+\title{NPV of the QuantLib example European call for a given spot}
 \usage{
 option_npv_at_spot_GQL(spot_value)
 }
 \arguments{
-\item{spot_value}{Arguments of the original helper.}
+\item{spot_value}{Underlying spot.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+Numeric NPV.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/options/tidy_graph.R} (\code{option_npv_at_spot()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Uses the fixed setup of the QuantLib European option example: evaluation
+date 1998-05-15, settlement 1998-05-17, expiry 1999-05-17, strike 8, flat
+risk-free rate and dividend yield of 5\%, and volatility 10\%. Sets the
+global QuantLib evaluation date to 1998-05-15.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/options/tidy_graph.R}.
 }

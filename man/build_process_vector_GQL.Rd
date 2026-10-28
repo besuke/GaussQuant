@@ -2,17 +2,20 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{build_process_vector_GQL}
 \alias{build_process_vector_GQL}
-\title{build process vector}
+\title{Collect one-dimensional processes into a QuantLib vector}
 \usage{
 build_process_vector_GQL(process_list)
 }
 \arguments{
-\item{process_list}{Arguments of the original helper.}
+\item{process_list}{List of QuantLib one-dimensional stochastic processes.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A QuantLib \code{StochasticProcess1DVector}, for example for a
+\code{StochasticProcessArray}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/options/tisy_basket.R} (\code{build_process_vector()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Collect one-dimensional processes into a QuantLib vector
+}
+\note{
+Moved from QuantLib_tidy: \code{R/options/tisy_basket.R}.
 }

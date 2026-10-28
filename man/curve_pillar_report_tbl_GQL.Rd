@@ -2,7 +2,7 @@
 % Please edit documentation in R/qlt_rates_GQL.R
 \name{curve_pillar_report_tbl_GQL}
 \alias{curve_pillar_report_tbl_GQL}
-\title{curve pillar report tbl}
+\title{Report zero rates, discount factors and implied quotes at helper pillars}
 \usage{
 curve_pillar_report_tbl_GQL(
   curve,
@@ -13,18 +13,27 @@ curve_pillar_report_tbl_GQL(
 )
 }
 \arguments{
-\item{curve, helpers}{Arguments of the original helper.}
+\item{curve}{Bootstrapped yield curve.}
 
-\item{day_counter}{QuantLib day counter, or a list with one per helper.}
+\item{helpers}{QuantLib \code{RateHelperVector} used for the curve.}
 
-\item{compounding}{Compounding name, or one per helper.}
+\item{day_counter}{Day counter, or a list with one per helper (recycled).}
+
+\item{compounding}{Compounding name, or one per helper (recycled).}
 
 \item{frequency}{Frequency name used for the zero rates.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A tibble with \code{pillar} (ISO date), \code{zeroRate} (percent), \code{df} and
+\code{impliedRate}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/swaps/tisy_swap.R} (\code{print_curve_tbl()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+For each rate helper used to bootstrap \code{curve}, reports the zero rate at the
+helper's pillar date, the discount factor there, and the quote the curve
+implies for the helper. Zero-rate conventions can differ per helper, for
+example Actual/360 simple rates for deposits and 30/360
+\code{"SimpleThenCompounded"} rates for swaps.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/swaps/tisy_swap.R}, \code{R/swaps/tidy_bootstrap.R}.
 }

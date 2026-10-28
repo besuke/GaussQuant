@@ -2,17 +2,24 @@
 % Please edit documentation in R/qlt_rates_GQL.R
 \name{make_sofr_curve_GQL}
 \alias{make_sofr_curve_GQL}
-\title{make sofr curve}
+\title{Bootstrap a SOFR curve from a list of deposit and OIS quotes}
 \usage{
 make_sofr_curve_GQL(curve_data, trade_date = "2023-09-26")
 }
 \arguments{
-\item{curve_data, trade_date}{Arguments of the original helper.}
+\item{curve_data}{List of quote vectors: \code{kind} (\code{"depo"} or \code{"swap"}),
+\code{tenor} such as \code{"1w"} or \code{"10y"}, and \code{rate_pct} in percent.}
+
+\item{trade_date}{Evaluation date as an ISO string, R Date, or QuantLib Date.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A list with \code{trade_date}, \code{settle_date}, \code{index}, \code{curve},
+\code{curve_handle} and \code{quote_tbl}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base03.R} (\code{make_sofr_curve()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Same as \code{\link[=make_tona_curve_GQL]{make_tona_curve_GQL()}} but uses
+\code{\link[=build_sofr_curve_from_market_GQL]{build_sofr_curve_from_market_GQL()}} (SOFR fixing calendar, Actual/360).
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base03.R}.
 }

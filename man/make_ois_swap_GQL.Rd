@@ -2,7 +2,7 @@
 % Please edit documentation in R/qlt_rates_GQL.R
 \name{make_ois_swap_GQL}
 \alias{make_ois_swap_GQL}
-\title{make ois swap}
+\title{Build a payer overnight indexed swap with a discounting engine}
 \usage{
 make_ois_swap_GQL(
   index_obj,
@@ -20,12 +20,38 @@ make_ois_swap_GQL(
 )
 }
 \arguments{
-\item{index_obj, curve_handle, effective_date, maturity_date, nominal, fixed_rate, spread, fixed_day_count, schedule_tenor, pay_lag, calendar_obj, convention}{Arguments of the original helper.}
+\item{index_obj}{Overnight index, linked to its forecasting curve.}
+
+\item{curve_handle}{Discounting curve handle.}
+
+\item{effective_date, maturity_date}{Swap start and end dates.}
+
+\item{nominal}{Notional.}
+
+\item{fixed_rate}{Fixed rate, decimal.}
+
+\item{spread}{Spread over the overnight rate, decimal.}
+
+\item{fixed_day_count}{Fixed-leg day counter.}
+
+\item{schedule_tenor}{QuantLib Period of the schedule.}
+
+\item{pay_lag}{Payment lag in business days.}
+
+\item{calendar_obj}{Schedule calendar.}
+
+\item{convention}{Business-day convention name.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A list with \code{swap}, \code{fixed_schedule}, \code{effective_date},
+\code{maturity_date}, \code{pay_lag}, \code{spread}, \code{fixed_rate}, \code{index} and \code{engine}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base03.R} (\code{make_ois_swap()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Constructs an \code{OvernightIndexedSwap} from an explicit fixed-leg schedule
+(backward generation, no end-of-month adjustment). Unlike \code{\link[=build_ois_GQL]{build_ois_GQL()}},
+which uses \code{MakeOIS} defaults, the schedule, calendar, payment lag and fixed
+day counter are set here.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base03.R}.
 }

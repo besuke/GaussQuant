@@ -2,17 +2,25 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{survival_tbl_GQL}
 \alias{survival_tbl_GQL}
-\title{survival tbl}
+\title{Tabulate survival probabilities of a default curve}
 \usage{
 survival_tbl_GQL(default_curve_obj, n = 200)
 }
 \arguments{
-\item{default_curve_obj, n}{Arguments of the original helper.}
+\item{default_curve_obj}{QuantLib default probability term structure.}
+
+\item{n}{Number of grid points.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A tibble with \code{time}, \code{survival_probability}, \code{hazard_rate_proxy}
+and \code{curve_date} (reference date plus \code{round(time * 365)} days).
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base08.R} (\code{survival_tbl()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Evaluates survival probabilities on an even time grid up to the curve's
+maximum time and derives an average hazard rate \eqn{-\log(S(t))/t}.
+When the curve does not report a maximum time or reference date, 10 years
+and 2023-01-03 are used.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base08.R}.
 }

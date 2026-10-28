@@ -2,7 +2,7 @@
 % Please edit documentation in R/qlt_bonds_GQL.R
 \name{try_make_asset_swap_GQL}
 \alias{try_make_asset_swap_GQL}
-\title{try make asset swap}
+\title{Build a TIBOR asset swap on a fixed-rate bond}
 \usage{
 try_make_asset_swap_GQL(
   pay_fixed_rate,
@@ -16,12 +16,33 @@ try_make_asset_swap_GQL(
 )
 }
 \arguments{
-\item{pay_fixed_rate, bond_obj, clean_price_asw, tibor6m_for_asw, credit_spread_asw, floating_schedule_asw, is_par_asset_swap, maturity_date}{Arguments of the original helper.}
+\item{pay_fixed_rate}{\code{TRUE} to pay the bond's fixed coupons and receive
+the floating leg.}
+
+\item{bond_obj}{QuantLib bond.}
+
+\item{clean_price_asw}{Bond clean price used for the asset swap.}
+
+\item{tibor6m_for_asw}{Floating-rate index, for example 6M TIBOR.}
+
+\item{credit_spread_asw}{Spread over the floating index, decimal.}
+
+\item{floating_schedule_asw}{QuantLib schedule of the floating leg.}
+
+\item{is_par_asset_swap}{\code{TRUE} for a par asset swap, \code{FALSE} for a
+market-value asset swap.}
+
+\item{maturity_date}{QuantLib Date of the floating leg maturity.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A QuantLib \code{AssetSwap}, or \code{NULL} if the constructor fails.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base04.R} (\code{try_make_asset_swap()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Calls the \code{AssetSwap} constructor with gearing 1, non-par repayment 100 and
+an Actual/365 (Fixed) floating day counter, as in the QuantLib_tidy bond
+chapter. The constructor signature differs between QuantLib-SWIG builds, so
+a failure returns \code{NULL} instead of raising an error.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base04.R}.
 }

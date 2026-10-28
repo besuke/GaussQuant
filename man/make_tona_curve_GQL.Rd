@@ -2,17 +2,26 @@
 % Please edit documentation in R/qlt_rates_GQL.R
 \name{make_tona_curve_GQL}
 \alias{make_tona_curve_GQL}
-\title{make tona curve}
+\title{Bootstrap a TONA curve from a list of deposit and OIS quotes}
 \usage{
 make_tona_curve_GQL(curve_data, trade_date = "2022-08-19")
 }
 \arguments{
-\item{curve_data, trade_date}{Arguments of the original helper.}
+\item{curve_data}{List of quote vectors: \code{kind} (\code{"depo"} or \code{"swap"}),
+\code{tenor} such as \code{"1w"} or \code{"10y"}, and \code{rate_pct} in percent.}
+
+\item{trade_date}{Evaluation date as an ISO string, R Date, or QuantLib Date.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A list with \code{trade_date}, \code{settle_date} (curve reference date),
+\code{index}, \code{curve}, \code{curve_handle} (relinkable) and \code{quote_tbl}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base03.R} (\code{make_tona_curve()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Converts \code{list(c(kind, tenor, rate_pct), ...)} quotes and calls
+\code{\link[=build_tonar_curve_from_market_GQL]{build_tonar_curve_from_market_GQL()}} with \code{curve_type = "log_linear_discount"}: deposits become deposit helpers, swaps become spot
+OIS helpers with two fixing days. The returned index forecasts from the
+bootstrapped curve.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base03.R}, \code{R/bonds_basic/base04.R}.
 }

@@ -2,17 +2,20 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{swaption_basket_tbl_GQL}
 \alias{swaption_basket_tbl_GQL}
-\title{swaption basket tbl}
+\title{Tabulate the swaptions in a calibration basket}
 \usage{
 swaption_basket_tbl_GQL(basket)
 }
 \arguments{
-\item{basket}{Arguments of the original helper.}
+\item{basket}{QuantLib calibration helper vector of swaption helpers.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A tibble with \code{expiry}, \code{maturity}, \code{nominal}, \code{strike} and
+\code{optType}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/options/tidy_gaussina1d.R} (\code{basket_data_tbl()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Tabulate the swaptions in a calibration basket
+}
+\note{
+Moved from QuantLib_tidy: \code{R/options/tidy_gaussina1d.R}.
 }

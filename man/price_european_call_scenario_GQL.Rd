@@ -2,7 +2,7 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{price_european_call_scenario_GQL}
 \alias{price_european_call_scenario_GQL}
-\title{price european call scenario}
+\title{Price a European option under one spot and volatility scenario}
 \usage{
 price_european_call_scenario_GQL(
   spot,
@@ -17,12 +17,31 @@ price_european_call_scenario_GQL(
 )
 }
 \arguments{
-\item{spot, volatility, eval_date, calendar_obj, day_counter_obj, dividend_handle, risk_free_handle, payoff_call, european_exercise}{Arguments of the original helper.}
+\item{spot}{Underlying spot.}
+
+\item{volatility}{Flat Black volatility, decimal.}
+
+\item{eval_date}{QuantLib evaluation Date for the volatility curve.}
+
+\item{calendar_obj}{Calendar of the volatility curve.}
+
+\item{day_counter_obj}{Day counter of the volatility curve.}
+
+\item{dividend_handle}{Dividend yield curve handle.}
+
+\item{risk_free_handle}{Risk-free curve handle.}
+
+\item{payoff_call}{QuantLib payoff, for example a plain vanilla call.}
+
+\item{european_exercise}{QuantLib European exercise.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+Numeric NPV, or \code{NA} if the engine cannot be built or set.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base09.R} (\code{price_european_call_scenario()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Builds a Black-Scholes-Merton process with a flat volatility and prices the
+option analytically. The dividend and risk-free curves are kept fixed.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base09.R}.
 }

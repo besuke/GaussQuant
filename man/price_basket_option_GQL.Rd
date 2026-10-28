@@ -2,17 +2,21 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{price_basket_option_GQL}
 \alias{price_basket_option_GQL}
-\title{price basket option}
+\title{Price a basket option with a given engine}
 \usage{
 price_basket_option_GQL(option, engine)
 }
 \arguments{
-\item{option, engine}{Arguments of the original helper.}
+\item{option}{QuantLib basket option.}
+
+\item{engine}{Pricing engine.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+Numeric NPV.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/options/tisy_basket.R} (\code{price_basket_option()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Sets \code{engine} on \code{option} (modifying it) and returns the NPV.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/options/tisy_basket.R}.
 }

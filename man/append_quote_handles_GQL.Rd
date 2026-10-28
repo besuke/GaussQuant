@@ -2,17 +2,19 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{append_quote_handles_GQL}
 \alias{append_quote_handles_GQL}
-\title{append quote handles}
+\title{Collect quote handles into a QuantLib QuoteHandleVector}
 \usage{
 append_quote_handles_GQL(qh_list)
 }
 \arguments{
-\item{qh_list}{Arguments of the original helper.}
+\item{qh_list}{List of QuantLib \code{QuoteHandle} objects.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A QuantLib \code{QuoteHandleVector}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/options/tidy_gaussina1d.R} (\code{append_quote_handles()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Collect quote handles into a QuantLib QuoteHandleVector
+}
+\note{
+Moved from QuantLib_tidy: \code{R/options/tidy_gaussina1d.R}.
 }

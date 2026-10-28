@@ -2,7 +2,7 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{option_surface_row_GQL}
 \alias{option_surface_row_GQL}
-\title{option surface row}
+\title{NPV and Greeks of an option for one spot and volatility}
 \usage{
 option_surface_row_GQL(
   spot_value,
@@ -13,12 +13,22 @@ option_surface_row_GQL(
 )
 }
 \arguments{
-\item{spot_value, vol_value, underlying, volatilityQuote, option}{Arguments of the original helper.}
+\item{spot_value, vol_value}{Spot and volatility to set.}
+
+\item{underlying}{QuantLib \code{SimpleQuote} of the spot.}
+
+\item{volatilityQuote}{QuantLib \code{SimpleQuote} of the volatility.}
+
+\item{option}{QuantLib option with a pricing engine linked to the quotes.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A one-row tibble with \code{NPV}, \code{gamma}, \code{delta} and \code{vega}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/options/tidy_wireframe.R} (\code{build_option_surface_row()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Sets the given values on the spot and volatility quotes, which updates the
+option through its observers, and reads the NPV and Greeks. The quotes are
+left at the new values.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/options/tidy_wireframe.R}.
 }

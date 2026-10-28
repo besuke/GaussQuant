@@ -2,17 +2,21 @@
 % Please edit documentation in R/qlt_rates_GQL.R
 \name{normalize_curve_data_GQL}
 \alias{normalize_curve_data_GQL}
-\title{normalize curve data}
+\title{Normalise curve quote input to a tibble}
 \usage{
 normalize_curve_data_GQL(curve_data)
 }
 \arguments{
-\item{curve_data}{Arguments of the original helper.}
+\item{curve_data}{Data frame or list of quote vectors.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A tibble with \code{kind}, \code{tenor} and \code{rate_pct}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base02.R} (\code{normalize_curve_data()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Accepts either a data frame with \code{kind}, \code{tenor} and \code{rate_pct} columns or a
+list of \code{c(kind, tenor, rate_pct)} vectors, and returns the same three
+columns with character, character and numeric types.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base02.R}.
 }

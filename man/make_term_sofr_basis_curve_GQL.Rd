@@ -2,7 +2,7 @@
 % Please edit documentation in R/qlt_rates_GQL.R
 \name{make_term_sofr_basis_curve_GQL}
 \alias{make_term_sofr_basis_curve_GQL}
-\title{make term sofr basis curve}
+\title{Bootstrap a 3M Term SOFR curve from SOFR basis swaps}
 \usage{
 make_term_sofr_basis_curve_GQL(
   sofr_bundle,
@@ -11,12 +11,21 @@ make_term_sofr_basis_curve_GQL(
 )
 }
 \arguments{
-\item{sofr_bundle, term_sofr_3m_rate, basis_data}{Arguments of the original helper.}
+\item{sofr_bundle}{SOFR curve bundle from \code{\link[=make_sofr_curve_GQL]{make_sofr_curve_GQL()}}.}
+
+\item{term_sofr_3m_rate}{3M Term SOFR deposit rate in percent.}
+
+\item{basis_data}{List of \code{c(tenor, basis_bp)} vectors.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A list with \code{index}, \code{curve} and \code{curve_handle}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base03.R} (\code{make_term_sofr_basis_curve()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Builds a 3M Term SOFR Ibor index (two fixing days, Modified Following,
+end-of-month, Actual/360) and bootstraps its curve from a 3M deposit and
+SOFR vs Term SOFR basis swaps, discounting on the SOFR curve. The basis
+quote is passed to QuantLib as \code{basis_bp / 100}, as in the original script.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base03.R}.
 }

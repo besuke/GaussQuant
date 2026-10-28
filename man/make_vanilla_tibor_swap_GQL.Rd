@@ -2,7 +2,7 @@
 % Please edit documentation in R/qlt_rates_GQL.R
 \name{make_vanilla_tibor_swap_GQL}
 \alias{make_vanilla_tibor_swap_GQL}
-\title{make vanilla tibor swap}
+\title{Build a payer TIBOR vanilla swap with a discounting engine}
 \usage{
 make_vanilla_tibor_swap_GQL(
   curve_handle,
@@ -16,12 +16,29 @@ make_vanilla_tibor_swap_GQL(
 )
 }
 \arguments{
-\item{curve_handle, effective_date, maturity_date, nominal, fixed_rate, fixed_tenor, float_tenor, spread}{Arguments of the original helper.}
+\item{curve_handle}{Yield term structure handle for forecasting and
+discounting.}
+
+\item{effective_date, maturity_date}{Swap start and end dates.}
+
+\item{nominal}{Notional.}
+
+\item{fixed_rate}{Fixed rate, decimal.}
+
+\item{fixed_tenor, float_tenor}{QuantLib Periods of the two legs.}
+
+\item{spread}{Spread over TIBOR on the floating leg, decimal.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A list with \code{swap}, \code{fixed_schedule}, \code{float_schedule},
+\code{tibor_index}, \code{engine}, \code{effective_date}, \code{maturity_date} and \code{spread}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base02.R} (\code{make_vanilla_tibor_swap()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Pays fixed and receives 6M TIBOR; both legs use Actual/365 (Fixed) and
+schedules from \code{\link[=make_schedule_safe_GQL]{make_schedule_safe_GQL()}} (Japan calendar, Modified
+Following, backward generation). The same curve forecasts TIBOR and
+discounts.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base02.R}.
 }

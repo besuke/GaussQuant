@@ -2,7 +2,7 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{price_fx_call_scenario_GQL}
 \alias{price_fx_call_scenario_GQL}
-\title{price fx call scenario}
+\title{Price an FX option under one spot, volatility and domestic rate scenario}
 \usage{
 price_fx_call_scenario_GQL(
   spot,
@@ -17,12 +17,32 @@ price_fx_call_scenario_GQL(
 )
 }
 \arguments{
-\item{spot, volatility, domestic_rate_local, eval_date, calendar_obj, day_counter_obj, foreign_rate, payoff_call, exercise_obj}{Arguments of the original helper.}
+\item{spot}{FX spot, domestic per foreign unit.}
+
+\item{volatility}{Flat Black volatility, decimal.}
+
+\item{domestic_rate_local}{Domestic interest rate, decimal.}
+
+\item{eval_date}{QuantLib evaluation Date for the curves.}
+
+\item{calendar_obj}{Calendar of the volatility curve.}
+
+\item{day_counter_obj}{Day counter of the curves.}
+
+\item{foreign_rate}{Foreign interest rate, decimal.}
+
+\item{payoff_call}{QuantLib payoff.}
+
+\item{exercise_obj}{QuantLib exercise.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+Numeric NPV, or \code{NA} if the engine cannot be built or set.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base10.R} (\code{price_fx_call_scenario()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Garman-Kohlhagen pricing through a Black-Scholes-Merton process: the
+foreign rate plays the role of the dividend yield and the domestic rate the
+risk-free rate, both as flat curves.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base10.R}.
 }

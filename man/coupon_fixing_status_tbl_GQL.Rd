@@ -2,7 +2,7 @@
 % Please edit documentation in R/qlt_rates_GQL.R
 \name{coupon_fixing_status_tbl_GQL}
 \alias{coupon_fixing_status_tbl_GQL}
-\title{coupon fixing status tbl}
+\title{Check floating coupon fixings against the evaluation date}
 \usage{
 coupon_fixing_status_tbl_GQL(
   swap_obj,
@@ -13,12 +13,28 @@ coupon_fixing_status_tbl_GQL(
 )
 }
 \arguments{
-\item{swap_obj, curve_obj, index_obj, leg, eval_date}{Arguments of the original helper.}
+\item{swap_obj}{QuantLib swap.}
+
+\item{curve_obj}{Discount curve.}
+
+\item{index_obj}{Floating-rate index whose fixings are inspected.}
+
+\item{leg}{Leg number of the floating leg.}
+
+\item{eval_date}{Evaluation date; defaults to the QuantLib evaluation date.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A tibble with \code{fixing_date}, \code{fixing_before_eval}, \code{fixing_on_eval},
+\code{accrual_start}, \code{accrual_end}, \code{pay_date}, \code{amount}, \code{coupon_rate},
+\code{spread}, \code{fixing_value}, \code{implied_margin} (coupon rate minus fixing),
+\code{df}, \code{pv} and \code{fixing_source}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base02.R} (\code{coupon_fixing_status_tbl()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+For each floating-rate coupon of a swap leg, reports whether its fixing date
+falls before, on, or after the evaluation date, the fixing stored in the
+index, and the coupon's rate, spread, amount and present value. Values that
+QuantLib cannot provide (for example a missing past fixing) become \code{NA}.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base02.R}, \code{R/bonds_basic/base03.R}.
 }

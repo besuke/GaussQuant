@@ -2,7 +2,7 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{simulate_cir_path_GQL}
 \alias{simulate_cir_path_GQL}
-\title{simulate cir path}
+\title{Simulate one CIR short-rate path}
 \usage{
 simulate_cir_path_GQL(
   n_steps = 120,
@@ -15,12 +15,29 @@ simulate_cir_path_GQL(
 )
 }
 \arguments{
-\item{n_steps, dt, r0, kappa, theta, sigma, seed}{Arguments of the original helper.}
+\item{n_steps}{Number of time steps.}
+
+\item{dt}{Step length in years.}
+
+\item{r0}{Initial short rate, decimal.}
+
+\item{kappa}{Mean-reversion speed.}
+
+\item{theta}{Long-run mean, decimal.}
+
+\item{sigma}{Volatility.}
+
+\item{seed}{Random seed.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A tibble with \code{step}, \code{time} and \code{short_rate} (\code{n_steps + 1} rows).
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base06.R} (\code{simulate_cir_path()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Euler discretisation of
+\eqn{dr = \kappa(\theta - r)\,dt + \sigma\sqrt{r}\,dW},
+with the rate floored at zero inside the square root and after each step.
+Calls \code{set.seed(seed)}, which resets the global random number state.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base06.R}.
 }

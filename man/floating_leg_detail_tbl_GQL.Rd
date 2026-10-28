@@ -2,17 +2,24 @@
 % Please edit documentation in R/qlt_rates_GQL.R
 \name{floating_leg_detail_tbl_GQL}
 \alias{floating_leg_detail_tbl_GQL}
-\title{floating leg detail tbl}
+\title{Tabulate floating-rate coupon details}
 \usage{
 floating_leg_detail_tbl_GQL(leg, eval_date)
 }
 \arguments{
-\item{leg, eval_date}{Arguments of the original helper.}
+\item{leg}{QuantLib Leg of floating-rate coupons.}
+
+\item{eval_date}{QuantLib Date at which accrued amounts are measured.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A tibble with \code{date}, \code{amount}, \code{accrualStartDate},
+\code{accrualEndDate}, \code{accrualPeriod}, \code{accrualDays}, \code{accrualDayCounter},
+\code{accruedAmount}, \code{spread}, \code{gearing}, \code{adjFix} (adjusted fixing),
+\code{dtFix} (fixing date) and \code{convexityAdj}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/swaps/tidy_cashflow.R} (\code{floating_leg_detail_tbl()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Tabulate floating-rate coupon details
+}
+\note{
+Moved from QuantLib_tidy: \code{R/swaps/tidy_cashflow.R}.
 }

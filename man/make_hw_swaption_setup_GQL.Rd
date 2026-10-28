@@ -2,7 +2,7 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{make_hw_swaption_setup_GQL}
 \alias{make_hw_swaption_setup_GQL}
-\title{make hw swaption setup}
+\title{Build a European payer swaption on 6M Euribor}
 \usage{
 make_hw_swaption_setup_GQL(
   curve_handle,
@@ -14,12 +14,26 @@ make_hw_swaption_setup_GQL(
 )
 }
 \arguments{
-\item{curve_handle, exercise_date, swap_start, swap_maturity, nominal, fixed_rate}{Arguments of the original helper.}
+\item{curve_handle}{Forecasting curve handle for Euribor.}
+
+\item{exercise_date}{Exercise date.}
+
+\item{swap_start, swap_maturity}{Underlying swap start and end dates.}
+
+\item{nominal}{Notional.}
+
+\item{fixed_rate}{Fixed rate of the underlying swap, decimal.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A list with \code{fixed_schedule}, \code{float_schedule}, \code{index}, \code{swap},
+\code{exercise} and \code{swaption}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base06.R} (\code{make_hw_swaption_setup()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+The underlying swap pays an annual 30/360 (Bond Basis) fixed leg and
+receives semiannual 6M Euribor (Actual/360), on TARGET schedules with
+Modified Following and backward generation. No pricing engine is set, so a
+Hull-White (Jamshidian) or other swaption engine can be attached.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base06.R}.
 }

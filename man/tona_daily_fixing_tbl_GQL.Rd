@@ -2,7 +2,7 @@
 % Please edit documentation in R/qlt_rates_GQL.R
 \name{tona_daily_fixing_tbl_GQL}
 \alias{tona_daily_fixing_tbl_GQL}
-\title{tona daily fixing tbl}
+\title{Tabulate daily overnight fixings over an accrual period}
 \usage{
 tona_daily_fixing_tbl_GQL(
   accrual_start,
@@ -13,12 +13,23 @@ tona_daily_fixing_tbl_GQL(
 )
 }
 \arguments{
-\item{accrual_start, accrual_end, index_obj, eval_date, calendar_obj}{Arguments of the original helper.}
+\item{accrual_start, accrual_end}{Accrual period dates.}
+
+\item{index_obj}{Overnight index.}
+
+\item{eval_date}{Evaluation date as an ISO string or R Date.}
+
+\item{calendar_obj}{Calendar defining business days.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A tibble with \code{accrual_date}, \code{fixing_date}, \code{fixing_before_eval},
+\code{fixing_on_eval}, \code{fixing_value} and \code{fixing_source}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base03.R} (\code{tona_daily_fixing_tbl()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Lists the business days in \verb{[accrual_start, accrual_end)} and, for each
+one, whether it is before or on the evaluation date and the fixing stored
+in the index (\code{NA} when none is stored).
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base03.R}.
 }

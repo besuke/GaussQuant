@@ -2,13 +2,18 @@
 #
 # Short-rate, Gaussian1d, option, basket and credit helpers moved from QuantLib_tidy.
 
-#' safe discount bond
+#' Zero-coupon bond price from a short-rate model
 #'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base06.R` (`safe_discount_bond()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Calls the model's `discountBond(t0, t1, r)`, falling back to
+#' `discountBond(t1, r)` for models that expose only that form.
 #'
-#' @param model_obj,t0,t1,short_rate Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param model_obj QuantLib short-rate model such as Vasicek, CIR or
+#'   Hull-White; `NULL` gives `NA`.
+#' @param t0,t1 Start and maturity times in years.
+#' @param short_rate Short rate at `t0`, decimal.
+#'
+#' @return Numeric discount bond price, or `NA` if neither call works.
+#' @note Moved from QuantLib_tidy: `R/bonds_basic/base06.R`.
 #' @export
 safe_discount_bond_GQL <- function(model_obj, t0, t1, short_rate = 0.03) {
   if (is.null(model_obj)) return(NA_real_)
@@ -22,13 +27,22 @@ safe_discount_bond_GQL <- function(model_obj, t0, t1, short_rate = 0.03) {
   NA_real_
 }
 
-#' simulate vasicek path
+#' Simulate one Vasicek short-rate path
 #'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base06.R` (`simulate_vasicek_path()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Euler discretisation of
+#' \eqn{dr = \kappa(\theta - r)\,dt + \sigma\,dW}.
+#' Calls `set.seed(seed)`, which resets the global random number state.
 #'
-#' @param n_steps,dt,r0,kappa,theta,sigma,seed Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param n_steps Number of time steps.
+#' @param dt Step length in years.
+#' @param r0 Initial short rate, decimal.
+#' @param kappa Mean-reversion speed.
+#' @param theta Long-run mean, decimal.
+#' @param sigma Volatility.
+#' @param seed Random seed.
+#'
+#' @return A tibble with `step`, `time` and `short_rate` (`n_steps + 1` rows).
+#' @note Moved from QuantLib_tidy: `R/bonds_basic/base06.R`.
 #' @export
 simulate_vasicek_path_GQL <- function(n_steps = 120,
                                   dt = 1 / 12,
@@ -56,13 +70,17 @@ simulate_vasicek_path_GQL <- function(n_steps = 120,
   )
 }
 
-#' simulate cir path
+#' Simulate one CIR short-rate path
 #'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base06.R` (`simulate_cir_path()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Euler discretisation of
+#' \eqn{dr = \kappa(\theta - r)\,dt + \sigma\sqrt{r}\,dW},
+#' with the rate floored at zero inside the square root and after each step.
+#' Calls `set.seed(seed)`, which resets the global random number state.
 #'
-#' @param n_steps,dt,r0,kappa,theta,sigma,seed Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @inheritParams simulate_vasicek_path_GQL
+#'
+#' @return A tibble with `step`, `time` and `short_rate` (`n_steps + 1` rows).
+#' @note Moved from QuantLib_tidy: `R/bonds_basic/base06.R`.
 #' @export
 simulate_cir_path_GQL <- function(n_steps = 120,
                               dt = 1 / 12,
@@ -91,13 +109,22 @@ simulate_cir_path_GQL <- function(n_steps = 120,
   )
 }
 
-#' make hw swaption setup
+#' Build a European payer swaption on 6M Euribor
 #'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base06.R` (`make_hw_swaption_setup()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' The underlying swap pays an annual 30/360 (Bond Basis) fixed leg and
+#' receives semiannual 6M Euribor (Actual/360), on TARGET schedules with
+#' Modified Following and backward generation. No pricing engine is set, so a
+#' Hull-White (Jamshidian) or other swaption engine can be attached.
 #'
-#' @param curve_handle,exercise_date,swap_start,swap_maturity,nominal,fixed_rate Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param curve_handle Forecasting curve handle for Euribor.
+#' @param exercise_date Exercise date.
+#' @param swap_start,swap_maturity Underlying swap start and end dates.
+#' @param nominal Notional.
+#' @param fixed_rate Fixed rate of the underlying swap, decimal.
+#'
+#' @return A list with `fixed_schedule`, `float_schedule`, `index`, `swap`,
+#'   `exercise` and `swaption`.
+#' @note Moved from QuantLib_tidy: `R/bonds_basic/base06.R`.
 #' @export
 make_hw_swaption_setup_GQL <- function(curve_handle,
                                    exercise_date = "2024-01-03",
@@ -154,13 +181,19 @@ make_hw_swaption_setup_GQL <- function(curve_handle,
   )
 }
 
-#' survival tbl
+#' Tabulate survival probabilities of a default curve
 #'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base08.R` (`survival_tbl()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Evaluates survival probabilities on an even time grid up to the curve's
+#' maximum time and derives an average hazard rate \eqn{-\log(S(t))/t}.
+#' When the curve does not report a maximum time or reference date, 10 years
+#' and 2023-01-03 are used.
 #'
-#' @param default_curve_obj,n Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param default_curve_obj QuantLib default probability term structure.
+#' @param n Number of grid points.
+#'
+#' @return A tibble with `time`, `survival_probability`, `hazard_rate_proxy`
+#'   and `curve_date` (reference date plus `round(time * 365)` days).
+#' @note Moved from QuantLib_tidy: `R/bonds_basic/base08.R`.
 #' @export
 survival_tbl_GQL <- function(default_curve_obj, n = 200) {
   max_t <- tryCatch(default_curve_obj$maxTime(), error = function(e) 10)
@@ -178,13 +211,23 @@ survival_tbl_GQL <- function(default_curve_obj, n = 200) {
     )
 }
 
-#' price european call scenario
+#' Price a European option under one spot and volatility scenario
 #'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base09.R` (`price_european_call_scenario()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Builds a Black-Scholes-Merton process with a flat volatility and prices the
+#' option analytically. The dividend and risk-free curves are kept fixed.
 #'
-#' @param spot,volatility,eval_date,calendar_obj,day_counter_obj,dividend_handle,risk_free_handle,payoff_call,european_exercise Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param spot Underlying spot.
+#' @param volatility Flat Black volatility, decimal.
+#' @param eval_date QuantLib evaluation Date for the volatility curve.
+#' @param calendar_obj Calendar of the volatility curve.
+#' @param day_counter_obj Day counter of the volatility curve.
+#' @param dividend_handle Dividend yield curve handle.
+#' @param risk_free_handle Risk-free curve handle.
+#' @param payoff_call QuantLib payoff, for example a plain vanilla call.
+#' @param european_exercise QuantLib European exercise.
+#'
+#' @return Numeric NPV, or `NA` if the engine cannot be built or set.
+#' @note Moved from QuantLib_tidy: `R/bonds_basic/base09.R`.
 #' @export
 price_european_call_scenario_GQL <- function(spot, volatility, eval_date, calendar_obj, day_counter_obj, dividend_handle, risk_free_handle, payoff_call, european_exercise) {
   local_spot_quote <- QuantLib::SimpleQuote(spot)
@@ -211,13 +254,24 @@ price_european_call_scenario_GQL <- function(spot, volatility, eval_date, calend
   instrument_npv_safe_GQL(local_option)
 }
 
-#' price fx call scenario
+#' Price an FX option under one spot, volatility and domestic rate scenario
 #'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base10.R` (`price_fx_call_scenario()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Garman-Kohlhagen pricing through a Black-Scholes-Merton process: the
+#' foreign rate plays the role of the dividend yield and the domestic rate the
+#' risk-free rate, both as flat curves.
 #'
-#' @param spot,volatility,domestic_rate_local,eval_date,calendar_obj,day_counter_obj,foreign_rate,payoff_call,exercise_obj Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param spot FX spot, domestic per foreign unit.
+#' @param volatility Flat Black volatility, decimal.
+#' @param domestic_rate_local Domestic interest rate, decimal.
+#' @param eval_date QuantLib evaluation Date for the curves.
+#' @param calendar_obj Calendar of the volatility curve.
+#' @param day_counter_obj Day counter of the curves.
+#' @param foreign_rate Foreign interest rate, decimal.
+#' @param payoff_call QuantLib payoff.
+#' @param exercise_obj QuantLib exercise.
+#'
+#' @return Numeric NPV, or `NA` if the engine cannot be built or set.
+#' @note Moved from QuantLib_tidy: `R/bonds_basic/base10.R`.
 #' @export
 price_fx_call_scenario_GQL <- function(spot, volatility, domestic_rate_local, eval_date, calendar_obj, day_counter_obj, foreign_rate, payoff_call, exercise_obj) {
   local_spot_quote <- QuantLib::SimpleQuote(spot)
@@ -251,13 +305,12 @@ price_fx_call_scenario_GQL <- function(spot, volatility, domestic_rate_local, ev
   instrument_npv_safe_GQL(local_option)
 }
 
-#' append quote handles
+#' Collect quote handles into a QuantLib QuoteHandleVector
 #'
-#' Moved from `QuantLib_tidy/R/options/tidy_gaussina1d.R` (`append_quote_handles()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' @param qh_list List of QuantLib `QuoteHandle` objects.
 #'
-#' @param qh_list Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @return A QuantLib `QuoteHandleVector`.
+#' @note Moved from QuantLib_tidy: `R/options/tidy_gaussina1d.R`.
 #' @export
 append_quote_handles_GQL <- function(qh_list) {
   vec <- QuantLib::QuoteHandleVector()
@@ -270,13 +323,17 @@ append_quote_handles_GQL <- function(qh_list) {
   vec
 }
 
-#' shifted exercise dates
+#' Bermudan exercise dates from a swap schedule
 #'
-#' Moved from `QuantLib_tidy/R/options/tidy_gaussina1d.R` (`schedule_dates_to_shifted_exercise_dates()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Moves every schedule date back by `lag_days` business days and drops the
+#' first and last dates, giving exercise dates that precede each coupon start.
 #'
-#' @param schedule_obj,calendar,lag_days Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param schedule_obj QuantLib schedule of the underlying swap.
+#' @param calendar Calendar used for the shift.
+#' @param lag_days Business days between exercise and coupon start.
+#'
+#' @return A QuantLib `DateVector`.
+#' @note Moved from QuantLib_tidy: `R/options/tidy_gaussina1d.R`.
 #' @export
 shifted_exercise_dates_GQL <- function(schedule_obj, calendar, lag_days = 2) {
   exercise_dates <- QuantLib::Schedule_dates(self = schedule_obj, .copy = TRUE)
@@ -297,13 +354,15 @@ shifted_exercise_dates_GQL <- function(schedule_obj, calendar, lag_days = 2) {
   exercise_dates
 }
 
-#' set swaption engines
+#' Attach a pricing engine to every swaption helper in a basket
 #'
-#' Moved from `QuantLib_tidy/R/options/tidy_gaussina1d.R` (`set_swaption_engines()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Modifies the helpers in place.
 #'
-#' @param basket,engine Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param basket QuantLib calibration helper vector of swaption helpers.
+#' @param engine Swaption pricing engine, for example a Gaussian1d engine.
+#'
+#' @return `NULL`, invisibly.
+#' @note Moved from QuantLib_tidy: `R/options/tidy_gaussina1d.R`.
 #' @export
 set_swaption_engines_GQL <- function(basket, engine) {
   purrr::walk(
@@ -316,13 +375,13 @@ set_swaption_engines_GQL <- function(basket, engine) {
   invisible(NULL)
 }
 
-#' swaption basket tbl
+#' Tabulate the swaptions in a calibration basket
 #'
-#' Moved from `QuantLib_tidy/R/options/tidy_gaussina1d.R` (`basket_data_tbl()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' @param basket QuantLib calibration helper vector of swaption helpers.
 #'
-#' @param basket Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @return A tibble with `expiry`, `maturity`, `nominal`, `strike` and
+#'   `optType`.
+#' @note Moved from QuantLib_tidy: `R/options/tidy_gaussina1d.R`.
 #' @export
 swaption_basket_tbl_GQL <- function(basket) {
   tibble::tibble(idx = seq_len(basket$size())) |>
@@ -363,13 +422,18 @@ swaption_basket_tbl_GQL <- function(basket) {
     dplyr::select(expiry, maturity, nominal, strike, optType)
 }
 
-#' swaption calibration tbl
+#' Compare model and market values of a calibrated swaption basket
 #'
-#' Moved from `QuantLib_tidy/R/options/tidy_gaussina1d.R` (`calibration_data_tbl()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Model implied volatilities invert each helper's model price with
+#' `impliedVolatility()` (accuracy 1e-6, at most 1000 evaluations, volatility
+#' between 0 and 2).
 #'
-#' @param basket,volatilities Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param basket QuantLib calibration helper vector of swaption helpers.
+#' @param volatilities Calibrated model volatilities, one per helper.
+#'
+#' @return A tibble with `expiry`, `modelSigma`, `modelPrice`, `marketPrice`,
+#'   `modelImpVol` and `marketImpVol`.
+#' @note Moved from QuantLib_tidy: `R/options/tidy_gaussina1d.R`.
 #' @export
 swaption_calibration_tbl_GQL <- function(basket, volatilities) {
   tibble::tibble(idx = seq_len(basket$size())) |>
@@ -420,13 +484,17 @@ swaption_calibration_tbl_GQL <- function(basket, volatilities) {
     dplyr::select(expiry, modelSigma, modelPrice, marketPrice, modelImpVol, marketImpVol)
 }
 
-#' option npv at spot
+#' NPV of the QuantLib example European call for a given spot
 #'
-#' Moved from `QuantLib_tidy/R/options/tidy_graph.R` (`option_npv_at_spot()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Uses the fixed setup of the QuantLib European option example: evaluation
+#' date 1998-05-15, settlement 1998-05-17, expiry 1999-05-17, strike 8, flat
+#' risk-free rate and dividend yield of 5%, and volatility 10%. Sets the
+#' global QuantLib evaluation date to 1998-05-15.
 #'
-#' @param spot_value Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param spot_value Underlying spot.
+#'
+#' @return Numeric NPV.
+#' @note Moved from QuantLib_tidy: `R/options/tidy_graph.R`.
 #' @export
 option_npv_at_spot_GQL <- function(spot_value) {
   todaysDate <- date_GQL("1998-05-15")
@@ -474,13 +542,19 @@ option_npv_at_spot_GQL <- function(spot_value) {
   option$NPV()
 }
 
-#' option surface row
+#' NPV and Greeks of an option for one spot and volatility
 #'
-#' Moved from `QuantLib_tidy/R/options/tidy_wireframe.R` (`build_option_surface_row()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Sets the given values on the spot and volatility quotes, which updates the
+#' option through its observers, and reads the NPV and Greeks. The quotes are
+#' left at the new values.
 #'
-#' @param spot_value,vol_value,underlying,volatilityQuote,option Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param spot_value,vol_value Spot and volatility to set.
+#' @param underlying QuantLib `SimpleQuote` of the spot.
+#' @param volatilityQuote QuantLib `SimpleQuote` of the volatility.
+#' @param option QuantLib option with a pricing engine linked to the quotes.
+#'
+#' @return A one-row tibble with `NPV`, `gamma`, `delta` and `vega`.
+#' @note Moved from QuantLib_tidy: `R/options/tidy_wireframe.R`.
 #' @export
 option_surface_row_GQL <- function(spot_value, vol_value,
                                      underlying, volatilityQuote, option) {
@@ -495,13 +569,12 @@ option_surface_row_GQL <- function(spot_value, vol_value,
   )
 }
 
-#' build corr matrix
+#' Two-asset correlation matrix
 #'
-#' Moved from `QuantLib_tidy/R/options/tisy_basket.R` (`build_corr_matrix()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' @param rho Correlation between the two assets.
 #'
-#' @param rho Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @return A 2 x 2 QuantLib `Matrix`.
+#' @note Moved from QuantLib_tidy: `R/options/tisy_basket.R`.
 #' @export
 build_corr_matrix_GQL <- function(rho = 0.5) {
   m <- QuantLib::Matrix(2, 2)
@@ -512,13 +585,13 @@ build_corr_matrix_GQL <- function(rho = 0.5) {
   m
 }
 
-#' build process vector
+#' Collect one-dimensional processes into a QuantLib vector
 #'
-#' Moved from `QuantLib_tidy/R/options/tisy_basket.R` (`build_process_vector()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' @param process_list List of QuantLib one-dimensional stochastic processes.
 #'
-#' @param process_list Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @return A QuantLib `StochasticProcess1DVector`, for example for a
+#'   `StochasticProcessArray`.
+#' @note Moved from QuantLib_tidy: `R/options/tisy_basket.R`.
 #' @export
 build_process_vector_GQL <- function(process_list) {
   vec <- QuantLib::StochasticProcess1DVector(length(process_list))
@@ -537,13 +610,17 @@ build_process_vector_GQL <- function(process_list) {
   vec
 }
 
-#' basket european engine
+#' Monte Carlo engine for European basket options
 #'
-#' Moved from `QuantLib_tidy/R/options/tisy_basket.R` (`build_european_engine()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Pseudo-random `MCPREuropeanBasketEngine` with one time step per year,
+#' required tolerance 0.02 and at most 10000 samples.
 #'
-#' @param process,seed Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param process Multi-dimensional process, for example a
+#'   `StochasticProcessArray`.
+#' @param seed Random seed of the engine.
+#'
+#' @return A QuantLib pricing engine.
+#' @note Moved from QuantLib_tidy: `R/options/tisy_basket.R`.
 #' @export
 basket_european_engine_GQL <- function(process, seed = 42) {
   QuantLib::MCPREuropeanBasketEngine(
@@ -559,13 +636,16 @@ basket_european_engine_GQL <- function(process, seed = 42) {
   )
 }
 
-#' basket american engine
+#' Least-squares Monte Carlo engine for American basket options
 #'
-#' Moved from `QuantLib_tidy/R/options/tisy_basket.R` (`build_american_engine()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Pseudo-random `MCPRAmericanBasketEngine` with 10 time steps, 50000
+#' required samples (tolerance 0.02, at most 100000), 5000 calibration
+#' samples and a fifth-order Hermite basis.
 #'
-#' @param process,seed Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @inheritParams basket_european_engine_GQL
+#'
+#' @return A QuantLib pricing engine.
+#' @note Moved from QuantLib_tidy: `R/options/tisy_basket.R`.
 #' @export
 basket_american_engine_GQL <- function(process, seed = 42) {
   QuantLib::MCPRAmericanBasketEngine(
@@ -584,26 +664,28 @@ basket_american_engine_GQL <- function(process, seed = 42) {
   )
 }
 
-#' price basket option
+#' Price a basket option with a given engine
 #'
-#' Moved from `QuantLib_tidy/R/options/tisy_basket.R` (`price_basket_option()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' Sets `engine` on `option` (modifying it) and returns the NPV.
 #'
-#' @param option,engine Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @param option QuantLib basket option.
+#' @param engine Pricing engine.
+#'
+#' @return Numeric NPV.
+#' @note Moved from QuantLib_tidy: `R/options/tisy_basket.R`.
 #' @export
 price_basket_option_GQL <- function(option, engine) {
   option$setPricingEngine(engine)
   option$NPV()
 }
 
-#' append default helpers
+#' Collect default probability helpers into a QuantLib vector
 #'
-#' Moved from `QuantLib_tidy/R/swaps/tidy_CDS.R` (`append_default_helpers()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' @param helper_list List of QuantLib default probability helpers, for
+#'   example CDS spread helpers.
 #'
-#' @param helper_list Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @return A QuantLib `DefaultProbabilityHelperVector`.
+#' @note Moved from QuantLib_tidy: `R/swaps/tidy_CDS.R`.
 #' @export
 append_default_helpers_GQL <- function(helper_list) {
   vec <- QuantLib::DefaultProbabilityHelperVector()
@@ -616,13 +698,13 @@ append_default_helpers_GQL <- function(helper_list) {
   vec
 }
 
-#' extract hazard tbl
+#' Tabulate the nodes of a hazard rate curve
 #'
-#' Moved from `QuantLib_tidy/R/swaps/tidy_CDS.R` (`extract_hazard_tbl()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
+#' @param hazard_curve QuantLib hazard rate curve, for example a bootstrapped
+#'   piecewise flat hazard curve.
 #'
-#' @param hazard_curve Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
+#' @return A tibble with `date` (ISO) and `hazard_rate`.
+#' @note Moved from QuantLib_tidy: `R/swaps/tidy_CDS.R`.
 #' @export
 extract_hazard_tbl_GQL <- function(hazard_curve) {
   curve_dates <- hazard_curve$dates()

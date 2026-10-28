@@ -2,17 +2,20 @@
 % Please edit documentation in R/qlt_models_GQL.R
 \name{extract_hazard_tbl_GQL}
 \alias{extract_hazard_tbl_GQL}
-\title{extract hazard tbl}
+\title{Tabulate the nodes of a hazard rate curve}
 \usage{
 extract_hazard_tbl_GQL(hazard_curve)
 }
 \arguments{
-\item{hazard_curve}{Arguments of the original helper.}
+\item{hazard_curve}{QuantLib hazard rate curve, for example a bootstrapped
+piecewise flat hazard curve.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A tibble with \code{date} (ISO) and \code{hazard_rate}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/swaps/tidy_CDS.R} (\code{extract_hazard_tbl()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Tabulate the nodes of a hazard rate curve
+}
+\note{
+Moved from QuantLib_tidy: \code{R/swaps/tidy_CDS.R}.
 }

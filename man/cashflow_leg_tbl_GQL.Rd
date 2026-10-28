@@ -2,17 +2,25 @@
 % Please edit documentation in R/qlt_rates_GQL.R
 \name{cashflow_leg_tbl_GQL}
 \alias{cashflow_leg_tbl_GQL}
-\title{cashflow leg tbl}
+\title{Tabulate a cashflow leg with discount factors}
 \usage{
 cashflow_leg_tbl_GQL(leg_obj, curve_obj = NULL)
 }
 \arguments{
-\item{leg_obj, curve_obj}{Arguments of the original helper.}
+\item{leg_obj}{QuantLib Leg.}
+
+\item{curve_obj}{Optional discount curve.}
 }
 \value{
-The value returned by the original QuantLib_tidy helper.
+A tibble with \code{pay_date}, \code{accrual_start}, \code{accrual_end}, \code{amount},
+\code{rate}, \code{df} and \code{pv}.
 }
 \description{
-Moved from \code{QuantLib_tidy/R/bonds_basic/base07.R} (\code{cashflow_leg_tbl()}) without changing
-the calculation. Script-level constants and data are passed explicitly.
+Coupons report their accrual dates and rate; other cashflows (for example
+redemptions) leave those columns \code{NA}. Discount factors come from
+\code{curve_obj$discount()} at the payment date and are \code{NA} when no curve is
+given or the curve cannot discount the date.
+}
+\note{
+Moved from QuantLib_tidy: \code{R/bonds_basic/base07.R}, \code{R/swaps/QuantLib_study02_tidy.R}.
 }
