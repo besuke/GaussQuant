@@ -226,10 +226,26 @@ ir_fixing_table_GQH <- function(swap, curve, index) {
     dplyr::select(-cf, -coupon)
 }
 
-.business_dates_tbl_GQH <- function(start_date, end_date, calendar_obj) {
+#' Tabulate business days between two dates
+#'
+#' @param start_date Start date as an ISO string, R Date, or QuantLib Date.
+#' @param end_date End date as an ISO string, R Date, or QuantLib Date.
+#' @param calendar_obj QuantLib calendar.
+#' @param include_end Include `end_date` itself. `FALSE` gives the accrual
+#'   convention `[start_date, end_date)` used by the QuantLib_tidy scripts.
+#'
+#' @return A tibble with ISO `accrual_date` strings.
+#' @export
+business_dates_tbl_GQL <- function(start_date, end_date, calendar_obj, include_end = TRUE) {
+  last_date <- as.Date(iso_GQL(date_GQL(end_date)))
+
+  if (!isTRUE(include_end)) {
+    last_date <- last_date - 1
+  }
+
   dates <- seq.Date(
     from = as.Date(iso_GQL(date_GQL(start_date))),
-    to = as.Date(iso_GQL(date_GQL(end_date))),
+    to = last_date,
     by = "day"
   )
 
@@ -306,7 +322,7 @@ ois_daily_forward_table_GQH <- function(
 
   eval_date_r <- as.Date(iso_GQL(eval_date))
 
-  business_dates_tbl <- .business_dates_tbl_GQH(
+  business_dates_tbl <- business_dates_tbl_GQL(
     start_date = iso_GQL(accrual_start),
     end_date = iso_GQL(accrual_end),
     calendar_obj = calendar
