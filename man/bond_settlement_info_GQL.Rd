@@ -2,10 +2,24 @@
 % Please edit documentation in R/bond_analytics_GQL.R
 \name{bond_settlement_info_GQL}
 \alias{bond_settlement_info_GQL}
-\title{Get bond settlement information}
+\title{Bond settlement and coupon timing information}
 \usage{
 bond_settlement_info_GQL(bond, as_of = eval_date_get_GQL())
 }
+\arguments{
+\item{bond}{QuantLib bond.}
+
+\item{as_of}{Reference date as an R Date or ISO string; defaults to the
+QuantLib evaluation date.}
+}
+\value{
+A one-row tibble with \code{evaluation_date}, \code{settlement_date},
+\code{settlement_days}, \code{previous_coupon_date}, \code{next_coupon_date},
+\code{days_since_previous_coupon}, \code{days_to_next_coupon} and
+\code{accrued_amount}.
+}
 \description{
-Get bond settlement information
+Finds the coupons immediately before and after \code{as_of} with
+\code{\link[=bond_coupon_info_GQL]{bond_coupon_info_GQL()}} and reports the bond's settlement date,
+settlement days and accrued amount from QuantLib.
 }

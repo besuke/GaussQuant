@@ -878,8 +878,31 @@ trade_ois_swap_GQH <- function(
   out
 }
 
-#' Python-style OIS swap trade wrapper
+#' Build an OIS trade with pay/receive and notional arguments
 #'
+#' Convenience wrapper of [trade_ois_swap_GQH()] with Python-style argument
+#' names. Conventions (calendar, leg tenors, payment lag, fixed day counter,
+#' overnight index) come from the currency and instrument of `curve_env`.
+#'
+#' @param curve_env Curve environment from [ir_build_ois_curve_GQH()], with
+#'   `curve_handle`, `currency`, `instrument` and `settle_date`.
+#' @param effective Effective date; `NULL` uses `curve_env$settle_date`.
+#' @param maturity Maturity date.
+#' @param notional Notional.
+#' @param fixed_rate Fixed rate, decimal.
+#' @param float_spread Spread over the overnight rate, decimal.
+#' @param pay_receive `"pay"` to pay fixed, `"receive"` to receive fixed.
+#' @param fixed_schedule_tenor,floating_schedule_tenor Optional leg tenors
+#'   (QuantLib Period or string such as `"1Y"`); `NULL` uses the convention.
+#' @param pay_lag Optional payment lag in business days.
+#' @param fixed_bdc Business-day convention of both schedules.
+#' @param date_rule Date generation rule of both schedules.
+#' @param eom End-of-month flag of both schedules.
+#' @param verbose Print a progress message.
+#'
+#' @return A list with `trade_type`, `swap` (with a discounting engine),
+#'   `index`, `curve_env`, `fixed_schedule`, `overnight_schedule`,
+#'   `effective`, `maturity`, `nominal`, `fixed_rate` and `float_spread`.
 #' @export
 trade_ois_swap_py_GQH <- function(
   curve_env,
@@ -986,8 +1009,22 @@ trade_ois_swap_py_GQH <- function(
     )
 }
 
-#' Make a simple interpolated basis curve environment
+#' Make a basis curve environment over a base curve
 #'
+#' Interpolates the basis spreads linearly in the base curve's time (flat
+#' beyond the first and last tenors). The spread is added to the base curve's
+#' continuously compounded zero rate, see [ir_basis_table_GQH()].
+#'
+#' @param basis_data Data frame with `tenor` and one of `spread`, `basis` or
+#'   `rate` (decimal); at least two tenors.
+#' @param base_curve_env Curve environment with `$curve`, for example from
+#'   [ir_build_ois_curve_GQH()].
+#' @param spread_label Label stored with the environment.
+#' @param verbose Print a progress message.
+#'
+#' @return A list of class `ir_basis_curve_GQH` with `trade_date`,
+#'   `settle_date`, `currency`, `instrument`, `spread_label`, `base_curve`,
+#'   `base_curve_env`, `basis_tbl` and `spread_fun`.
 #' @export
 ir_make_basis_curve_GQH <- function(
   basis_data,
@@ -1062,8 +1099,14 @@ ir_make_basis_curve_GQH <- function(
   exp(-z * tt)
 }
 
-#' Build a basis curve table
+#' Tabulate a basis curve at standard tenors
 #'
+#' @param basis_env Basis environment from [ir_make_basis_curve_GQH()].
+#' @param tenors Tenors measured from the base curve reference date.
+#'
+#' @return A tibble with `tenor`, `date`, `spread`, `base_zero` (continuous
+#'   zero rate of the base curve), `basis_zero` (`base_zero + spread`) and
+#'   `basis_df` (`exp(-basis_zero * t)`).
 #' @export
 ir_basis_table_GQH <- function(
   basis_env,
@@ -1154,8 +1197,34 @@ ir_basis_table_GQH <- function(
     )
 }
 
-#' Asset swap analysis for a fixed-rate bond
+#' Fair spread and fair clean price of a bond asset swap
 #'
+#' Builds the floating schedule from settlement to maturity, constructs the
+#' asset swap (trying the `AssetSwap` constructor signatures of different
+#' QuantLib-SWIG builds), prices it with a discounting swap engine, and reads
+#' the fair spread and fair clean price.
+#'
+#' @param bond QuantLib fixed-rate bond.
+#' @param clean_price Bond clean price per 100 of face amount.
+#' @param ibor_index Floating-rate index of the swap leg.
+#' @param spread Spread over the index, decimal.
+#' @param settlement_date,maturity_date Floating schedule start and end dates.
+#' @param calendar Floating schedule calendar.
+#' @param floating_schedule_frequency QuantLib Period of the floating leg.
+#' @param payment_convention Business-day convention of the floating schedule.
+#' @param date_generation Date generation rule of the floating schedule.
+#' @param end_of_month End-of-month flag of the floating schedule.
+#' @param floating_day_counter Day counter of the floating leg.
+#' @param pay_fixed_rate `TRUE` to pay the bond's fixed coupons.
+#' @param par_asset_swap `TRUE` for a par asset swap, `FALSE` for a
+#'   market-value asset swap.
+#' @param discount_curve_handle Discounting curve handle.
+#' @param gearing Gearing of the floating leg.
+#' @param non_par_repayment Repayment used for non-par asset swaps.
+#'
+#' @return A tibble with `metric` (`"fair_spread"`, `"fair_clean_price"`,
+#'   `"status"`) and a list column `value`. When no constructor works, the
+#'   values are `NA` and `status` explains why.
 #' @export
 asset_swap_analysis_GQH <- function(
   bond,

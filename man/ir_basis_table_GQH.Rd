@@ -2,13 +2,23 @@
 % Please edit documentation in R/compat_quantive_riemann_GQH.R
 \name{ir_basis_table_GQH}
 \alias{ir_basis_table_GQH}
-\title{Build a basis curve table}
+\title{Tabulate a basis curve at standard tenors}
 \usage{
 ir_basis_table_GQH(
   basis_env,
   tenors = c("1M", "3M", "6M", "1Y", "2Y", "3Y", "5Y", "10Y", "20Y", "30Y")
 )
 }
+\arguments{
+\item{basis_env}{Basis environment from \code{\link[=ir_make_basis_curve_GQH]{ir_make_basis_curve_GQH()}}.}
+
+\item{tenors}{Tenors measured from the base curve reference date.}
+}
+\value{
+A tibble with \code{tenor}, \code{date}, \code{spread}, \code{base_zero} (continuous
+zero rate of the base curve), \code{basis_zero} (\code{base_zero + spread}) and
+\code{basis_df} (\code{exp(-basis_zero * t)}).
+}
 \description{
-Build a basis curve table
+Tabulate a basis curve at standard tenors
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/compat_quantive_riemann_GQH.R
 \name{ir_make_basis_curve_GQH}
 \alias{ir_make_basis_curve_GQH}
-\title{Make a simple interpolated basis curve environment}
+\title{Make a basis curve environment over a base curve}
 \usage{
 ir_make_basis_curve_GQH(
   basis_data,
@@ -11,6 +11,24 @@ ir_make_basis_curve_GQH(
   verbose = TRUE
 )
 }
+\arguments{
+\item{basis_data}{Data frame with \code{tenor} and one of \code{spread}, \code{basis} or
+\code{rate} (decimal); at least two tenors.}
+
+\item{base_curve_env}{Curve environment with \verb{$curve}, for example from
+\code{\link[=ir_build_ois_curve_GQH]{ir_build_ois_curve_GQH()}}.}
+
+\item{spread_label}{Label stored with the environment.}
+
+\item{verbose}{Print a progress message.}
+}
+\value{
+A list of class \code{ir_basis_curve_GQH} with \code{trade_date},
+\code{settle_date}, \code{currency}, \code{instrument}, \code{spread_label}, \code{base_curve},
+\code{base_curve_env}, \code{basis_tbl} and \code{spread_fun}.
+}
 \description{
-Make a simple interpolated basis curve environment
+Interpolates the basis spreads linearly in the base curve's time (flat
+beyond the first and last tenors). The spread is added to the base curve's
+continuously compounded zero rate, see \code{\link[=ir_basis_table_GQH]{ir_basis_table_GQH()}}.
 }

@@ -2,10 +2,17 @@
 % Please edit documentation in R/bond_analytics_GQL.R
 \name{bond_accrued_GQL}
 \alias{bond_accrued_GQL}
-\title{Bond Accrued Amount}
+\title{Bond accrued interest at settlement}
 \usage{
 bond_accrued_GQL(bond)
 }
+\arguments{
+\item{bond}{QuantLib bond.}
+}
+\value{
+Numeric accrued amount.
+}
 \description{
-Bond Accrued Amount
+Accrued amount at the bond's settlement date for the current QuantLib
+evaluation date, in price units (per 100 of face amount).
 }

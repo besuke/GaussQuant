@@ -2,7 +2,7 @@
 % Please edit documentation in R/interest_option_GQL.R
 \name{make_floor_GQL}
 \alias{make_floor_GQL}
-\title{Make a QuantLib interest-rate floor}
+\title{Make an interest-rate floor on flat curves}
 \usage{
 make_floor_GQL(
   notional,
@@ -20,6 +20,37 @@ make_floor_GQL(
   pricing_engine = NULL
 )
 }
+\arguments{
+\item{notional}{Notional of every period.}
+
+\item{start_date, maturity_date}{Cap start and end dates.}
+
+\item{floor_rate}{Strike, decimal.}
+
+\item{valuation_date}{Valuation date; defaults to the QuantLib evaluation
+date.}
+
+\item{tenor_months}{Length of each period and of the Euribor index, in
+months.}
+
+\item{discount_rate}{Flat discount rate, decimal.}
+
+\item{forecast_rate}{Flat forecast rate for the index, decimal.}
+
+\item{volatility}{Flat Black volatility, decimal.}
+
+\item{day_counter}{Day counter of the curves, leg and engine.}
+
+\item{calendar}{Schedule calendar.}
+
+\item{convention}{Business-day convention of the schedule.}
+
+\item{pricing_engine}{Optional QuantLib pricing engine used instead of the
+Black engine.}
+}
+\value{
+A QuantLib \code{Floor} with its pricing engine set.
+}
 \description{
-Make a QuantLib interest-rate floor
+Same setup as \code{\link[=make_cap_GQL]{make_cap_GQL()}} with a floor strike.
 }

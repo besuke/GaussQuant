@@ -2,10 +2,16 @@
 % Please edit documentation in R/interest_option_GQL.R
 \name{cap_floor_npv_GQL}
 \alias{cap_floor_npv_GQL}
-\title{Calculate cap/floor NPV}
+\title{Cap or floor NPV}
 \usage{
 cap_floor_npv_GQL(cap_floor)
 }
+\arguments{
+\item{cap_floor}{QuantLib \code{Cap} or \code{Floor} with a pricing engine.}
+}
+\value{
+Numeric NPV, or \code{NA} if QuantLib cannot compute it.
+}
 \description{
-Calculate cap/floor NPV
+Cap or floor NPV
 }

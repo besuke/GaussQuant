@@ -2,7 +2,7 @@
 % Please edit documentation in R/bond_analytics_GQL.R
 \name{zero_coupon_bond_GQL}
 \alias{zero_coupon_bond_GQL}
-\title{Create a zero coupon bond}
+\title{Create a zero-coupon bond priced on a discount curve}
 \usage{
 zero_coupon_bond_GQL(
   discount_curve,
@@ -11,6 +11,20 @@ zero_coupon_bond_GQL(
   face = 100
 )
 }
+\arguments{
+\item{discount_curve}{QuantLib yield term structure (not a handle).}
+
+\item{maturity}{Maturity date as an ISO string or R Date.}
+
+\item{issue}{Issue date as an ISO string or R Date.}
+
+\item{face}{Face amount.}
+}
+\value{
+A QuantLib \code{ZeroCouponBond} with its pricing engine set.
+}
 \description{
-Create a zero coupon bond
+Uses the US government bond calendar, three settlement days, the Following
+convention and redemption 100, with a discounting bond engine on
+\code{discount_curve}.
 }

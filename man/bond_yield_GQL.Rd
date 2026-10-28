@@ -2,7 +2,7 @@
 % Please edit documentation in R/bond_analytics_GQL.R
 \name{bond_yield_GQL}
 \alias{bond_yield_GQL}
-\title{Bond Yield}
+\title{Yield implied by a bond's pricing engine}
 \usage{
 bond_yield_GQL(
   bond,
@@ -11,6 +11,21 @@ bond_yield_GQL(
   frequency = "Annual"
 )
 }
+\arguments{
+\item{bond}{QuantLib bond with a pricing engine.}
+
+\item{day_counter}{QuantLib day counter of the yield.}
+
+\item{compounding}{Compounding name or QuantLib enum, for example
+\code{"Compounded"}, \code{"Simple"} or \code{"Continuous"}.}
+
+\item{frequency}{Compounding frequency name or QuantLib enum, for example
+\code{"Annual"} or \code{"Semiannual"}.}
+}
+\value{
+Numeric yield, decimal.
+}
 \description{
-Bond Yield
+Solves for the yield that reproduces the clean price the bond's pricing
+engine computes, so the bond must have an engine set.
 }

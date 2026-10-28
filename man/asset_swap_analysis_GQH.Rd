@@ -2,7 +2,7 @@
 % Please edit documentation in R/compat_quantive_riemann_GQH.R
 \name{asset_swap_analysis_GQH}
 \alias{asset_swap_analysis_GQH}
-\title{Asset swap analysis for a fixed-rate bond}
+\title{Fair spread and fair clean price of a bond asset swap}
 \usage{
 asset_swap_analysis_GQH(
   bond,
@@ -24,6 +24,48 @@ asset_swap_analysis_GQH(
   non_par_repayment = 100
 )
 }
+\arguments{
+\item{bond}{QuantLib fixed-rate bond.}
+
+\item{clean_price}{Bond clean price per 100 of face amount.}
+
+\item{ibor_index}{Floating-rate index of the swap leg.}
+
+\item{spread}{Spread over the index, decimal.}
+
+\item{settlement_date, maturity_date}{Floating schedule start and end dates.}
+
+\item{calendar}{Floating schedule calendar.}
+
+\item{floating_schedule_frequency}{QuantLib Period of the floating leg.}
+
+\item{payment_convention}{Business-day convention of the floating schedule.}
+
+\item{date_generation}{Date generation rule of the floating schedule.}
+
+\item{end_of_month}{End-of-month flag of the floating schedule.}
+
+\item{floating_day_counter}{Day counter of the floating leg.}
+
+\item{pay_fixed_rate}{\code{TRUE} to pay the bond's fixed coupons.}
+
+\item{par_asset_swap}{\code{TRUE} for a par asset swap, \code{FALSE} for a
+market-value asset swap.}
+
+\item{discount_curve_handle}{Discounting curve handle.}
+
+\item{gearing}{Gearing of the floating leg.}
+
+\item{non_par_repayment}{Repayment used for non-par asset swaps.}
+}
+\value{
+A tibble with \code{metric} (\code{"fair_spread"}, \code{"fair_clean_price"},
+\code{"status"}) and a list column \code{value}. When no constructor works, the
+values are \code{NA} and \code{status} explains why.
+}
 \description{
-Asset swap analysis for a fixed-rate bond
+Builds the floating schedule from settlement to maturity, constructs the
+asset swap (trying the \code{AssetSwap} constructor signatures of different
+QuantLib-SWIG builds), prices it with a discounting swap engine, and reads
+the fair spread and fair clean price.
 }

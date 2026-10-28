@@ -2,10 +2,17 @@
 % Please edit documentation in R/interest_option_GQL.R
 \name{cap_floor_optionlet_prices_GQL}
 \alias{cap_floor_optionlet_prices_GQL}
-\title{Extract cap/floor optionlet prices}
+\title{Prices of the individual caplets or floorlets}
 \usage{
 cap_floor_optionlet_prices_GQL(cap_floor)
 }
+\arguments{
+\item{cap_floor}{QuantLib \code{Cap} or \code{Floor} with a pricing engine.}
+}
+\value{
+A tibble with \code{optionlet} (position) and \code{price}; empty if the
+engine does not report optionlet prices.
+}
 \description{
-Extract cap/floor optionlet prices
+Prices of the individual caplets or floorlets
 }

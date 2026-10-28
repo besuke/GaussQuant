@@ -2,7 +2,7 @@
 % Please edit documentation in R/compat_quantive_riemann_GQH.R
 \name{trade_ois_swap_py_GQH}
 \alias{trade_ois_swap_py_GQH}
-\title{Python-style OIS swap trade wrapper}
+\title{Build an OIS trade with pay/receive and notional arguments}
 \usage{
 trade_ois_swap_py_GQH(
   curve_env,
@@ -21,6 +21,42 @@ trade_ois_swap_py_GQH(
   verbose = TRUE
 )
 }
+\arguments{
+\item{curve_env}{Curve environment from \code{\link[=ir_build_ois_curve_GQH]{ir_build_ois_curve_GQH()}}, with
+\code{curve_handle}, \code{currency}, \code{instrument} and \code{settle_date}.}
+
+\item{effective}{Effective date; \code{NULL} uses \code{curve_env$settle_date}.}
+
+\item{maturity}{Maturity date.}
+
+\item{notional}{Notional.}
+
+\item{fixed_rate}{Fixed rate, decimal.}
+
+\item{float_spread}{Spread over the overnight rate, decimal.}
+
+\item{pay_receive}{\code{"pay"} to pay fixed, \code{"receive"} to receive fixed.}
+
+\item{fixed_schedule_tenor, floating_schedule_tenor}{Optional leg tenors
+(QuantLib Period or string such as \code{"1Y"}); \code{NULL} uses the convention.}
+
+\item{pay_lag}{Optional payment lag in business days.}
+
+\item{fixed_bdc}{Business-day convention of both schedules.}
+
+\item{date_rule}{Date generation rule of both schedules.}
+
+\item{eom}{End-of-month flag of both schedules.}
+
+\item{verbose}{Print a progress message.}
+}
+\value{
+A list with \code{trade_type}, \code{swap} (with a discounting engine),
+\code{index}, \code{curve_env}, \code{fixed_schedule}, \code{overnight_schedule},
+\code{effective}, \code{maturity}, \code{nominal}, \code{fixed_rate} and \code{float_spread}.
+}
 \description{
-Python-style OIS swap trade wrapper
+Convenience wrapper of \code{\link[=trade_ois_swap_GQH]{trade_ois_swap_GQH()}} with Python-style argument
+names. Conventions (calendar, leg tenors, payment lag, fixed day counter,
+overnight index) come from the currency and instrument of \code{curve_env}.
 }

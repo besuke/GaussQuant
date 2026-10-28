@@ -2,7 +2,7 @@
 % Please edit documentation in R/bond_analytics_GQL.R
 \name{bond_duration_GQL}
 \alias{bond_duration_GQL}
-\title{Bond Duration}
+\title{Bond duration at a given yield}
 \usage{
 bond_duration_GQL(
   bond,
@@ -12,6 +12,24 @@ bond_duration_GQL(
   frequency = "Annual"
 )
 }
+\arguments{
+\item{bond}{QuantLib bond.}
+
+\item{ytm}{Yield to maturity, decimal. \code{NULL} uses \code{\link[=bond_yield_GQL]{bond_yield_GQL()}}, which
+needs a pricing engine on the bond.}
+
+\item{day_counter}{QuantLib day counter of the yield.}
+
+\item{compounding}{Compounding name or QuantLib enum, for example
+\code{"Compounded"}, \code{"Simple"} or \code{"Continuous"}.}
+
+\item{frequency}{Compounding frequency name or QuantLib enum, for example
+\code{"Annual"} or \code{"Semiannual"}.}
+}
+\value{
+Numeric duration in years.
+}
 \description{
-Bond Duration
+Calls \code{BondFunctions_duration()} with QuantLib's default duration type
+(modified duration).
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/bond_analytics_GQL.R
 \name{bond_price_yield_curve_GQL}
 \alias{bond_price_yield_curve_GQL}
-\title{Bond Price-Yield Curve}
+\title{Clean price over a grid of yields}
 \usage{
 bond_price_yield_curve_GQL(
   bond,
@@ -14,6 +14,28 @@ bond_price_yield_curve_GQL(
   frequency = "Annual"
 )
 }
+\arguments{
+\item{bond}{QuantLib bond.}
+
+\item{ytm_center}{Centre of the grid, decimal. \code{NULL} uses
+\code{\link[=bond_yield_GQL]{bond_yield_GQL()}}, which needs a pricing engine on the bond.}
+
+\item{spread}{Half-width of the grid, decimal.}
+
+\item{n}{Number of grid points.}
+
+\item{day_counter}{QuantLib day counter of the yield.}
+
+\item{compounding}{Compounding name or QuantLib enum, for example
+\code{"Compounded"}, \code{"Simple"} or \code{"Continuous"}.}
+
+\item{frequency}{Compounding frequency name or QuantLib enum, for example
+\code{"Annual"} or \code{"Semiannual"}.}
+}
+\value{
+A tibble with \code{yield} and \code{clean_price}.
+}
 \description{
-Bond Price-Yield Curve
+Evaluates \code{\link[=bond_price_from_yield_GQL]{bond_price_from_yield_GQL()}} at \code{n} evenly spaced yields from
+\code{ytm_center - spread} to \code{ytm_center + spread}.
 }

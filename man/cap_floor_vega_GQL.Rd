@@ -2,10 +2,16 @@
 % Please edit documentation in R/interest_option_GQL.R
 \name{cap_floor_vega_GQL}
 \alias{cap_floor_vega_GQL}
-\title{Calculate cap/floor vega}
+\title{Cap or floor vega}
 \usage{
 cap_floor_vega_GQL(cap_floor)
 }
+\arguments{
+\item{cap_floor}{QuantLib \code{Cap} or \code{Floor} with a pricing engine.}
+}
+\value{
+Numeric vega, or \code{NA} if the engine does not provide it.
+}
 \description{
-Calculate cap/floor vega
+Reads the vega reported by the pricing engine.
 }

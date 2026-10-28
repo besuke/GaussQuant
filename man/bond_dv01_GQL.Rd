@@ -2,7 +2,7 @@
 % Please edit documentation in R/bond_analytics_GQL.R
 \name{bond_dv01_GQL}
 \alias{bond_dv01_GQL}
-\title{Bond DV01}
+\title{Bond DV01 by central difference}
 \usage{
 bond_dv01_GQL(
   bond,
@@ -13,6 +13,28 @@ bond_dv01_GQL(
   frequency = "Annual"
 )
 }
+\arguments{
+\item{bond}{QuantLib bond.}
+
+\item{ytm}{Yield to maturity, decimal. \code{NULL} uses \code{\link[=bond_yield_GQL]{bond_yield_GQL()}}, which
+needs a pricing engine on the bond.}
+
+\item{bp}{Yield bump, decimal (\code{1e-4} is one basis point).}
+
+\item{day_counter}{QuantLib day counter of the yield.}
+
+\item{compounding}{Compounding name or QuantLib enum, for example
+\code{"Compounded"}, \code{"Simple"} or \code{"Continuous"}.}
+
+\item{frequency}{Compounding frequency name or QuantLib enum, for example
+\code{"Annual"} or \code{"Semiannual"}.}
+}
+\value{
+Numeric price change per 100 of face amount.
+}
 \description{
-Dollar value of 1bp yield change.
+Price change for a one-basis-point yield move, computed as
+\code{(P(ytm - bp) - P(ytm + bp)) / 2} from clean prices per 100 of face amount.
+The defaults (Actual/360, compounded annually) differ from those of
+\code{\link[=bond_yield_GQL]{bond_yield_GQL()}}.
 }

@@ -2,10 +2,16 @@
 % Please edit documentation in R/interest_option_GQL.R
 \name{cap_floor_summary_GQL}
 \alias{cap_floor_summary_GQL}
-\title{Summarise a cap/floor}
+\title{Summarise a cap or floor}
 \usage{
 cap_floor_summary_GQL(cap_floor)
 }
+\arguments{
+\item{cap_floor}{QuantLib \code{Cap} or \code{Floor} with a pricing engine.}
+}
+\value{
+A tibble with \code{metric} (\code{"npv"}, \code{"vega"}) and \code{value}.
+}
 \description{
-Summarise a cap/floor
+Summarise a cap or floor
 }

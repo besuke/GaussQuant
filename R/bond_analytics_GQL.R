@@ -120,7 +120,19 @@ set_bond_pricing_engine_GQL <- function(bond, curve) {
 }
 
 
-#' Bond Yield
+#' Yield implied by a bond's pricing engine
+#'
+#' Solves for the yield that reproduces the clean price the bond's pricing
+#' engine computes, so the bond must have an engine set.
+#'
+#' @param bond QuantLib bond with a pricing engine.
+#' @param day_counter QuantLib day counter of the yield.
+#' @param compounding Compounding name or QuantLib enum, for example
+#'   `"Compounded"`, `"Simple"` or `"Continuous"`.
+#' @param frequency Compounding frequency name or QuantLib enum, for example
+#'   `"Annual"` or `"Semiannual"`.
+#'
+#' @return Numeric yield, decimal.
 #' @export
 bond_yield_GQL <- function(
   bond,
@@ -136,7 +148,21 @@ bond_yield_GQL <- function(
   )
 }
 
-#' Bond Duration
+#' Bond duration at a given yield
+#'
+#' Calls `BondFunctions_duration()` with QuantLib's default duration type
+#' (modified duration).
+#'
+#' @param bond QuantLib bond.
+#' @param ytm Yield to maturity, decimal. `NULL` uses [bond_yield_GQL()], which
+#'   needs a pricing engine on the bond.
+#' @param day_counter QuantLib day counter of the yield.
+#' @param compounding Compounding name or QuantLib enum, for example
+#'   `"Compounded"`, `"Simple"` or `"Continuous"`.
+#' @param frequency Compounding frequency name or QuantLib enum, for example
+#'   `"Annual"` or `"Semiannual"`.
+#'
+#' @return Numeric duration in years.
 #' @export
 bond_duration_GQL <- function(
   bond,
@@ -158,7 +184,18 @@ bond_duration_GQL <- function(
   )
 }
 
-#' Bond Convexity
+#' Bond convexity at a given yield
+#'
+#' @param bond QuantLib bond.
+#' @param ytm Yield to maturity, decimal. `NULL` uses [bond_yield_GQL()], which
+#'   needs a pricing engine on the bond.
+#' @param day_counter QuantLib day counter of the yield.
+#' @param compounding Compounding name or QuantLib enum, for example
+#'   `"Compounded"`, `"Simple"` or `"Continuous"`.
+#' @param frequency Compounding frequency name or QuantLib enum, for example
+#'   `"Annual"` or `"Semiannual"`.
+#'
+#' @return Numeric convexity.
 #' @export
 bond_convexity_GQL <- function(
   bond,
@@ -180,7 +217,14 @@ bond_convexity_GQL <- function(
   )
 }
 
-#' Bond Accrued Amount
+#' Bond accrued interest at settlement
+#'
+#' Accrued amount at the bond's settlement date for the current QuantLib
+#' evaluation date, in price units (per 100 of face amount).
+#'
+#' @param bond QuantLib bond.
+#'
+#' @return Numeric accrued amount.
 #' @export
 bond_accrued_GQL <- function(bond) {
   QuantLib::Bond_accruedAmount(bond)
@@ -203,8 +247,23 @@ bond_example_GQL <- function() {
   )
 }
 
-#' Bond Price-Yield Curve
+#' Clean price over a grid of yields
 #'
+#' Evaluates [bond_price_from_yield_GQL()] at `n` evenly spaced yields from
+#' `ytm_center - spread` to `ytm_center + spread`.
+#'
+#' @param bond QuantLib bond.
+#' @param ytm_center Centre of the grid, decimal. `NULL` uses
+#'   [bond_yield_GQL()], which needs a pricing engine on the bond.
+#' @param spread Half-width of the grid, decimal.
+#' @param n Number of grid points.
+#' @param day_counter QuantLib day counter of the yield.
+#' @param compounding Compounding name or QuantLib enum, for example
+#'   `"Compounded"`, `"Simple"` or `"Continuous"`.
+#' @param frequency Compounding frequency name or QuantLib enum, for example
+#'   `"Annual"` or `"Semiannual"`.
+#'
+#' @return A tibble with `yield` and `clean_price`.
 #' @export
 bond_price_yield_curve_GQL <- function(
   bond,
@@ -246,8 +305,19 @@ bond_price_yield_curve_GQL <- function(
     clean_price = price
   )
 }
-#' Bond Price from Yield
+#' Bond clean price from a yield
 #'
+#' @param bond QuantLib bond.
+#' @param ytm Yield to maturity, decimal.
+#' @param day_counter QuantLib day counter of the yield.
+#' @param compounding Compounding name or QuantLib enum, for example
+#'   `"Compounded"`, `"Simple"` or `"Continuous"`.
+#' @param frequency Compounding frequency name or QuantLib enum, for example
+#'   `"Annual"` or `"Semiannual"`.
+#' @param settlement_date Optional settlement date; defaults to the bond's
+#'   settlement date for the current evaluation date.
+#'
+#' @return Numeric clean price per 100 of face amount.
 #' @export
 bond_price_from_yield_GQL <- function(
   bond,
@@ -277,8 +347,21 @@ bond_price_from_yield_GQL <- function(
   }
 }
 
-#' Bond Yield from Clean Price
+#' Bond yield from a clean price
 #'
+#' Wraps the clean price in a QuantLib `BondPrice` and solves for the yield.
+#'
+#' @param bond QuantLib bond.
+#' @param clean_price Clean price per 100 of face amount.
+#' @param day_counter QuantLib day counter of the yield.
+#' @param compounding Compounding name or QuantLib enum, for example
+#'   `"Compounded"`, `"Simple"` or `"Continuous"`.
+#' @param frequency Compounding frequency name or QuantLib enum, for example
+#'   `"Annual"` or `"Semiannual"`.
+#' @param settlement_date Optional settlement date; defaults to the bond's
+#'   settlement date for the current evaluation date.
+#'
+#' @return Numeric yield, decimal.
 #' @export
 bond_yield_from_price_GQL <- function(
   bond,
@@ -312,10 +395,24 @@ bond_yield_from_price_GQL <- function(
     )
   }
 }
-#' Bond DV01
+#' Bond DV01 by central difference
 #'
-#' Dollar value of 1bp yield change.
+#' Price change for a one-basis-point yield move, computed as
+#' `(P(ytm - bp) - P(ytm + bp)) / 2` from clean prices per 100 of face amount.
+#' The defaults (Actual/360, compounded annually) differ from those of
+#' [bond_yield_GQL()].
 #'
+#' @param bond QuantLib bond.
+#' @param ytm Yield to maturity, decimal. `NULL` uses [bond_yield_GQL()], which
+#'   needs a pricing engine on the bond.
+#' @param bp Yield bump, decimal (`1e-4` is one basis point).
+#' @param day_counter QuantLib day counter of the yield.
+#' @param compounding Compounding name or QuantLib enum, for example
+#'   `"Compounded"`, `"Simple"` or `"Continuous"`.
+#' @param frequency Compounding frequency name or QuantLib enum, for example
+#'   `"Annual"` or `"Semiannual"`.
+#'
+#' @return Numeric price change per 100 of face amount.
 #' @export
 bond_dv01_GQL <- function(
   bond,
@@ -340,10 +437,22 @@ bond_dv01_GQL <- function(
   (price_down - price_up) / 2
 }
 
-#' Bond PV01
+#' Bond PV01 by central difference
 #'
-#' Present value change for 1bp yield change per face amount.
+#' Same calculation as [bond_dv01_GQL()]; kept under the PV01 name used in
+#' futures and hedging examples.
 #'
+#' @param bond QuantLib bond.
+#' @param ytm Yield to maturity, decimal. `NULL` uses [bond_yield_GQL()], which
+#'   needs a pricing engine on the bond.
+#' @param bp Yield bump, decimal (`1e-4` is one basis point).
+#' @param day_counter QuantLib day counter of the yield.
+#' @param compounding Compounding name or QuantLib enum, for example
+#'   `"Compounded"`, `"Simple"` or `"Continuous"`.
+#' @param frequency Compounding frequency name or QuantLib enum, for example
+#'   `"Annual"` or `"Semiannual"`.
+#'
+#' @return Numeric price change per 100 of face amount.
 #' @export
 bond_pv01_GQL <- function(
   bond,
@@ -472,8 +581,18 @@ bond_cashflow_table_GQL <- function(
   out
 }
 
-#' Create a zero coupon bond
+#' Create a zero-coupon bond priced on a discount curve
 #'
+#' Uses the US government bond calendar, three settlement days, the Following
+#' convention and redemption 100, with a discounting bond engine on
+#' `discount_curve`.
+#'
+#' @param discount_curve QuantLib yield term structure (not a handle).
+#' @param maturity Maturity date as an ISO string or R Date.
+#' @param issue Issue date as an ISO string or R Date.
+#' @param face Face amount.
+#'
+#' @return A QuantLib `ZeroCouponBond` with its pricing engine set.
 #' @export
 zero_coupon_bond_GQL <- function(
   discount_curve,
@@ -587,10 +706,21 @@ bond_coupon_info_GQL <- function(bond, as_of = eval_date_get_GQL()) {
         date == next_coupon_date
     )
 }
-#' Get bond settlement information
+#' Bond settlement and coupon timing information
 #'
+#' Finds the coupons immediately before and after `as_of` with
+#' [bond_coupon_info_GQL()] and reports the bond's settlement date,
+#' settlement days and accrued amount from QuantLib.
+#'
+#' @param bond QuantLib bond.
+#' @param as_of Reference date as an R Date or ISO string; defaults to the
+#'   QuantLib evaluation date.
+#'
+#' @return A one-row tibble with `evaluation_date`, `settlement_date`,
+#'   `settlement_days`, `previous_coupon_date`, `next_coupon_date`,
+#'   `days_since_previous_coupon`, `days_to_next_coupon` and
+#'   `accrued_amount`.
 #' @export
-#'
 bond_settlement_info_GQL <- function(bond, as_of = eval_date_get_GQL()) {
   requireNamespace("tibble", quietly = TRUE)
   requireNamespace("dplyr", quietly = TRUE)

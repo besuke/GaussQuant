@@ -1,7 +1,30 @@
 # interest_option_GQL.R
 
-#' Make a QuantLib interest-rate cap
+#' Make an interest-rate cap on flat curves
 #'
+#' Sets the QuantLib evaluation date to `valuation_date`, builds a
+#' forward-generated schedule with `tenor_months` periods, an Euribor floating
+#' leg forecast from a flat curve, and prices the cap with a Black cap/floor
+#' engine on a flat discount curve and flat volatility unless
+#' `pricing_engine` is given.
+#'
+#' @param notional Notional of every period.
+#' @param start_date,maturity_date Cap start and end dates.
+#' @param cap_rate Strike, decimal.
+#' @param valuation_date Valuation date; defaults to the QuantLib evaluation
+#'   date.
+#' @param tenor_months Length of each period and of the Euribor index, in
+#'   months.
+#' @param discount_rate Flat discount rate, decimal.
+#' @param forecast_rate Flat forecast rate for the index, decimal.
+#' @param volatility Flat Black volatility, decimal.
+#' @param day_counter Day counter of the curves, leg and engine.
+#' @param calendar Schedule calendar.
+#' @param convention Business-day convention of the schedule.
+#' @param pricing_engine Optional QuantLib pricing engine used instead of the
+#'   Black engine.
+#'
+#' @return A QuantLib `Cap` with its pricing engine set.
 #' @export
 make_cap_GQL <- function(
   notional,
@@ -46,8 +69,14 @@ make_cap_GQL <- function(
   cap
 }
 
-#' Make a QuantLib interest-rate floor
+#' Make an interest-rate floor on flat curves
 #'
+#' Same setup as [make_cap_GQL()] with a floor strike.
+#'
+#' @inheritParams make_cap_GQL
+#' @param floor_rate Strike, decimal.
+#'
+#' @return A QuantLib `Floor` with its pricing engine set.
 #' @export
 make_floor_GQL <- function(
   notional,
@@ -92,8 +121,11 @@ make_floor_GQL <- function(
   floor
 }
 
-#' Calculate cap/floor NPV
+#' Cap or floor NPV
 #'
+#' @param cap_floor QuantLib `Cap` or `Floor` with a pricing engine.
+#'
+#' @return Numeric NPV, or `NA` if QuantLib cannot compute it.
 #' @export
 cap_floor_npv_GQL <- function(cap_floor) {
   .cap_floor_value_GQL(
@@ -102,8 +134,13 @@ cap_floor_npv_GQL <- function(cap_floor) {
   )
 }
 
-#' Calculate cap/floor vega
+#' Cap or floor vega
 #'
+#' Reads the vega reported by the pricing engine.
+#'
+#' @param cap_floor QuantLib `Cap` or `Floor` with a pricing engine.
+#'
+#' @return Numeric vega, or `NA` if the engine does not provide it.
 #' @export
 cap_floor_vega_GQL <- function(cap_floor) {
   .cap_floor_value_GQL(
@@ -112,8 +149,12 @@ cap_floor_vega_GQL <- function(cap_floor) {
   )
 }
 
-#' Extract cap/floor optionlet prices
+#' Prices of the individual caplets or floorlets
 #'
+#' @param cap_floor QuantLib `Cap` or `Floor` with a pricing engine.
+#'
+#' @return A tibble with `optionlet` (position) and `price`; empty if the
+#'   engine does not report optionlet prices.
 #' @export
 cap_floor_optionlet_prices_GQL <- function(cap_floor) {
   requireNamespace("tibble", quietly = TRUE)
@@ -129,8 +170,11 @@ cap_floor_optionlet_prices_GQL <- function(cap_floor) {
   )
 }
 
-#' Summarise a cap/floor
+#' Summarise a cap or floor
 #'
+#' @param cap_floor QuantLib `Cap` or `Floor` with a pricing engine.
+#'
+#' @return A tibble with `metric` (`"npv"`, `"vega"`) and `value`.
 #' @export
 cap_floor_summary_GQL <- function(cap_floor) {
   requireNamespace("tibble", quietly = TRUE)

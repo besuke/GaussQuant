@@ -2,7 +2,7 @@
 % Please edit documentation in R/bond_analytics_GQL.R
 \name{bond_convexity_GQL}
 \alias{bond_convexity_GQL}
-\title{Bond Convexity}
+\title{Bond convexity at a given yield}
 \usage{
 bond_convexity_GQL(
   bond,
@@ -12,6 +12,23 @@ bond_convexity_GQL(
   frequency = "Annual"
 )
 }
+\arguments{
+\item{bond}{QuantLib bond.}
+
+\item{ytm}{Yield to maturity, decimal. \code{NULL} uses \code{\link[=bond_yield_GQL]{bond_yield_GQL()}}, which
+needs a pricing engine on the bond.}
+
+\item{day_counter}{QuantLib day counter of the yield.}
+
+\item{compounding}{Compounding name or QuantLib enum, for example
+\code{"Compounded"}, \code{"Simple"} or \code{"Continuous"}.}
+
+\item{frequency}{Compounding frequency name or QuantLib enum, for example
+\code{"Annual"} or \code{"Semiannual"}.}
+}
+\value{
+Numeric convexity.
+}
 \description{
-Bond Convexity
+Bond convexity at a given yield
 }

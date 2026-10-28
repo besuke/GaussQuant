@@ -2,7 +2,7 @@
 % Please edit documentation in R/bond_analytics_GQL.R
 \name{bond_price_from_yield_GQL}
 \alias{bond_price_from_yield_GQL}
-\title{Bond Price from Yield}
+\title{Bond clean price from a yield}
 \usage{
 bond_price_from_yield_GQL(
   bond,
@@ -13,6 +13,25 @@ bond_price_from_yield_GQL(
   settlement_date = NULL
 )
 }
+\arguments{
+\item{bond}{QuantLib bond.}
+
+\item{ytm}{Yield to maturity, decimal.}
+
+\item{day_counter}{QuantLib day counter of the yield.}
+
+\item{compounding}{Compounding name or QuantLib enum, for example
+\code{"Compounded"}, \code{"Simple"} or \code{"Continuous"}.}
+
+\item{frequency}{Compounding frequency name or QuantLib enum, for example
+\code{"Annual"} or \code{"Semiannual"}.}
+
+\item{settlement_date}{Optional settlement date; defaults to the bond's
+settlement date for the current evaluation date.}
+}
+\value{
+Numeric clean price per 100 of face amount.
+}
 \description{
-Bond Price from Yield
+Bond clean price from a yield
 }
