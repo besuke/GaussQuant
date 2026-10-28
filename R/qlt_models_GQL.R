@@ -178,25 +178,6 @@ survival_tbl_GQL <- function(default_curve_obj, n = 200) {
     )
 }
 
-#' parse cds tenor
-#'
-#' Moved from `QuantLib_tidy/R/bonds_basic/base08.R` (`parse_cds_tenor()`) without changing
-#' the calculation. Script-level constants and data are passed explicitly.
-#'
-#' @param x Arguments of the original helper.
-#' @return The value returned by the original QuantLib_tidy helper.
-#' @export
-parse_cds_tenor_GQL <- function(x) {
-  unit <- substring(x, nchar(x), nchar(x))
-  n <- as.integer(substring(x, 1, nchar(x) - 1))
-  switch(
-    unit,
-    M = period_months_GQL(n),
-    Y = period_years_GQL(n),
-    stop("Unsupported tenor: ", x)
-  )
-}
-
 #' price european call scenario
 #'
 #' Moved from `QuantLib_tidy/R/bonds_basic/base09.R` (`price_european_call_scenario()`) without changing
@@ -662,4 +643,3 @@ extract_hazard_tbl_GQL <- function(hazard_curve) {
     ) |>
     dplyr::select(date, hazard_rate)
 }
-

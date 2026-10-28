@@ -16,7 +16,8 @@ bond_futures_gross_basis_row_GQL(
   calendar = QuantLib::UnitedStates("GovernmentBond"),
   day_counter = QuantLib::ActualActual("Bond"),
   compounding = "Compounded",
-  frequency = "Semiannual"
+  frequency = "Semiannual",
+  bpv_method = c("pv01", "basis_point_value")
 )
 }
 \arguments{
@@ -43,6 +44,10 @@ bond_futures_gross_basis_row_GQL(
 \item{compounding}{QuantLib compounding convention or supported string.}
 
 \item{frequency}{QuantLib frequency convention or supported string.}
+
+\item{bpv_method}{\code{"pv01"} bumps the yield by one basis point in both
+directions (\code{bond_pv01_GQL()}). \code{"basis_point_value"} uses QuantLib's
+analytic \code{BondFunctions_basisPointValue()} at the market yield.}
 }
 \value{
 A one-row tibble with gross basis inputs and measures.

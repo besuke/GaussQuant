@@ -91,6 +91,15 @@ sofr_rate_helper_GQL <- function(
   tenor_unit,
   sofr
 ) {
+  if (identical(instrument_type, "deposit")) {
+    return(
+      QuantLib::DepositRateHelper(
+        quote_handle_GQL(rate),
+        sofr
+      )
+    )
+  }
+
   if (instrument_type != "spot_ois") {
     stop(
       "Unsupported SOFR helper type: ",
@@ -120,6 +129,7 @@ sofr_make_curve_GQL <- function(
   constructor <- switch(
     curve_type,
     log_cubic_discount = QuantLib::PiecewiseLogCubicDiscount,
+    log_linear_discount = QuantLib::PiecewiseLogLinearDiscount,
     flat_forward = QuantLib::PiecewiseFlatForward,
     stop(
       "Unsupported SOFR curve type: ",
@@ -151,7 +161,7 @@ sofr_make_curve_GQL <- function(
 build_sofr_curve_from_market_GQL <- function(
   quotes = bluegamma_sofr_quotes_GQL(),
   evaluation_date = "2026-09-10",
-  curve_type = c("log_cubic_discount", "flat_forward"),
+  curve_type = c("log_cubic_discount", "flat_forward", "log_linear_discount"),
   extrapolate = TRUE
 ) {
   curve_type <- match.arg(curve_type)

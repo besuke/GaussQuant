@@ -4,10 +4,22 @@
 \alias{curve_pillar_report_tbl_GQL}
 \title{curve pillar report tbl}
 \usage{
-curve_pillar_report_tbl_GQL(curve, helpers)
+curve_pillar_report_tbl_GQL(
+  curve,
+  helpers,
+  day_counter = QuantLib::Actual365Fixed(),
+  compounding = "Continuous",
+  frequency = "Annual"
+)
 }
 \arguments{
 \item{curve, helpers}{Arguments of the original helper.}
+
+\item{day_counter}{QuantLib day counter, or a list with one per helper.}
+
+\item{compounding}{Compounding name, or one per helper.}
+
+\item{frequency}{Frequency name used for the zero rates.}
 }
 \value{
 The value returned by the original QuantLib_tidy helper.

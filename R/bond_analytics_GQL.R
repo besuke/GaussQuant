@@ -760,7 +760,7 @@ bond_zspread_GQL <- function(
   frequency = "Annual",
   settlement_date = NULL
 ) {
-  if (!exists("BondFunctions_zSpread", mode = "function")) {
+  if (!exists("BondFunctions_zSpread", envir = asNamespace("QuantLib"), mode = "function")) {
     stop("QuantLib::BondFunctions_zSpread() is not available in this QuantLib build.")
   }
 
@@ -1491,6 +1491,9 @@ us_treasury_bond_GQL <- function(
 #' @param day_counter QuantLib day counter.
 #' @param compounding QuantLib compounding convention or supported string.
 #' @param frequency QuantLib frequency convention or supported string.
+#' @param bpv_method `"pv01"` bumps the yield by one basis point in both
+#'   directions (`bond_pv01_GQL()`). `"basis_point_value"` uses QuantLib's
+#'   analytic `BondFunctions_basisPointValue()` at the market yield.
 #'
 #' @return A one-row tibble with gross basis inputs and measures.
 #' @export
@@ -1506,8 +1509,10 @@ bond_futures_gross_basis_row_GQL <- function(
   calendar = QuantLib::UnitedStates("GovernmentBond"),
   day_counter = QuantLib::ActualActual("Bond"),
   compounding = "Compounded",
-  frequency = "Semiannual"
+  frequency = "Semiannual",
+  bpv_method = c("pv01", "basis_point_value")
 ) {
+  bpv_method <- match.arg(bpv_method)
   settlement_date_ql <- date_GQL(settlement_date)
 
   bond_bundle <- us_treasury_bond_GQL(
@@ -1523,13 +1528,20 @@ bond_futures_gross_basis_row_GQL <- function(
   ytm <- market_yield_pct / 100
 
   bpv_value <- tryCatch(
-    bond_pv01_GQL(
-      bond = bond_obj,
-      ytm = ytm,
-      day_counter = day_counter,
-      compounding = compounding,
-      frequency = frequency
-    ),
+    if (identical(bpv_method, "basis_point_value")) {
+      QuantLib::BondFunctions_basisPointValue(
+        bond_obj,
+        QuantLib::InterestRate(ytm, day_counter, compounding, frequency)
+      )
+    } else {
+      bond_pv01_GQL(
+        bond = bond_obj,
+        ytm = ytm,
+        day_counter = day_counter,
+        compounding = compounding,
+        frequency = frequency
+      )
+    },
     error = function(e) NA_real_
   )
 
@@ -1668,4 +1680,3 @@ bond_futures_net_basis_row_GQL <- function(
     implied_repo = implied_repo
   )
 }
-

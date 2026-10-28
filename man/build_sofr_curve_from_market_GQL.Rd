@@ -7,7 +7,7 @@
 build_sofr_curve_from_market_GQL(
   quotes = bluegamma_sofr_quotes_GQL(),
   evaluation_date = "2026-09-10",
-  curve_type = c("log_cubic_discount", "flat_forward"),
+  curve_type = c("log_cubic_discount", "flat_forward", "log_linear_discount"),
   extrapolate = TRUE
 )
 }
