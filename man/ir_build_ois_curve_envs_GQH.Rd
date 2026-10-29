@@ -4,7 +4,7 @@
 \alias{ir_build_ois_curve_envs_GQH}
 \title{Build OIS curve environments from quote data}
 \usage{
-ir_build_ois_curve_envs_GQH(quotes, trade_date = NULL, verbose = TRUE)
+ir_build_ois_curve_envs_GQH(quotes, trade_date = NULL, verbose = TRUE, ...)
 }
 \arguments{
 \item{quotes}{Data frame with as_of_date, currency, instrument, kind, tenor, and rate.}
@@ -12,6 +12,10 @@ ir_build_ois_curve_envs_GQH(quotes, trade_date = NULL, verbose = TRUE)
 \item{trade_date}{Optional trade date.}
 
 \item{verbose}{Whether to print progress messages.}
+
+\item{...}{Further arguments passed to \code{\link[=ir_build_ois_curve_GQH]{ir_build_ois_curve_GQH()}}, e.g.
+\code{reference = "evaluation"} so that a 1D deposit starting on the trade
+date is kept by the bootstrap.}
 }
 \value{
 Named list of curve environments.

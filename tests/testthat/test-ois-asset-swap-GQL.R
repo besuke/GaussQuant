@@ -225,3 +225,60 @@ test_that("AONIA and overnight deposits build and reprice", {
     "only the 1D tenor"
   )
 })
+
+test_that("A trade-date 1D deposit is kept only with an evaluation-date reference", {
+  skip_if_not_installed("QuantLib")
+
+  quotes <- tibble::tibble(
+    as_of_date = as.Date("2023-09-26"), currency = "USD", instrument = "SOFR",
+    kind = c("depo", rep("ois", 6)),
+    tenor = c("1D", "1M", "3M", "6M", "1Y", "2Y", "3Y"),
+    rate = c(0.0531, 0.0532, 0.0538, 0.0546, 0.0545, 0.0501, 0.0467)
+  )
+
+  settlement <- ir_build_ois_curve_envs_GQH(quotes, verbose = FALSE)[["USD::SOFR"]]
+  evaluation <- ir_build_ois_curve_envs_GQH(
+    quotes, verbose = FALSE, reference = "evaluation", max_quote_error_bp = 1e-6
+  )[["USD::SOFR"]]
+
+  expect_false(settlement$quote_repricing$used_in_bootstrap[1])
+  expect_true(all(evaluation$quote_repricing$used_in_bootstrap))
+  expect_lt(max(abs(evaluation$quote_repricing$quote_error_bp)), 1e-6)
+  expect_equal(evaluation$reference, "evaluation")
+})
+
+test_that("TONA O/N deposit starts on the trade date while OIS start at spot", {
+  skip_if_not_installed("QuantLib")
+
+  quotes <- tibble::tibble(
+    kind = c("overnight_deposit", "ois", "ois"),
+    tenor = c("1D", "1W", "1M"),
+    rate = c(-0.0000900, -0.0001261, -0.0001807)
+  )
+  curve <- ir_build_ois_curve_GQH(
+    quotes, "2022-08-19", "JPY",
+    verbose = FALSE, reference = "evaluation", max_quote_error_bp = 1e-6
+  )
+  rp <- curve$quote_repricing
+
+  expect_equal(as.character(rp$start_date), c("2022-08-19", "2022-08-23", "2022-08-23"))
+  expect_equal(as.character(rp$maturity_date[1]), "2022-08-22")
+  expect_true(all(rp$used_in_bootstrap))
+
+  spot_deposit <- ir_build_ois_curve_GQH(
+    dplyr::mutate(quotes, kind = c("depo", "ois", "ois")), "2022-08-19", "JPY", verbose = FALSE
+  )$quote_repricing
+  expect_equal(as.character(spot_deposit$start_date[1]), "2022-08-23")
+})
+
+test_that("Evaluation-date reference date stays fixed when the evaluation date moves", {
+  skip_if_not_installed("QuantLib")
+
+  quotes <- tibble::tibble(kind = "ois", tenor = c("1W", "1M", "1Y"), rate = c(0.001, 0.0012, 0.0015))
+  curve <- ir_build_ois_curve_GQH(quotes, "2022-08-19", "JPY", verbose = FALSE, reference = "evaluation")
+
+  set_eval_date_GQL("2022-08-25")
+  on.exit(set_eval_date_GQL("2022-08-19"))
+
+  expect_equal(QuantLib::Date_ISO(curve$curve$referenceDate()), "2022-08-19")
+})
