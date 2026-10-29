@@ -430,16 +430,93 @@ ois_daily_forward_table_GQH <- function(
         tryCatch(QuantLib::Sonia(handle), error = function(e) QuantLib::Sonia())
       }
     ),
+    "AUD::AONIA" = list(
+      currency = "AUD",
+      instrument = "AONIA",
+      calendar = QuantLib::Australia(),
+      day_counter = QuantLib::Actual365Fixed(),
+      fixing_days = 0L,
+      settlement_days = 1L,
+      index_builder = function(handle) {
+        tryCatch(QuantLib::Aonia(handle), error = function(e) QuantLib::Aonia())
+      }
+    ),
     stop("Unsupported OIS convention: ", key)
   )
 }
 
-.ir_make_ois_helper_GQH <- function(rate, tenor, settlement_days, index) {
+.ir_default_ois_instrument_GQH <- function(currency) {
+  currency <- toupper(trimws(currency))
+  instrument <- c(JPY = "TONA", USD = "SOFR", EUR = "ESTR", GBP = "SONIA", AUD = "AONIA")[currency]
+  if (is.na(instrument)) {
+    stop("No default OIS instrument for currency: ", currency, call. = FALSE)
+  }
+  unname(instrument)
+}
+
+#' OIS conventions by currency
+#'
+#' Returns the conventions used by [ir_build_ois_curve_GQH()] for each
+#' currency: the overnight index, the settlement days of the OIS helpers,
+#' and the fixing calendar and day counter of the index.
+#'
+#' @param currency Character vector of currency codes (JPY, USD, EUR, GBP, AUD).
+#'
+#' @return A tibble with one row per currency.
+#' @export
+ir_ois_convention_table_GQH <- function(currency = c("EUR", "USD", "JPY", "GBP")) {
+  purrr::map_dfr(
+    currency,
+    function(ccy) {
+      conv <- .ir_get_ois_convention_GQH(ccy, .ir_default_ois_instrument_GQH(ccy))
+      index <- conv$index_builder(QuantLib::YieldTermStructureHandle())
+
+      tibble::tibble(
+        currency = conv$currency,
+        instrument = conv$instrument,
+        index_name = index$name(),
+        settlement_days = conv$settlement_days,
+        fixing_calendar = index$fixingCalendar()$name(),
+        day_counter = index$dayCounter()$name()
+      )
+    }
+  )
+}
+
+.ir_make_ois_helper_GQH <- function(
+  rate,
+  tenor,
+  settlement_days,
+  index,
+  payment_lag = NULL,
+  payment_convention = NULL,
+  payment_frequency = NULL
+) {
+  if (is.null(payment_lag) && is.null(payment_convention) && is.null(payment_frequency)) {
+    return(
+      QuantLib::OISRateHelper(
+        as.integer(settlement_days),
+        period_GQL(tenor),
+        quote_handle_GQL(rate),
+        index
+      )
+    )
+  }
+
+  frequency <- .quantlib_fun_GQH(
+    paste0("Frequency_", if (is.null(payment_frequency)) "Annual" else payment_frequency, "_get")
+  )()
+
   QuantLib::OISRateHelper(
     as.integer(settlement_days),
     period_GQL(tenor),
     quote_handle_GQL(rate),
-    index
+    index,
+    QuantLib::YieldTermStructureHandle(),
+    FALSE,
+    as.integer(if (is.null(payment_lag)) 0L else payment_lag),
+    if (is.null(payment_convention)) "Following" else payment_convention,
+    frequency
   )
 }
 
@@ -466,23 +543,62 @@ ois_daily_forward_table_GQH <- function(
 
 #' Build one OIS curve environment
 #'
-#' @param curve_data Data frame with kind, tenor, and rate.
-#' @param trade_date Trade date.
-#' @param currency Currency code.
-#' @param instrument Instrument name.
-#' @param verbose Whether to print progress messages.
+#' Bootstraps an OIS discount curve from OIS par quotes (and optional
+#' deposits) for JPY (TONA), USD (SOFR), EUR (ESTR), GBP (SONIA) or AUD
+#' (AONIA). The
+#' overnight index returned in `index` / `overnight_index` forecasts from the
+#' same curve, so the result can be passed to [ois_asset_swap_GQL()].
 #'
-#' @return A curve environment list containing curve, curve_handle, index, and metadata.
+#' The defaults reproduce the original behaviour: log-linear discount
+#' factors, the settlement date as reference date, and QuantLib's default
+#' OIS helper conventions. Set `payment_lag`, `payment_convention` or
+#' `payment_frequency` to build the helpers with explicit conventions.
+#'
+#' @param curve_data Data frame with kind, tenor, and rate (decimal, e.g.
+#'   0.0425). kind is "ois" (OIS par quote), "depo" (term deposit with the
+#'   convention's fixing days) or "overnight_deposit" (1D deposit on the
+#'   overnight index itself).
+#' @param trade_date Trade (evaluation) date.
+#' @param currency Currency code.
+#' @param instrument Instrument name. `NULL` uses the currency's default
+#'   (TONA, SOFR, ESTR, SONIA).
+#' @param verbose Whether to print progress messages.
+#' @param curve_type Interpolation: "log_linear_discount" (piecewise flat
+#'   forward), "log_cubic_discount" or "flat_forward".
+#' @param reference "settlement" uses the spot date as reference date;
+#'   "evaluation" uses the trade date.
+#' @param payment_frequency OIS helper payment frequency, e.g. "Annual".
+#' @param payment_lag OIS helper payment lag in business days.
+#' @param payment_convention OIS helper payment convention, e.g.
+#'   "ModifiedFollowing".
+#' @param max_quote_error_bp If not `NULL`, stop when any helper reprices its
+#'   quote with an absolute error above this many basis points.
+#'
+#' @return A curve environment list containing curve, curve_handle, index,
+#'   overnight_index, calendar, day_counter, quote_repricing and metadata.
+#'   `quote_repricing` holds each helper's maturity and pillar date, whether
+#'   the bootstrap used it (helpers whose pillar is not after the reference
+#'   date are dropped), the quote implied by the curve and its error in basis
+#'   points (`NA` for dropped helpers).
 #' @export
 ir_build_ois_curve_GQH <- function(
   curve_data,
   trade_date,
   currency,
-  instrument,
-  verbose = TRUE
+  instrument = NULL,
+  verbose = TRUE,
+  curve_type = c("log_linear_discount", "log_cubic_discount", "flat_forward"),
+  reference = c("settlement", "evaluation"),
+  payment_frequency = NULL,
+  payment_lag = NULL,
+  payment_convention = NULL,
+  max_quote_error_bp = NULL
 ) {
+  curve_type <- match.arg(curve_type)
+  reference <- match.arg(reference)
   set_eval_date_GQL(trade_date)
 
+  if (is.null(instrument)) instrument <- .ir_default_ois_instrument_GQH(currency)
   conv <- .ir_get_ois_convention_GQH(currency, instrument)
 
   trade_date_ql <- date_GQL(trade_date)
@@ -504,6 +620,10 @@ ir_build_ois_curve_GQH <- function(
     stop("curve_data contains non-numeric or missing rate values")
   }
 
+  if (anyDuplicated(curve_data2$tenor)) {
+    stop("curve_data contains duplicate tenors")
+  }
+
   helper_list <- purrr::pmap(
     curve_data2,
     function(kind, tenor, rate) {
@@ -512,8 +632,14 @@ ir_build_ois_curve_GQH <- function(
           rate = rate,
           tenor = tenor,
           settlement_days = conv$settlement_days,
-          index = index_obj
+          index = index_obj,
+          payment_lag = payment_lag,
+          payment_convention = payment_convention,
+          payment_frequency = payment_frequency
         )
+      } else if (kind == "overnight_deposit") {
+        if (tenor != "1D") stop("overnight_deposit supports only the 1D tenor")
+        QuantLib::DepositRateHelper(quote_handle_GQL(rate), index_obj)
       } else if (kind == "depo") {
         .ir_make_deposit_helper_GQH(
           rate = rate,
@@ -531,23 +657,69 @@ ir_build_ois_curve_GQH <- function(
   helper_vec <- QuantLib::RateHelperVector()
   purrr::walk(helper_list, ~ QuantLib::RateHelperVector_append(helper_vec, .x))
 
-  curve_obj <- QuantLib::PiecewiseLogLinearDiscount(
-    settle_date,
-    helper_vec,
-    conv$day_counter
+  constructor <- switch(curve_type,
+    log_linear_discount = QuantLib::PiecewiseLogLinearDiscount,
+    log_cubic_discount = QuantLib::PiecewiseLogCubicDiscount,
+    flat_forward = QuantLib::PiecewiseFlatForward
   )
+  fixing_calendar <- index_obj$fixingCalendar()
+
+  curve_obj <- if (reference == "settlement") {
+    constructor(settle_date, helper_vec, conv$day_counter)
+  } else {
+    constructor(0L, fixing_calendar, helper_vec, conv$day_counter)
+  }
 
   tryCatch(QuantLib::TermStructure_enableExtrapolation(curve_obj), error = function(e) NULL)
   QuantLib::RelinkableYieldTermStructureHandle_linkTo(curve_handle, curve_obj)
 
+  # Evaluating the curve runs the bootstrap, which attaches it to the helpers.
+  terminal_df <- as.numeric(curve_obj$discount(curve_obj$maxDate()))
+  if (!is.finite(terminal_df) || terminal_df <= 0) {
+    stop("OIS curve bootstrap produced an invalid discount factor")
+  }
+
+  pillar_dates <- purrr::map_chr(helper_list, function(h) QuantLib::Date_ISO(h$pillarDate()))
+  if (anyDuplicated(pillar_dates)) {
+    stop("curve_data produces duplicate pillar dates (e.g. 12M and 1Y)")
+  }
+
+  # Helpers whose pillar is not after the reference date are dropped by the
+  # bootstrap; they are reported with used_in_bootstrap = FALSE and NA errors.
+  reference_date <- as.Date(QuantLib::Date_ISO(curve_obj$referenceDate()))
+  quote_repricing <- curve_data2 |>
+    dplyr::mutate(
+      maturity_date = as.Date(purrr::map_chr(helper_list, function(h) QuantLib::Date_ISO(h$maturityDate()))),
+      pillar_date = as.Date(pillar_dates),
+      used_in_bootstrap = pillar_date > reference_date,
+      implied_rate = purrr::map2_dbl(helper_list, used_in_bootstrap, function(h, used) {
+        if (used) as.numeric(h$impliedQuote()) else NA_real_
+      }),
+      quote_error_bp = (implied_rate - rate) * 1e4
+    )
+
+  used_error_bp <- quote_repricing$quote_error_bp[quote_repricing$used_in_bootstrap]
+  if (!is.null(max_quote_error_bp) &&
+      (!length(used_error_bp) || any(!is.finite(used_error_bp)) ||
+       max(abs(used_error_bp)) > max_quote_error_bp)) {
+    stop("OIS curve does not reprice its quotes within ", max_quote_error_bp, " bp")
+  }
+
   out <- list(
     trade_date = as.Date(trade_date),
+    evaluation_date = as.character(as.Date(trade_date)),
     currency = toupper(trimws(currency)),
     instrument = toupper(trimws(instrument)),
     settle_date = as_r_date_GQH(settle_date),
     curve = curve_obj,
     curve_handle = curve_handle,
-    index = index_obj
+    index = index_obj,
+    overnight_index = index_obj,
+    calendar = fixing_calendar,
+    day_counter = conv$day_counter,
+    curve_type = curve_type,
+    reference = reference,
+    quote_repricing = quote_repricing
   )
 
   .ir_msg_GQH(
