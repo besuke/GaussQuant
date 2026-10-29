@@ -20,9 +20,12 @@ ir_build_ois_curve_GQH(
 }
 \arguments{
 \item{curve_data}{Data frame with kind, tenor, and rate (decimal, e.g.
-0.0425). kind is "ois" (OIS par quote), "depo" (term deposit with the
-convention's fixing days) or "overnight_deposit" (1D deposit on the
-overnight index itself).}
+0.0425). kind is "ois" (OIS par quote, starting after the convention's
+settlement days), "depo" (term deposit starting after the convention's
+fixing days, e.g. spot-start for JPY) or "overnight_deposit" (O/N
+deposit on the overnight index, from the trade date to the next business
+day). An O/N deposit ends before the OIS spot date, so use it with
+\code{reference = "evaluation"}.}
 
 \item{trade_date}{Trade (evaluation) date.}
 
@@ -37,7 +40,8 @@ overnight index itself).}
 forward), "log_cubic_discount" or "flat_forward".}
 
 \item{reference}{"settlement" uses the spot date as reference date;
-"evaluation" uses the trade date.}
+"evaluation" uses the trade date. Either way the reference is a fixed
+date: advancing the global evaluation date later does not move the curve.}
 
 \item{payment_frequency}{OIS helper payment frequency, e.g. "Annual".}
 
@@ -52,7 +56,7 @@ quote with an absolute error above this many basis points.}
 \value{
 A curve environment list containing curve, curve_handle, index,
 overnight_index, calendar, day_counter, quote_repricing and metadata.
-\code{quote_repricing} holds each helper's maturity and pillar date, whether
+\code{quote_repricing} holds each helper's start, maturity and pillar date, whether
 the bootstrap used it (helpers whose pillar is not after the reference
 date are dropped), the quote implied by the curve and its error in basis
 points (\code{NA} for dropped helpers).

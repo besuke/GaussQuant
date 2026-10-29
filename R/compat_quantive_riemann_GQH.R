@@ -555,9 +555,12 @@ ir_ois_convention_table_GQH <- function(currency = c("EUR", "USD", "JPY", "GBP")
 #' `payment_frequency` to build the helpers with explicit conventions.
 #'
 #' @param curve_data Data frame with kind, tenor, and rate (decimal, e.g.
-#'   0.0425). kind is "ois" (OIS par quote), "depo" (term deposit with the
-#'   convention's fixing days) or "overnight_deposit" (1D deposit on the
-#'   overnight index itself).
+#'   0.0425). kind is "ois" (OIS par quote, starting after the convention's
+#'   settlement days), "depo" (term deposit starting after the convention's
+#'   fixing days, e.g. spot-start for JPY) or "overnight_deposit" (O/N
+#'   deposit on the overnight index, from the trade date to the next business
+#'   day). An O/N deposit ends before the OIS spot date, so use it with
+#'   `reference = "evaluation"`.
 #' @param trade_date Trade (evaluation) date.
 #' @param currency Currency code.
 #' @param instrument Instrument name. `NULL` uses the currency's default
@@ -566,7 +569,8 @@ ir_ois_convention_table_GQH <- function(currency = c("EUR", "USD", "JPY", "GBP")
 #' @param curve_type Interpolation: "log_linear_discount" (piecewise flat
 #'   forward), "log_cubic_discount" or "flat_forward".
 #' @param reference "settlement" uses the spot date as reference date;
-#'   "evaluation" uses the trade date.
+#'   "evaluation" uses the trade date. Either way the reference is a fixed
+#'   date: advancing the global evaluation date later does not move the curve.
 #' @param payment_frequency OIS helper payment frequency, e.g. "Annual".
 #' @param payment_lag OIS helper payment lag in business days.
 #' @param payment_convention OIS helper payment convention, e.g.
@@ -576,7 +580,7 @@ ir_ois_convention_table_GQH <- function(currency = c("EUR", "USD", "JPY", "GBP")
 #'
 #' @return A curve environment list containing curve, curve_handle, index,
 #'   overnight_index, calendar, day_counter, quote_repricing and metadata.
-#'   `quote_repricing` holds each helper's maturity and pillar date, whether
+#'   `quote_repricing` holds each helper's start, maturity and pillar date, whether
 #'   the bootstrap used it (helpers whose pillar is not after the reference
 #'   date are dropped), the quote implied by the curve and its error in basis
 #'   points (`NA` for dropped helpers).
@@ -664,10 +668,12 @@ ir_build_ois_curve_GQH <- function(
   )
   fixing_calendar <- index_obj$fixingCalendar()
 
+  # Both references are fixed dates, so the curve does not move when the
+  # global evaluation date is later advanced (e.g. to re-value after fixings).
   curve_obj <- if (reference == "settlement") {
     constructor(settle_date, helper_vec, conv$day_counter)
   } else {
-    constructor(0L, fixing_calendar, helper_vec, conv$day_counter)
+    constructor(trade_date_ql, helper_vec, conv$day_counter)
   }
 
   tryCatch(QuantLib::TermStructure_enableExtrapolation(curve_obj), error = function(e) NULL)
@@ -689,6 +695,7 @@ ir_build_ois_curve_GQH <- function(
   reference_date <- as.Date(QuantLib::Date_ISO(curve_obj$referenceDate()))
   quote_repricing <- curve_data2 |>
     dplyr::mutate(
+      start_date = as.Date(purrr::map_chr(helper_list, function(h) QuantLib::Date_ISO(h$earliestDate()))),
       maturity_date = as.Date(purrr::map_chr(helper_list, function(h) QuantLib::Date_ISO(h$maturityDate()))),
       pillar_date = as.Date(pillar_dates),
       used_in_bootstrap = pillar_date > reference_date,
@@ -737,13 +744,17 @@ ir_build_ois_curve_GQH <- function(
 #' @param quotes Data frame with as_of_date, currency, instrument, kind, tenor, and rate.
 #' @param trade_date Optional trade date.
 #' @param verbose Whether to print progress messages.
+#' @param ... Further arguments passed to [ir_build_ois_curve_GQH()], e.g.
+#'   `reference = "evaluation"` so that a 1D deposit starting on the trade
+#'   date is kept by the bootstrap.
 #'
 #' @return Named list of curve environments.
 #' @export
 ir_build_ois_curve_envs_GQH <- function(
   quotes,
   trade_date = NULL,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 ) {
   required_cols <- c("as_of_date", "currency", "instrument", "kind", "tenor", "rate")
   missing_cols <- setdiff(required_cols, names(quotes))
@@ -793,7 +804,8 @@ ir_build_ois_curve_envs_GQH <- function(
         trade_date = trade_date,
         currency = currency,
         instrument = instrument,
-        verbose = verbose
+        verbose = verbose,
+        ...
       )
     }
   )
