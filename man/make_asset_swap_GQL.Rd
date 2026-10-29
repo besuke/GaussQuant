@@ -58,3 +58,8 @@ This is a thin factory wrapper around QuantLib AssetSwap.
 The floating index can be supplied either as a QuantLib IborIndex object
 or as a supported index name such as "Euribor6M".
 }
+\details{
+The floating leg pays IBOR-type term-rate coupons. For an asset swap
+against a daily-compounded overnight rate (ESTR, SOFR, TONA, SONIA), use
+\code{\link[=ois_asset_swap_GQL]{ois_asset_swap_GQL()}} instead.
+}

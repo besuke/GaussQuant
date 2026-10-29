@@ -445,6 +445,10 @@ make_vanilla_swap_from_trade_GQL <- function(
 #' The floating index can be supplied either as a QuantLib IborIndex object
 #' or as a supported index name such as "Euribor6M".
 #'
+#' The floating leg pays IBOR-type term-rate coupons. For an asset swap
+#' against a daily-compounded overnight rate (ESTR, SOFR, TONA, SONIA), use
+#' [ois_asset_swap_GQL()] instead.
+#'
 #' @param bond QuantLib bond object.
 #' @param clean_price Bond clean price.
 #' @param floating_schedule QuantLib Schedule object for the floating leg.

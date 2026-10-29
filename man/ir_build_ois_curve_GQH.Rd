@@ -8,24 +8,65 @@ ir_build_ois_curve_GQH(
   curve_data,
   trade_date,
   currency,
-  instrument,
-  verbose = TRUE
+  instrument = NULL,
+  verbose = TRUE,
+  curve_type = c("log_linear_discount", "log_cubic_discount", "flat_forward"),
+  reference = c("settlement", "evaluation"),
+  payment_frequency = NULL,
+  payment_lag = NULL,
+  payment_convention = NULL,
+  max_quote_error_bp = NULL
 )
 }
 \arguments{
-\item{curve_data}{Data frame with kind, tenor, and rate.}
+\item{curve_data}{Data frame with kind, tenor, and rate (decimal, e.g.
+0.0425). kind is "ois" (OIS par quote), "depo" (term deposit with the
+convention's fixing days) or "overnight_deposit" (1D deposit on the
+overnight index itself).}
 
-\item{trade_date}{Trade date.}
+\item{trade_date}{Trade (evaluation) date.}
 
 \item{currency}{Currency code.}
 
-\item{instrument}{Instrument name.}
+\item{instrument}{Instrument name. \code{NULL} uses the currency's default
+(TONA, SOFR, ESTR, SONIA).}
 
 \item{verbose}{Whether to print progress messages.}
+
+\item{curve_type}{Interpolation: "log_linear_discount" (piecewise flat
+forward), "log_cubic_discount" or "flat_forward".}
+
+\item{reference}{"settlement" uses the spot date as reference date;
+"evaluation" uses the trade date.}
+
+\item{payment_frequency}{OIS helper payment frequency, e.g. "Annual".}
+
+\item{payment_lag}{OIS helper payment lag in business days.}
+
+\item{payment_convention}{OIS helper payment convention, e.g.
+"ModifiedFollowing".}
+
+\item{max_quote_error_bp}{If not \code{NULL}, stop when any helper reprices its
+quote with an absolute error above this many basis points.}
 }
 \value{
-A curve environment list containing curve, curve_handle, index, and metadata.
+A curve environment list containing curve, curve_handle, index,
+overnight_index, calendar, day_counter, quote_repricing and metadata.
+\code{quote_repricing} holds each helper's maturity and pillar date, whether
+the bootstrap used it (helpers whose pillar is not after the reference
+date are dropped), the quote implied by the curve and its error in basis
+points (\code{NA} for dropped helpers).
 }
 \description{
-Build one OIS curve environment
+Bootstraps an OIS discount curve from OIS par quotes (and optional
+deposits) for JPY (TONA), USD (SOFR), EUR (ESTR), GBP (SONIA) or AUD
+(AONIA). The
+overnight index returned in \code{index} / \code{overnight_index} forecasts from the
+same curve, so the result can be passed to \code{\link[=ois_asset_swap_GQL]{ois_asset_swap_GQL()}}.
+}
+\details{
+The defaults reproduce the original behaviour: log-linear discount
+factors, the settlement date as reference date, and QuantLib's default
+OIS helper conventions. Set \code{payment_lag}, \code{payment_convention} or
+\code{payment_frequency} to build the helpers with explicit conventions.
 }
